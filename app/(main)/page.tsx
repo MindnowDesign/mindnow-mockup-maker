@@ -1,5 +1,8 @@
 import Image from "next/image";
 
+import { ProjectProductCard } from "@/components/project-product-card";
+import { StartFromScratchCard } from "@/components/start-from-scratch-card";
+
 /** Hero visual — abstract studio-style artwork (Screenhance-like mood). */
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1920&q=85&auto=format&fit=crop";
@@ -62,15 +65,10 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="flex min-h-[140px] flex-col items-center justify-center rounded-xl border border-dashed border-border/80 bg-muted/20 px-6 py-8 text-center">
-              <p className="text-sm font-medium text-muted-foreground">
-                No projects yet
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground/80">
-                Create a project to see it listed here.
-              </p>
-            </div>
+          <div className="mt-10 grid items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <StartFromScratchCard aria-label="Create new project" />
+            <ProjectProductCard title="Project Name" visualCount={4} />
+            <ProjectProductCard title="Project Name" visualCount={12} />
           </div>
         </section>
       </div>
