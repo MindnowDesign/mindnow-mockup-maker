@@ -1,11 +1,11 @@
 import Image from "next/image";
 
 import { ProjectProductCard } from "@/components/project-product-card";
+import { RecentVisualCard } from "@/components/recent-visual-card";
 import { StartFromScratchCard } from "@/components/start-from-scratch-card";
 
-/** Hero visual — abstract studio-style artwork (Screenhance-like mood). */
-const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1920&q=85&auto=format&fit=crop";
+/** Hero — `public/images/hero_image.png`. */
+const HERO_IMAGE = "/images/hero_image.png";
 
 export default function Home() {
   return (
@@ -16,6 +16,7 @@ export default function Home() {
           alt=""
           fill
           priority
+          unoptimized
           className="object-cover object-center"
           sizes="100vw"
         />
@@ -25,9 +26,12 @@ export default function Home() {
         />
       </header>
 
-      <div className="mx-auto w-full max-w-6xl flex-1 space-y-16 px-6 py-10 md:px-10">
-        <section aria-labelledby="recent-visuals-heading">
-          <div className="flex flex-col gap-2 border-b border-border/60 pb-8">
+      <div className="w-full flex-1 space-y-[72px] px-[72px] py-10">
+        <section
+          aria-labelledby="recent-visuals-heading"
+          className="flex flex-col gap-8"
+        >
+          <div className="flex flex-col gap-2">
             <h1
               id="recent-visuals-heading"
               className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
@@ -39,20 +43,31 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="flex min-h-[140px] flex-col items-center justify-center rounded-xl border border-dashed border-border/80 bg-muted/20 px-6 py-8 text-center">
-              <p className="text-sm font-medium text-muted-foreground">
-                No recent visuals
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground/80">
-                Generate or upload visuals to see them in this list.
-              </p>
-            </div>
+          <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <RecentVisualCard
+              title="Hero mockup"
+              editedLabel="Edited 1 hour ago"
+            />
+            <RecentVisualCard
+              title="Checkout flow"
+              editedLabel="Edited yesterday"
+            />
+            <RecentVisualCard
+              title="Settings panel"
+              editedLabel="Edited 3 days ago"
+            />
+            <RecentVisualCard
+              title="Onboarding tour"
+              editedLabel="Edited last week"
+            />
           </div>
         </section>
 
-        <section aria-labelledby="projects-heading">
-          <div className="flex flex-col gap-2 border-b border-border/60 pb-8">
+        <section
+          aria-labelledby="projects-heading"
+          className="flex flex-col gap-8"
+        >
+          <div className="flex flex-col gap-2">
             <h2
               id="projects-heading"
               className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
@@ -65,7 +80,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="mt-10 grid items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <StartFromScratchCard aria-label="Create new project" />
             <ProjectProductCard title="Project Name" visualCount={4} />
             <ProjectProductCard title="Project Name" visualCount={12} />

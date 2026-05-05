@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, ChevronUp, Home, Search } from "lucide-react";
+import { ChevronDown, ChevronUp, Folder, Home, Search } from "lucide-react";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
@@ -59,6 +59,7 @@ export function CatalystShell({
   const pathname = usePathname();
   const isHome = pathname === "/";
   const isSearch = pathname === "/search";
+  const isProjects = pathname === "/projects";
   const isAccount = pathname === "/account";
   const initials = getInitials(user.firstName, user.lastName);
 
@@ -119,6 +120,10 @@ export function CatalystShell({
               <SidebarItem href="/" current={isHome}>
                 <Home className="size-5 shrink-0" strokeWidth={1.75} />
                 <SidebarLabel>Home</SidebarLabel>
+              </SidebarItem>
+              <SidebarItem href="/projects" current={isProjects}>
+                <Folder className="size-5 shrink-0" strokeWidth={1.75} />
+                <SidebarLabel>Projects</SidebarLabel>
               </SidebarItem>
             </SidebarSection>
           </SidebarBody>

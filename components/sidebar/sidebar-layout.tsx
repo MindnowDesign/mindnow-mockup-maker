@@ -22,14 +22,14 @@ export function SidebarLayout({
   return (
     <div
       className={cn(
-        "flex min-h-dvh w-full flex-col bg-zinc-900 lg:flex-row",
+        "flex h-dvh max-h-dvh min-h-0 w-full flex-col overflow-hidden bg-zinc-900 lg:flex-row",
         className
       )}
     >
       {sidebar}
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         {navbar}
-        <main className="min-h-dvh min-w-0 flex-1 border-zinc-800 bg-zinc-950 lg:border-l">
+        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto border-zinc-800 bg-zinc-950 lg:border-l">
           {children}
         </main>
       </div>

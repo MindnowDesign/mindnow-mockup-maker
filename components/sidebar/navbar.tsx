@@ -7,7 +7,7 @@ export function Navbar({ className, ...props }: ComponentProps<"nav">) {
   return (
     <nav
       className={cn(
-        "flex items-center gap-2 border-b border-zinc-800 bg-zinc-900 px-4 py-3 lg:hidden",
+        "flex shrink-0 items-center gap-2 border-b border-zinc-800 bg-zinc-900 px-4 py-3 lg:hidden",
         className
       )}
       {...props}
