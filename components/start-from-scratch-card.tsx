@@ -1,24 +1,26 @@
 import { Plus } from "lucide-react";
+import Link from "next/link";
 import type { ComponentProps } from "react";
 
 import { cn } from "@/lib/utils";
 
-type StartFromScratchCardProps = Omit<
-  ComponentProps<"button">,
-  "children" | "type"
->;
+type StartFromScratchCardProps = Omit<ComponentProps<typeof Link>, "href"> & {
+  /** Defaults to `/projects/new`. */
+  href?: ComponentProps<typeof Link>["href"];
+};
 
 /**
  * Empty-state tile: dashed card with plus icon and “Create new project” label.
- * Use in the same grid as project cards with `items-stretch`; fills cell height (`h-full`).
+ * Navigates to the new-project workspace by default. Use in the same grid as project cards with `items-stretch`; fills cell height (`h-full`).
  */
 export function StartFromScratchCard({
   className,
+  href = "/projects/new",
   ...props
 }: StartFromScratchCardProps) {
   return (
-    <button
-      type="button"
+    <Link
+      href={href}
       {...props}
       className={cn(
         "group flex h-full min-h-0 w-full cursor-pointer flex-col items-center justify-center gap-3 self-stretch rounded-2xl border-2 border-dashed px-6 py-10 text-center transition-colors",
@@ -35,6 +37,6 @@ export function StartFromScratchCard({
       <span className="text-base font-semibold tracking-tight text-foreground">
         Create new project
       </span>
-    </button>
+    </Link>
   );
 }

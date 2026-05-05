@@ -1,8 +1,7 @@
 import Image from "next/image";
 
-import { ProjectProductCard } from "@/components/project-product-card";
+import { ProjectCardsGrid } from "@/components/project-cards-grid";
 import { RecentVisualCard } from "@/components/recent-visual-card";
-import { StartFromScratchCard } from "@/components/start-from-scratch-card";
 
 /** Hero — `public/images/hero_image.png`. */
 const HERO_IMAGE = "/images/hero_image.png";
@@ -80,11 +79,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <StartFromScratchCard aria-label="Create new project" />
-            <ProjectProductCard title="Project Name" visualCount={4} />
-            <ProjectProductCard title="Project Name" visualCount={12} />
-          </div>
+          <ProjectCardsGrid />
         </section>
       </div>
     </div>
