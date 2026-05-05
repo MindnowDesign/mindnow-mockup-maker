@@ -10,7 +10,12 @@ import {
 } from "react";
 import { usePathname } from "next/navigation";
 
-import { getWorkspaceTitle, isProjectWorkspacePath } from "@/lib/project-workspace";
+import { getSavedProject } from "@/lib/saved-projects";
+import {
+  getProjectsWorkspaceSegment,
+  getWorkspaceTitle,
+  isProjectWorkspacePath,
+} from "@/lib/project-workspace";
 
 type ProjectWorkspaceTitleContextValue = {
   title: string;
@@ -20,16 +25,29 @@ type ProjectWorkspaceTitleContextValue = {
 const ProjectWorkspaceTitleContext =
   createContext<ProjectWorkspaceTitleContextValue | null>(null);
 
+function initialTitleForPath(pathname: string): string {
+  if (!isProjectWorkspacePath(pathname)) return "";
+  const segment = getProjectsWorkspaceSegment(pathname);
+  if (!segment || segment === "new") return getWorkspaceTitle(pathname);
+  if (typeof window === "undefined") return getWorkspaceTitle(pathname);
+  const saved = getSavedProject(segment);
+  return saved?.title?.trim() || getWorkspaceTitle(pathname);
+}
+
 export function ProjectWorkspaceTitleProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const [title, setTitle] = useState(() =>
-    isProjectWorkspacePath(pathname) ? getWorkspaceTitle(pathname) : ""
-  );
+  const [title, setTitle] = useState(() => initialTitleForPath(pathname));
 
   useEffect(() => {
-    if (isProjectWorkspacePath(pathname)) {
+    if (!isProjectWorkspacePath(pathname)) return;
+    const segment = getProjectsWorkspaceSegment(pathname);
+    if (!segment) return;
+    if (segment === "new") {
       setTitle(getWorkspaceTitle(pathname));
+      return;
     }
+    const saved = getSavedProject(segment);
+    setTitle(saved?.title?.trim() || getWorkspaceTitle(pathname));
   }, [pathname]);
 
   const value = useMemo(() => ({ title, setTitle }), [title]);
