@@ -17,6 +17,8 @@ export type MockupMediaItem = {
   id: string;
   kind: "image" | "video";
   url: string;
+  /** User-editable name shown above the canvas for this visual. */
+  label?: string;
 };
 
 type MockupMediaState = {
@@ -35,9 +37,15 @@ type MockupMediaContextValue = {
   activeItem: MockupMediaItem | null;
   addFromFileList: (files: FileList | null) => void;
   setActiveId: (id: string | null) => void;
+  updateItemLabel: (id: string, label: string) => void;
   remove: (id: string) => void;
   /** Replace library from localStorage (or clear when `null`). */
   hydrateFromSaved: (payload: HydrateFromSavedPayload) => void;
+  /**
+   * Replace the open media library (undo/redo). Revokes blob URLs only for
+   * items not present in the next list (matched by `id`).
+   */
+  replaceLibrary: (items: MockupMediaItem[], activeId: string | null) => void;
 };
 
 const MockupMediaContext = createContext<MockupMediaContextValue | null>(null);
@@ -80,6 +88,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
         id: m.id,
         kind: m.kind,
         url: m.dataUrl,
+        ...(m.label?.trim() ? { label: m.label.trim() } : {}),
       }));
       let nextActive = payload.activeMediaId ?? null;
       if (nextActive && !nextItems.some((i) => i.id === nextActive)) {
@@ -99,15 +108,34 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
     if (!kind) return;
     const id = crypto.randomUUID();
     const url = URL.createObjectURL(file);
-    const entry: MockupMediaItem = { id, kind, url };
-    setState((s) => ({
-      items: [...s.items, entry],
-      activeId: id,
-    }));
+    setState((s) => {
+      const entry: MockupMediaItem = { id, kind, url };
+      return {
+        items: [...s.items, entry],
+        activeId: id,
+      };
+    });
   }, []);
 
   const setActiveId = useCallback((id: string | null) => {
     setState((s) => ({ ...s, activeId: id }));
+  }, []);
+
+  const updateItemLabel = useCallback((id: string, label: string) => {
+    setState((s) => {
+      const trimmed = label.trim();
+      return {
+        ...s,
+        items: s.items.map((x) => {
+          if (x.id !== id) return x;
+          if (trimmed === "") {
+            const { label: _removed, ...rest } = x;
+            return rest as MockupMediaItem;
+          }
+          return { ...x, label: trimmed };
+        }),
+      };
+    });
   }, []);
 
   const remove = useCallback((id: string) => {
@@ -123,6 +151,24 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const replaceLibrary = useCallback(
+    (nextItems: MockupMediaItem[], activeId: string | null) => {
+      setState((s) => {
+        const nextIds = new Set(nextItems.map((x) => x.id));
+        for (const item of s.items) {
+          if (!nextIds.has(item.id)) {
+            revokeIfBlobUrl(item.url);
+          }
+        }
+        return {
+          items: nextItems.map((x) => ({ ...x })),
+          activeId,
+        };
+      });
+    },
+    []
+  );
+
   const activeItem = useMemo(() => {
     if (!activeId) return null;
     return items.find((x) => x.id === activeId) ?? null;
@@ -135,8 +181,10 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
       activeItem,
       addFromFileList,
       setActiveId,
+      updateItemLabel,
       remove,
       hydrateFromSaved,
+      replaceLibrary,
     }),
     [
       items,
@@ -144,8 +192,10 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
       activeItem,
       addFromFileList,
       setActiveId,
+      updateItemLabel,
       remove,
       hydrateFromSaved,
+      replaceLibrary,
     ]
   );
 

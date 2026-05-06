@@ -132,3 +132,127 @@ body {
     @apply font-sans;
   }
 }
+
+/**
+ * react-colorful injects unlayered CSS into <head> after paint; rules inside @layer lose.
+ * Keep these overrides unlayered + !important so they beat the injected stylesheet.
+ * @see https://developer.mozilla.org/en-US/docs/Web/CSS/@layer
+ */
+.canvas-solid-picker.react-colorful-wrapper .react-colorful {
+  width: 100% !important;
+  gap: 12px !important;
+}
+
+.canvas-solid-picker.react-colorful-wrapper .react-colorful__saturation {
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+.canvas-solid-picker.react-colorful-wrapper .react-colorful__hue {
+  margin-top: 0 !important;
+  height: 16px !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+.canvas-solid-picker.react-colorful-wrapper .react-colorful__last-control {
+  border-radius: 8px !important;
+}
+
+.canvas-solid-picker.react-colorful-wrapper .react-colorful__interactive {
+  border-radius: inherit !important;
+}
+
+.canvas-solid-picker.react-colorful-wrapper .react-colorful__saturation-pointer {
+  width: 16px !important;
+  height: 16px !important;
+  box-sizing: border-box !important;
+  border-width: 2px !important;
+}
+
+.canvas-solid-picker.react-colorful-wrapper .react-colorful__hue-pointer {
+  /* Same height as the 16px hue track so the thumb fills the strip visually */
+  width: 16px !important;
+  height: 16px !important;
+  box-sizing: border-box !important;
+  border-width: 2px !important;
+}
+
+.canvas-solid-picker.react-colorful-wrapper
+  .react-colorful__interactive:focus
+  .react-colorful__saturation-pointer {
+  transform: translate(-50%, -50%) scale(1.06) !important;
+}
+
+.canvas-solid-picker.react-colorful-wrapper
+  .react-colorful__interactive:focus
+  .react-colorful__hue-pointer {
+  transform: translate(-50%, -50%) scale(1.08) !important;
+}
+
+/** Canvas sidebar effect sliders: filled track + thumb (WebKit + Firefox). */
+.canvas-effect-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 8px;
+  border: none;
+  border-radius: 9999px;
+  background: transparent;
+  box-shadow: none;
+  /* Strong separation: filled white vs unfilled mid-dark gray (not near-white). */
+  --canvas-range-fill: #ffffff;
+  --canvas-range-track: #52525b;
+}
+
+.canvas-effect-range::-webkit-slider-runnable-track {
+  height: 8px;
+  border: none;
+  border-radius: 9999px;
+  background: linear-gradient(
+    90deg,
+    var(--canvas-range-fill) 0%,
+    var(--canvas-range-fill) var(--range-pct, 0%),
+    var(--canvas-range-track) var(--range-pct, 0%),
+    var(--canvas-range-track) 100%
+  );
+}
+
+.canvas-effect-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -3px;
+  border: none;
+  border-radius: 9999px;
+  /* No stroke ring: subtle shadow separates thumb from track */
+  box-shadow:
+    0 0 0 1px rgb(63 63 70 / 0.65),
+    0 1px 3px rgb(0 0 0 / 0.35);
+  background: #ffffff;
+}
+
+.canvas-effect-range::-moz-range-track {
+  height: 8px;
+  border: none;
+  border-radius: 9999px;
+  background: var(--canvas-range-track);
+}
+
+.canvas-effect-range::-moz-range-progress {
+  height: 8px;
+  border: none;
+  border-radius: 9999px;
+  background: var(--canvas-range-fill);
+}
+
+.canvas-effect-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: none;
+  border-radius: 9999px;
+  box-shadow:
+    0 0 0 1px rgb(63 63 70 / 0.65),
+    0 1px 3px rgb(0 0 0 / 0.35);
+  background: #ffffff;
+}

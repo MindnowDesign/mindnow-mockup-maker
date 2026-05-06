@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Trash2 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
@@ -128,7 +128,7 @@ export function ProjectProductCard({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-44">
                     <DropdownMenuItem
-                      className="text-red-400 focus:bg-red-500/15 focus:text-red-300"
+                      className="gap-2 text-red-400 focus:bg-red-500/15 focus:text-red-300"
                       onSelect={() => {
                         deleteSavedProject(projectId);
                         notifySavedProjectsChanged();
@@ -137,7 +137,8 @@ export function ProjectProductCard({
                         }
                       }}
                     >
-                      Deletar
+                      <Trash2 className="size-4 shrink-0" strokeWidth={2} aria-hidden />
+                      Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

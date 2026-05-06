@@ -34,6 +34,15 @@ export async function waitForCaptureReady(
           ]);
         }
       }
+      for (const img of imgs) {
+        if (typeof img.decode === "function") {
+          try {
+            await Promise.race([img.decode(), sleep(800)]);
+          } catch {
+            /* decode may reject for incomplete/cross-origin images */
+          }
+        }
+      }
 
       const videos = [...container.querySelectorAll("video")];
       for (const video of videos) {

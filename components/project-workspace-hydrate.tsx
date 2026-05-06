@@ -14,13 +14,14 @@ import { getProjectsWorkspaceSegment } from "@/lib/project-workspace";
  */
 export function ProjectWorkspaceHydrate() {
   const pathname = usePathname();
-  const { setAspectPreset } = useMockupFrame();
+  const { setAspectPreset, hydrateCanvasBackground } = useMockupFrame();
   const { hydrateFromSaved } = useMockupMedia();
 
   useEffect(() => {
     const segment = getProjectsWorkspaceSegment(pathname);
     if (segment === "new") {
       setAspectPreset("square-1-1");
+      hydrateCanvasBackground(null);
       hydrateFromSaved(null);
       return;
     }
@@ -29,14 +30,16 @@ export function ProjectWorkspaceHydrate() {
     const saved = getSavedProject(segment);
     if (saved) {
       setAspectPreset(saved.aspectPreset);
+      hydrateCanvasBackground(saved.canvasBackground);
       hydrateFromSaved({
         mediaItems: saved.mediaItems,
         activeMediaId: saved.activeMediaId ?? null,
       });
     } else {
+      hydrateCanvasBackground(null);
       hydrateFromSaved(null);
     }
-  }, [pathname, setAspectPreset, hydrateFromSaved]);
+  }, [pathname, setAspectPreset, hydrateCanvasBackground, hydrateFromSaved]);
 
   return null;
 }

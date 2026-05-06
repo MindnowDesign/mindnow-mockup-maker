@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 
 import { MockupFrameProvider } from "@/components/mockup-frame-context";
 import { MockupMediaProvider } from "@/components/mockup-media-context";
+import { MockupWorkspaceHistoryProvider } from "@/components/mockup-workspace-history";
 import { ProjectWorkspaceHydrate } from "@/components/project-workspace-hydrate";
 import { ProjectWorkspaceTitleProvider } from "@/components/project-workspace-title-context";
 import { WorkspaceTopBar } from "@/components/workspace-top-bar";
@@ -325,7 +326,7 @@ export function CatalystShell({
       <div className="hidden h-full min-h-0 shrink-0 flex-row overflow-hidden lg:flex">
         {sidebarRail}
         <aside
-          className="flex h-full min-h-0 w-64 min-w-64 shrink-0 flex-col overflow-hidden border-r border-zinc-800 bg-zinc-900"
+          className="flex h-full min-h-0 w-[304px] min-w-[304px] shrink-0 flex-col overflow-hidden border-r border-zinc-800 bg-zinc-900"
           aria-label={
             workspaceFeature === "frame"
               ? "Frame tools"
@@ -347,20 +348,22 @@ export function CatalystShell({
         {isProjectWorkspace ? (
           <MockupFrameProvider>
             <MockupMediaProvider>
-              <ProjectWorkspaceHydrate />
-              <div className="flex h-dvh max-h-dvh min-h-0 w-full flex-col overflow-hidden bg-zinc-900">
-                <WorkspaceTopBar
-                  teamLabel={teamLabel}
-                  logo={logo}
-                  className="relative z-10 shrink-0"
-                />
-                <div className="flex min-h-0 min-w-0 flex-1 flex-row overflow-hidden">
-                  {workspaceSidebar}
-                  <main className="min-h-0 min-w-0 flex-1 overflow-y-auto border-zinc-800 bg-zinc-950 lg:border-l">
-                    {children}
-                  </main>
+              <MockupWorkspaceHistoryProvider>
+                <ProjectWorkspaceHydrate />
+                <div className="flex h-dvh max-h-dvh min-h-0 w-full flex-col overflow-hidden bg-zinc-900">
+                  <WorkspaceTopBar
+                    teamLabel={teamLabel}
+                    logo={logo}
+                    className="relative z-10 shrink-0"
+                  />
+                  <div className="flex min-h-0 min-w-0 flex-1 flex-row overflow-hidden">
+                    {workspaceSidebar}
+                    <main className="min-h-0 min-w-0 flex-1 overflow-y-auto border-zinc-800 bg-zinc-950 lg:border-l">
+                      {children}
+                    </main>
+                  </div>
                 </div>
-              </div>
+              </MockupWorkspaceHistoryProvider>
             </MockupMediaProvider>
           </MockupFrameProvider>
         ) : (

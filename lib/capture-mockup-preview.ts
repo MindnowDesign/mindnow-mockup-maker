@@ -1,8 +1,16 @@
 import { waitForCaptureReady } from "@/lib/wait-for-capture-ready";
 
+function flushPaint(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  });
+}
+
 /**
- * PNG of the full mockup root (`[data-mockup-capture-target]`): orange frame, inner device,
- * media and empty state — matches what the user sees as the canvas.
+ * PNG of the mockup root (`[data-mockup-capture-target]`): frame fill, inner content,
+ * and media — matches the visible canvas (solid/image/transparency preview, aspect ratio, etc.).
+ *
+ * Does not force a flat underlay color so saved thumbnails match customized backgrounds.
  */
 export async function captureMockupPreview(el: HTMLElement): Promise<string> {
   try {
@@ -10,7 +18,10 @@ export async function captureMockupPreview(el: HTMLElement): Promise<string> {
   } catch {
     /* ignore */
   }
+  await flushPaint();
   await waitForCaptureReady(el);
+  await flushPaint();
+  void el.offsetWidth;
 
   const maxSide = Math.max(el.offsetWidth, el.offsetHeight, 1);
   /** Readable card thumbnail without huge files — keeps localStorage happy. */
@@ -22,8 +33,6 @@ export async function captureMockupPreview(el: HTMLElement): Promise<string> {
     cacheBust: true as const,
     pixelRatio,
     skipFonts: true as const,
-    /** Outer mockup padding uses this color; avoids transparent seams in some browsers. */
-    backgroundColor: "#F28345",
   };
 
   try {

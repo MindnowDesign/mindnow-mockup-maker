@@ -1,5 +1,6 @@
 "use client";
 
+import { CanvasBackgroundControls } from "@/components/canvas-background-controls";
 import { FrameAspectRatioSelect } from "@/components/frame-aspect-ratio-select";
 import { WorkspaceMediaPanel } from "@/components/workspace-media-panel";
 import { cn } from "@/lib/utils";
@@ -16,7 +17,7 @@ const DESCRIPTIONS: Record<WorkspaceFeatureId, string> = {
   frame:
     "Adjust frame size, device presets, and viewport settings for your mockup.",
   background:
-    "Set aspect ratio and scene backgrounds (colors, gradients) behind your composition.",
+    "Set aspect ratio and choose how the canvas frame is filled (transparency preview, solid color, or image).",
   media:
     "Add images, uploads, and asset placeholders for this project.",
 };
@@ -42,11 +43,14 @@ export function WorkspaceFeaturePanel({ feature }: WorkspaceFeaturePanelProps) {
       <div
         className={cn(
           "min-h-0 flex-1 overflow-y-auto px-4 py-3",
-          feature === "background" && "space-y-2"
+          feature === "background" && "space-y-4"
         )}
       >
         {feature === "background" ? (
-          <FrameAspectRatioSelect />
+          <div className="space-y-4">
+            <FrameAspectRatioSelect />
+            <CanvasBackgroundControls />
+          </div>
         ) : feature === "media" ? (
           <WorkspaceMediaPanel />
         ) : (

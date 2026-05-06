@@ -1,10 +1,13 @@
 import type { FrameAspectPresetId } from "@/lib/mockup-aspect";
+import type { PersistedCanvasBackground } from "@/lib/mockup-canvas-background";
 
 /** One canvas media item persisted as a data URL (survives reload). */
 export type SavedMediaItem = {
   id: string;
   kind: "image" | "video";
   dataUrl: string;
+  /** Optional display name for this visual (shown above the canvas). */
+  label?: string;
 };
 
 export type SavedProject = {
@@ -14,6 +17,8 @@ export type SavedProject = {
   /** PNG data URL used on project cards (scaled down for storage). */
   previewDataUrl: string;
   aspectPreset: FrameAspectPresetId;
+  /** Canvas frame fill (transparency preview, solid color, or image). */
+  canvasBackground?: PersistedCanvasBackground;
   visualCount: number;
   /** Serialized media library for full restore when reopening the project. */
   mediaItems?: SavedMediaItem[];

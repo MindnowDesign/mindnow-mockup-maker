@@ -16,6 +16,18 @@ import {
   getWorkspaceTitle,
 } from "@/lib/project-workspace";
 import { captureMockupPreview } from "@/lib/capture-mockup-preview";
+import type { PersistedCanvasBackground } from "@/lib/mockup-canvas-background";
+import {
+  DEFAULT_CANVAS_NOISE_COLOR,
+  DEFAULT_CANVAS_NOISE_COLOR_OPACITY,
+} from "@/lib/mockup-canvas-background";
+import {
+  DEFAULT_CANVAS_NOISE_BLEND_MODE,
+} from "@/lib/mockup-noise-blend";
+import {
+  DEFAULT_CANVAS_NOISE_TYPE,
+} from "@/lib/mockup-noise";
+import { resourceUrlToDataUrl } from "@/lib/resource-to-data-url";
 import { serializeMockupMediaForSave } from "@/lib/serialize-mockup-media";
 import { notifySavedProjectsChanged, upsertSavedProject } from "@/lib/saved-projects";
 import { cn } from "@/lib/utils";
@@ -44,7 +56,18 @@ export function WorkspaceTopBar({
 }: WorkspaceTopBarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { aspectPreset } = useMockupFrame();
+  const {
+    aspectPreset,
+    canvasBackgroundMode,
+    canvasSolidColor,
+    canvasBackgroundImageUrl,
+    canvasNoisePercent,
+    canvasBlurPercent,
+    canvasNoiseType,
+    canvasNoiseColor,
+    canvasNoiseColorOpacity,
+    canvasNoiseBlendMode,
+  } = useMockupFrame();
   const { items: mediaItems, activeId: activeMediaId } = useMockupMedia();
   const { title, setTitle } = useProjectWorkspaceTitle();
   const fallbackTitle = getWorkspaceTitle(pathname);
@@ -81,6 +104,44 @@ export function WorkspaceTopBar({
         activeMediaId
       );
 
+      const effectsPayload = {
+        ...(canvasNoisePercent > 0 && { noisePercent: canvasNoisePercent }),
+        ...(canvasBlurPercent > 0 && { blurPercent: canvasBlurPercent }),
+        ...(canvasNoiseType !== DEFAULT_CANVAS_NOISE_TYPE && {
+          noiseType: canvasNoiseType,
+        }),
+        ...(canvasNoiseColor.trim().toUpperCase() !==
+          DEFAULT_CANVAS_NOISE_COLOR && {
+          noiseColor: canvasNoiseColor.trim().toUpperCase(),
+        }),
+        ...(canvasNoiseColorOpacity !== DEFAULT_CANVAS_NOISE_COLOR_OPACITY && {
+          noiseColorOpacity: canvasNoiseColorOpacity,
+        }),
+        ...(canvasNoiseBlendMode !== DEFAULT_CANVAS_NOISE_BLEND_MODE && {
+          noiseBlendMode: canvasNoiseBlendMode,
+        }),
+      };
+
+      let canvasBackground: PersistedCanvasBackground | undefined;
+      if (canvasBackgroundMode === "transparent") {
+        canvasBackground = { mode: "transparent", ...effectsPayload };
+      } else if (canvasBackgroundMode === "solid") {
+        canvasBackground = {
+          mode: "solid",
+          solidColor: canvasSolidColor,
+          ...effectsPayload,
+        };
+      } else if (canvasBackgroundMode === "image") {
+        if (canvasBackgroundImageUrl) {
+          const imageDataUrl = await resourceUrlToDataUrl(
+            canvasBackgroundImageUrl
+          );
+          canvasBackground = { mode: "image", imageDataUrl, ...effectsPayload };
+        } else {
+          canvasBackground = { mode: "image", ...effectsPayload };
+        }
+      }
+
       const previewDataUrl = capturedPreview;
 
       const resolvedTitle = title.trim() || fallbackTitle;
@@ -92,6 +153,7 @@ export function WorkspaceTopBar({
           updatedAt: Date.now(),
           previewDataUrl,
           aspectPreset,
+          canvasBackground,
           visualCount: serialized.mediaItems.length,
           mediaItems: serialized.mediaItems,
           activeMediaId: serialized.activeMediaId,

@@ -1,11 +1,29 @@
 "use client";
 
-import { Plus } from "lucide-react";
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Pencil, Plus } from "lucide-react";
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 
 import { useMockupFrame } from "@/components/mockup-frame-context";
 import { useMockupMedia } from "@/components/mockup-media-context";
+import { hexToRgb } from "@/lib/color-hex-hsv";
 import { scaledFramePixelSize } from "@/lib/mockup-aspect";
+import {
+  checkerboardBackgroundStyle,
+  DEFAULT_CANVAS_NOISE_COLOR,
+} from "@/lib/mockup-canvas-background";
+import type { CanvasNoiseBlendModeId } from "@/lib/mockup-noise-blend";
+import { noiseBlendModeToCss } from "@/lib/mockup-noise-blend";
+import type { CanvasNoiseTypeId } from "@/lib/mockup-noise";
+import { noiseFilterPreset } from "@/lib/mockup-noise";
+import { defaultVisualLabel } from "@/lib/mockup-visual-label";
 import { cn } from "@/lib/utils";
 
 /** Max border-box size for the orange frame (fits main canvas). */
@@ -27,13 +45,218 @@ function useFrameViewportCaps() {
   return caps;
 }
 
+function CanvasBackgroundNoiseOverlay({
+  strength,
+  filterId,
+  noiseType,
+  noiseColor,
+  noiseColorOpacity,
+  blendMode,
+}: {
+  /** 0–1 visual intensity */
+  strength: number;
+  filterId: string;
+  noiseType: CanvasNoiseTypeId;
+  noiseColor: string;
+  /** 0–100 opacity for the tinted grain layer */
+  noiseColorOpacity: number;
+  blendMode: CanvasNoiseBlendModeId;
+}) {
+  if (strength <= 0) return null;
+  const tintOpacity =
+    Math.min(100, Math.max(0, noiseColorOpacity)) / 100;
+  /** At noise 100% + tint 100%, layer opacity reaches 1 (grain reads nearly solid). */
+  const opacity = Math.min(1, strength * tintOpacity);
+  const preset = noiseFilterPreset(noiseType);
+  const rgb =
+    hexToRgb(noiseColor) ?? hexToRgb(DEFAULT_CANVAS_NOISE_COLOR)!;
+  const tr = rgb.r / 255;
+  const tg = rgb.g / 255;
+  const tb = rgb.b / 255;
+  const tintMatrix = `${tr} 0 0 0 0  0 ${tg} 0 0 0  0 0 ${tb} 0 0  0 0 0 1 0`;
+
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0 z-[1] overflow-hidden rounded-[16px]"
+      style={{
+        opacity,
+        mixBlendMode: noiseBlendModeToCss(blendMode),
+      }}
+    >
+      <svg
+        className="h-full w-full"
+        xmlns="http://www.w3.org/2000/svg"
+        preserveAspectRatio="none"
+      >
+        <defs>
+          <filter
+            id={filterId}
+            x="-20%"
+            y="-20%"
+            width="140%"
+            height="140%"
+          >
+            <feTurbulence
+              type={preset.turbulenceType}
+              baseFrequency={preset.baseFrequency}
+              numOctaves={preset.numOctaves}
+              seed={preset.seed}
+              stitchTiles="stitch"
+              result="turb"
+            />
+            <feColorMatrix
+              in="turb"
+              type="saturate"
+              values="0"
+              result="gray"
+            />
+            <feColorMatrix
+              in="gray"
+              type="matrix"
+              values={tintMatrix}
+            />
+          </filter>
+        </defs>
+        <rect width="100%" height="100%" filter={`url(#${filterId})`} />
+      </svg>
+    </div>
+  );
+}
+
+function MockupVisualTitle({
+  itemId,
+  storedLabel,
+  fallbackLabel,
+  updateLabel,
+}: {
+  itemId: string;
+  storedLabel: string | undefined;
+  /** Shown when there is no custom name (e.g. "Visual 01"). */
+  fallbackLabel: string;
+  updateLabel: (id: string, value: string) => void;
+}) {
+  const resolvedDisplay = useMemo(
+    () => (storedLabel?.trim() ? storedLabel.trim() : fallbackLabel),
+    [storedLabel, fallbackLabel]
+  );
+
+  const [isFocused, setIsFocused] = useState(false);
+  const [draft, setDraft] = useState(resolvedDisplay);
+  const revertRef = useRef("");
+  const skipBlurCommitRef = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!isFocused) {
+      setDraft(resolvedDisplay);
+    }
+  }, [resolvedDisplay, isFocused]);
+
+  useEffect(() => {
+    setDraft(resolvedDisplay);
+    setIsFocused(false);
+  }, [itemId]);
+
+  const value = isFocused ? draft : resolvedDisplay;
+
+  return (
+    <div className="min-w-0 w-full shrink-0">
+      <div className="group inline-flex w-fit max-w-full min-w-0 cursor-text items-center gap-2">
+        <input
+          ref={inputRef}
+          type="text"
+          value={value}
+          onChange={(e) => setDraft(e.target.value)}
+          onFocus={() => {
+            setIsFocused(true);
+            revertRef.current = storedLabel?.trim() ?? "";
+            setDraft(resolvedDisplay);
+          }}
+          onBlur={() => {
+            if (skipBlurCommitRef.current) {
+              skipBlurCommitRef.current = false;
+              setIsFocused(false);
+              return;
+            }
+            setIsFocused(false);
+            const t = draft.trim();
+            updateLabel(itemId, t === "" ? "" : draft.trim());
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.currentTarget.blur();
+            }
+            if (e.key === "Escape") {
+              e.preventDefault();
+              skipBlurCommitRef.current = true;
+              updateLabel(itemId, revertRef.current);
+              setDraft(
+                revertRef.current.trim()
+                  ? revertRef.current.trim()
+                  : fallbackLabel
+              );
+              setIsFocused(false);
+              e.currentTarget.blur();
+            }
+          }}
+          spellCheck={false}
+          autoComplete="off"
+          aria-label="Visual name"
+          placeholder={fallbackLabel}
+          maxLength={128}
+          className={cn(
+            "min-w-0 max-w-full border-0 bg-transparent px-0 py-0 text-sm font-medium tracking-tight text-zinc-400 outline-none ring-0 shadow-none",
+            "[field-sizing:content]",
+            "focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
+            "focus:text-zinc-200",
+            "placeholder:text-zinc-500"
+          )}
+        />
+        <span
+          className={cn(
+            "inline-flex shrink-0 opacity-0 transition-opacity duration-150",
+            "group-hover:opacity-100 group-focus-within:opacity-100"
+          )}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            inputRef.current?.focus();
+          }}
+        >
+          <Pencil
+            className="size-4 text-zinc-500"
+            strokeWidth={2}
+            aria-hidden
+          />
+        </span>
+      </div>
+    </div>
+  );
+}
+
 /**
  * Canvas frame: dimensions from design presets, scaled to viewport.
  * Parent page uses `grid place-items-center` so this block stays visually centered.
  */
 export function MockupWorkspaceStage() {
-  const { aspectPreset } = useMockupFrame();
-  const { activeItem, addFromFileList } = useMockupMedia();
+  const {
+    aspectPreset,
+    canvasBackgroundMode,
+    canvasSolidColor,
+    canvasBackgroundImageUrl,
+    canvasNoisePercent,
+    canvasBlurPercent,
+    canvasNoiseType,
+    canvasNoiseColor,
+    canvasNoiseColorOpacity,
+    canvasNoiseBlendMode,
+    canvasNoiseBlendModePreview,
+  } = useMockupFrame();
+  const canvasNoiseFilterId = `canvas-noise-${useId().replace(/:/g, "")}`;
+  const noiseBlendModeEffective =
+    canvasNoiseBlendModePreview ?? canvasNoiseBlendMode;
+  const { activeItem, items, addFromFileList, updateItemLabel } =
+    useMockupMedia();
   const { maxW, maxH } = useFrameViewportCaps();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -46,36 +269,127 @@ export function MockupWorkspaceStage() {
     fileInputRef.current?.click();
   }
 
+  const captureSurfaceStyle: CSSProperties = useMemo(() => {
+    const base: CSSProperties = { width: "100%", height };
+    switch (canvasBackgroundMode) {
+      case "transparent":
+        return { ...base, ...checkerboardBackgroundStyle() };
+      case "solid":
+        return { ...base, backgroundColor: canvasSolidColor };
+      case "image":
+        if (canvasBackgroundImageUrl) {
+          return {
+            ...base,
+            backgroundImage: `url(${canvasBackgroundImageUrl})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          };
+        }
+        return { ...base, backgroundColor: canvasSolidColor };
+      default:
+        return { ...base, backgroundColor: canvasSolidColor };
+    }
+  }, [
+    canvasBackgroundMode,
+    canvasSolidColor,
+    canvasBackgroundImageUrl,
+    height,
+  ]);
+
+  const backgroundBlurPx = useMemo(
+    () => (canvasBlurPercent / 100) * 28,
+    [canvasBlurPercent]
+  );
+
+  /**
+   * Blur on a layer that is then clipped to rounded rect can look like a vignette
+   * (darker/soft edge). Extra bleed lets the gaussian falloff sit outside the clip.
+   */
+  const backgroundBlurLayerStyle: CSSProperties = useMemo(() => {
+    const blurPx = backgroundBlurPx;
+    const blurFilter = blurPx > 0 ? `blur(${blurPx}px)` : undefined;
+    const bleed =
+      blurPx > 0 ? Math.min(80, Math.ceil(blurPx * 3) + 20) : 0;
+    const base = { ...captureSurfaceStyle };
+
+    if (bleed <= 0) {
+      return {
+        ...base,
+        filter: blurFilter,
+        position: "absolute",
+        inset: 0,
+      };
+    }
+
+    return {
+      ...base,
+      filter: blurFilter,
+      position: "absolute",
+      top: -bleed,
+      left: -bleed,
+      width: `calc(100% + ${bleed * 2}px)`,
+      height: `calc(100% + ${bleed * 2}px)`,
+    };
+  }, [captureSurfaceStyle, backgroundBlurPx]);
+
   return (
     <div
-      key={aspectPreset}
-      data-mockup-capture-target
-      style={{ width, height }}
-      role="region"
-      aria-label="Mockup canvas"
-      tabIndex={0}
-      onDragOver={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      }}
-      onDrop={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        addFromFileList(e.dataTransfer.files);
-      }}
-      onPaste={(e) => {
-        const files = e.clipboardData?.files;
-        if (files?.length) {
-          e.preventDefault();
-          addFromFileList(files);
-        }
-      }}
-      className={cn(
-        "group relative box-border grid shrink-0 grid-rows-[minmax(0,1fr)] overflow-hidden rounded-[16px] bg-[#F28345] p-8 shadow-[0_32px_80px_-20px_rgba(0,0,0,0.75)] md:p-12",
-        "min-h-0 min-w-0 outline-none focus-visible:ring-2 focus-visible:ring-white/20"
-      )}
+      className="flex max-w-full flex-col gap-2"
+      style={{ width }}
     >
-      <div className="flex min-h-0 min-w-0 items-center justify-center">
+      {activeItem ? (
+        <MockupVisualTitle
+          itemId={activeItem.id}
+          storedLabel={activeItem.label}
+          fallbackLabel={defaultVisualLabel(
+            Math.max(0, items.findIndex((x) => x.id === activeItem.id)) + 1
+          )}
+          updateLabel={updateItemLabel}
+        />
+      ) : null}
+      <div
+        key={aspectPreset}
+        data-mockup-capture-target
+        style={{ width: "100%", height }}
+        role="region"
+        aria-label="Mockup canvas"
+        tabIndex={0}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          addFromFileList(e.dataTransfer.files);
+        }}
+        onPaste={(e) => {
+          const files = e.clipboardData?.files;
+          if (files?.length) {
+            e.preventDefault();
+            addFromFileList(files);
+          }
+        }}
+        className={cn(
+          "group relative box-border grid shrink-0 grid-rows-[minmax(0,1fr)] overflow-hidden rounded-[16px] p-8 shadow-[0_32px_80px_-20px_rgba(0,0,0,0.75)] md:p-12",
+          "min-h-0 min-w-0 outline-none focus-visible:ring-2 focus-visible:ring-white/20"
+        )}
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[16px]"
+        >
+          <div style={backgroundBlurLayerStyle} />
+        </div>
+        <CanvasBackgroundNoiseOverlay
+          strength={canvasNoisePercent / 100}
+          filterId={canvasNoiseFilterId}
+          noiseType={canvasNoiseType}
+          noiseColor={canvasNoiseColor}
+          noiseColorOpacity={canvasNoiseColorOpacity}
+          blendMode={noiseBlendModeEffective}
+        />
+        <div className="relative z-10 flex min-h-0 min-w-0 items-center justify-center">
         {activeItem?.kind === "image" ? (
           // eslint-disable-next-line @next/next/no-img-element -- user-provided blob URL
           <img
@@ -145,6 +459,7 @@ export function MockupWorkspaceStage() {
           )}
           </div>
         )}
+        </div>
       </div>
     </div>
   );

@@ -84,7 +84,7 @@ export function FrameAspectRatioSelect() {
   const SelectedIcon = selected.Icon;
 
   return (
-    <>
+    <div className="flex flex-col gap-2">
       <span className="text-xs font-medium text-zinc-400" id="frame-aspect-label">
         Aspect ratio
       </span>
@@ -173,6 +173,6 @@ export function FrameAspectRatioSelect() {
           </Content>
         </Portal>
       </Root>
-    </>
+    </div>
   );
 }

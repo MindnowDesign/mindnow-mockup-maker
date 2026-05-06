@@ -10,7 +10,15 @@ export async function serializeMockupMediaForSave(
   for (const item of items) {
     try {
       const dataUrl = await resourceUrlToDataUrl(item.url);
-      mediaItems.push({ id: item.id, kind: item.kind, dataUrl });
+      const row: (typeof mediaItems)[number] = {
+        id: item.id,
+        kind: item.kind,
+        dataUrl,
+      };
+      if (item.label?.trim()) {
+        row.label = item.label.trim();
+      }
+      mediaItems.push(row);
     } catch (e) {
       console.error("Failed to serialize media item", e);
     }
