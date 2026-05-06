@@ -371,6 +371,8 @@ function EffectAccordionSection({
   open,
   onToggle,
   children,
+  /** When open, show trash instead of minus — closing clears the effect (see toggle handlers). */
+  openTrailingIcon = "collapse",
 }: {
   sectionId: string;
   label: string;
@@ -378,9 +380,17 @@ function EffectAccordionSection({
   open: boolean;
   onToggle: () => void;
   children: ReactNode;
+  openTrailingIcon?: "collapse" | "remove";
 }) {
   const triggerId = `${sectionId}-trigger`;
   const panelId = `${sectionId}-panel`;
+
+  const trailingOpenIcon =
+    openTrailingIcon === "remove" ? (
+      <Trash2 className="size-4 shrink-0 text-zinc-400" strokeWidth={2} aria-hidden />
+    ) : (
+      <Minus className="size-4 shrink-0 text-zinc-400" strokeWidth={2} aria-hidden />
+    );
 
   return (
     <div className="overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950">
@@ -390,6 +400,13 @@ function EffectAccordionSection({
         aria-expanded={open}
         aria-controls={panelId}
         onClick={onToggle}
+        title={
+          openTrailingIcon === "remove"
+            ? open
+              ? "Remove effect"
+              : "Add effect"
+            : undefined
+        }
         className={cn(
           "flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left outline-none transition-colors",
           "hover:bg-zinc-900/80 focus-visible:ring-2 focus-visible:ring-white/25"
@@ -400,7 +417,7 @@ function EffectAccordionSection({
           {label}
         </span>
         {open ? (
-          <Minus className="size-4 shrink-0 text-zinc-400" strokeWidth={2} aria-hidden />
+          trailingOpenIcon
         ) : (
           <Plus className="size-4 shrink-0 text-zinc-400" strokeWidth={2} aria-hidden />
         )}
@@ -682,6 +699,7 @@ export function CanvasBackgroundControls() {
           Icon={Sparkles}
           open={noiseSectionOpen}
           onToggle={toggleNoiseSection}
+          openTrailingIcon="remove"
         >
           <CanvasEffectSliderRow
             id="canvas-effect-noise"
@@ -714,6 +732,7 @@ export function CanvasBackgroundControls() {
           Icon={Droplet}
           open={blurSectionOpen}
           onToggle={toggleBlurSection}
+          openTrailingIcon="remove"
         >
           <CanvasEffectSliderRow
             id="canvas-effect-blur"
