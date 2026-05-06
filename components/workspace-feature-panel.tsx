@@ -2,6 +2,7 @@
 
 import { CanvasBackgroundControls } from "@/components/canvas-background-controls";
 import { FrameAspectRatioSelect } from "@/components/frame-aspect-ratio-select";
+import { FrameDevicePicker } from "@/components/frame-device-picker";
 import { WorkspaceMediaPanel } from "@/components/workspace-media-panel";
 import { cn } from "@/lib/utils";
 
@@ -54,9 +55,7 @@ export function WorkspaceFeaturePanel({ feature }: WorkspaceFeaturePanelProps) {
         ) : feature === "media" ? (
           <WorkspaceMediaPanel />
         ) : (
-          <p className="text-sm text-zinc-500">
-            Feature controls will go here.
-          </p>
+          <FrameDevicePicker />
         )}
       </div>
     </div>
