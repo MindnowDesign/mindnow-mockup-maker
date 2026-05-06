@@ -1,12 +1,14 @@
 "use client";
 
 import { FrameAspectRatioSelect } from "@/components/frame-aspect-ratio-select";
+import { WorkspaceMediaPanel } from "@/components/workspace-media-panel";
+import { cn } from "@/lib/utils";
 
 export type WorkspaceFeatureId = "frame" | "background" | "media";
 
 const TITLES: Record<WorkspaceFeatureId, string> = {
   frame: "Frame",
-  background: "Background",
+  background: "Canvas",
   media: "Media",
 };
 
@@ -14,7 +16,7 @@ const DESCRIPTIONS: Record<WorkspaceFeatureId, string> = {
   frame:
     "Adjust frame size, device presets, and viewport settings for your mockup.",
   background:
-    "Pick colors, gradients, and scene backgrounds behind your composition.",
+    "Set aspect ratio and scene backgrounds (colors, gradients) behind your composition.",
   media:
     "Add images, uploads, and asset placeholders for this project.",
 };
@@ -37,9 +39,16 @@ export function WorkspaceFeaturePanel({ feature }: WorkspaceFeaturePanelProps) {
           {DESCRIPTIONS[feature]}
         </p>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
-        {feature === "frame" ? (
+      <div
+        className={cn(
+          "min-h-0 flex-1 overflow-y-auto px-4 py-3",
+          feature === "background" && "space-y-2"
+        )}
+      >
+        {feature === "background" ? (
           <FrameAspectRatioSelect />
+        ) : feature === "media" ? (
+          <WorkspaceMediaPanel />
         ) : (
           <p className="text-sm text-zinc-500">
             Feature controls will go here.

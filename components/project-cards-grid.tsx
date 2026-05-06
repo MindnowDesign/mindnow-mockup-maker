@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { ProjectProductCard } from "@/components/project-product-card";
 import { StartFromScratchCard } from "@/components/start-from-scratch-card";
+import { formatEditedAgo } from "@/lib/format-edited-ago";
 import { listSavedProjects, type SavedProject } from "@/lib/saved-projects";
 
 /** Same grid as the home “My projects” section — create tile + project tiles. */
@@ -31,6 +32,7 @@ export function ProjectCardsGrid() {
           key={p.id}
           title={p.title}
           visualCount={p.visualCount}
+          editedLabel={formatEditedAgo(p.updatedAt)}
           href={`/projects/${p.id}`}
           previewSrc={p.previewDataUrl || null}
           projectId={p.id}

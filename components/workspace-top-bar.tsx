@@ -8,12 +8,15 @@ import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 
 import { useMockupFrame } from "@/components/mockup-frame-context";
+import { useMockupMedia } from "@/components/mockup-media-context";
 import { Button } from "@/components/ui/button";
 import { useProjectWorkspaceTitle } from "@/components/project-workspace-title-context";
 import {
   getProjectsWorkspaceSegment,
   getWorkspaceTitle,
 } from "@/lib/project-workspace";
+import { captureMockupPreview } from "@/lib/capture-mockup-preview";
+import { serializeMockupMediaForSave } from "@/lib/serialize-mockup-media";
 import { notifySavedProjectsChanged, upsertSavedProject } from "@/lib/saved-projects";
 import { cn } from "@/lib/utils";
 
@@ -42,6 +45,7 @@ export function WorkspaceTopBar({
   const pathname = usePathname();
   const router = useRouter();
   const { aspectPreset } = useMockupFrame();
+  const { items: mediaItems, activeId: activeMediaId } = useMockupMedia();
   const { title, setTitle } = useProjectWorkspaceTitle();
   const fallbackTitle = getWorkspaceTitle(pathname);
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -69,27 +73,49 @@ export function WorkspaceTopBar({
       const el = document.querySelector<HTMLElement>(
         "[data-mockup-capture-target]"
       );
-      let previewDataUrl = "";
-      if (el) {
-        const { toPng } = await import("html-to-image");
-        const maxSide = Math.max(el.offsetWidth, el.offsetHeight, 1);
-        const pixelRatio = Math.min(1.25, 640 / maxSide);
-        previewDataUrl = await toPng(el, {
-          cacheBust: true,
-          pixelRatio,
-        });
-      }
+
+      /** Capture first so the DOM isn’t competing with heavy blob→dataURL serialization. */
+      const capturedPreview = el ? await captureMockupPreview(el) : "";
+      const serialized = await serializeMockupMediaForSave(
+        mediaItems,
+        activeMediaId
+      );
+
+      const previewDataUrl = capturedPreview;
 
       const resolvedTitle = title.trim() || fallbackTitle;
 
-      upsertSavedProject({
-        id: projectId,
-        title: resolvedTitle,
-        updatedAt: Date.now(),
-        previewDataUrl,
-        aspectPreset,
-        visualCount: 1,
-      });
+      try {
+        upsertSavedProject({
+          id: projectId,
+          title: resolvedTitle,
+          updatedAt: Date.now(),
+          previewDataUrl,
+          aspectPreset,
+          visualCount: serialized.mediaItems.length,
+          mediaItems: serialized.mediaItems,
+          activeMediaId: serialized.activeMediaId,
+        });
+      } catch (persistErr) {
+        if (
+          persistErr instanceof DOMException &&
+          persistErr.name === "QuotaExceededError"
+        ) {
+          console.error(
+            "localStorage quota exceeded; saving metadata without media payload"
+          );
+          upsertSavedProject({
+            id: projectId,
+            title: resolvedTitle,
+            updatedAt: Date.now(),
+            previewDataUrl,
+            aspectPreset,
+            visualCount: serialized.mediaItems.length,
+          });
+        } else {
+          throw persistErr;
+        }
+      }
       notifySavedProjectsChanged();
 
       if (segment === "new") {

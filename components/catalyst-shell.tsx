@@ -17,6 +17,7 @@ import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 
 import { MockupFrameProvider } from "@/components/mockup-frame-context";
+import { MockupMediaProvider } from "@/components/mockup-media-context";
 import { ProjectWorkspaceHydrate } from "@/components/project-workspace-hydrate";
 import { ProjectWorkspaceTitleProvider } from "@/components/project-workspace-title-context";
 import { WorkspaceTopBar } from "@/components/workspace-top-bar";
@@ -230,7 +231,7 @@ export function CatalystShell({
                           workspaceFeature === "background" &&
                             "bg-white/10 text-white"
                         )}
-                        aria-label="Background"
+                        aria-label="Canvas"
                         aria-pressed={workspaceFeature === "background"}
                         onClick={() => toggleWorkspaceFeature("background")}
                       >
@@ -241,7 +242,7 @@ export function CatalystShell({
                         />
                       </button>
                     </TooltipTrigger>
-                    <TooltipContent>Background</TooltipContent>
+                    <TooltipContent>Canvas</TooltipContent>
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -329,7 +330,7 @@ export function CatalystShell({
             workspaceFeature === "frame"
               ? "Frame tools"
               : workspaceFeature === "background"
-                ? "Background tools"
+                ? "Canvas tools"
                 : "Media tools"
           }
         >
@@ -345,20 +346,22 @@ export function CatalystShell({
       <ProjectWorkspaceTitleProvider>
         {isProjectWorkspace ? (
           <MockupFrameProvider>
-            <ProjectWorkspaceHydrate />
-            <div className="flex h-dvh max-h-dvh min-h-0 w-full flex-col overflow-hidden bg-zinc-900">
-              <WorkspaceTopBar
-                teamLabel={teamLabel}
-                logo={logo}
-                className="relative z-10 shrink-0"
-              />
-              <div className="flex min-h-0 min-w-0 flex-1 flex-row overflow-hidden">
-                {workspaceSidebar}
-                <main className="min-h-0 min-w-0 flex-1 overflow-y-auto border-zinc-800 bg-zinc-950 lg:border-l">
-                  {children}
-                </main>
+            <MockupMediaProvider>
+              <ProjectWorkspaceHydrate />
+              <div className="flex h-dvh max-h-dvh min-h-0 w-full flex-col overflow-hidden bg-zinc-900">
+                <WorkspaceTopBar
+                  teamLabel={teamLabel}
+                  logo={logo}
+                  className="relative z-10 shrink-0"
+                />
+                <div className="flex min-h-0 min-w-0 flex-1 flex-row overflow-hidden">
+                  {workspaceSidebar}
+                  <main className="min-h-0 min-w-0 flex-1 overflow-y-auto border-zinc-800 bg-zinc-950 lg:border-l">
+                    {children}
+                  </main>
+                </div>
               </div>
-            </div>
+            </MockupMediaProvider>
           </MockupFrameProvider>
         ) : (
           <SidebarLayout

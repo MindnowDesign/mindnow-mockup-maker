@@ -4,23 +4,39 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 import { useMockupFrame } from "@/components/mockup-frame-context";
+import { useMockupMedia } from "@/components/mockup-media-context";
 import { getSavedProject } from "@/lib/saved-projects";
 import { getProjectsWorkspaceSegment } from "@/lib/project-workspace";
 
 /**
- * Restores frame preset when opening a saved project (`/projects/:id`).
- * Title is handled in `ProjectWorkspaceTitleProvider`.
+ * Restores frame preset + media when opening a saved project (`/projects/:id`).
+ * Clears media on `/projects/new`. Title is handled in `ProjectWorkspaceTitleProvider`.
  */
 export function ProjectWorkspaceHydrate() {
   const pathname = usePathname();
   const { setAspectPreset } = useMockupFrame();
+  const { hydrateFromSaved } = useMockupMedia();
 
   useEffect(() => {
     const segment = getProjectsWorkspaceSegment(pathname);
-    if (!segment || segment === "new") return;
+    if (segment === "new") {
+      setAspectPreset("square-1-1");
+      hydrateFromSaved(null);
+      return;
+    }
+    if (!segment) return;
+
     const saved = getSavedProject(segment);
-    if (saved) setAspectPreset(saved.aspectPreset);
-  }, [pathname, setAspectPreset]);
+    if (saved) {
+      setAspectPreset(saved.aspectPreset);
+      hydrateFromSaved({
+        mediaItems: saved.mediaItems,
+        activeMediaId: saved.activeMediaId ?? null,
+      });
+    } else {
+      hydrateFromSaved(null);
+    }
+  }, [pathname, setAspectPreset, hydrateFromSaved]);
 
   return null;
 }

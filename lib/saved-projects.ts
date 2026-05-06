@@ -1,5 +1,12 @@
 import type { FrameAspectPresetId } from "@/lib/mockup-aspect";
 
+/** One canvas media item persisted as a data URL (survives reload). */
+export type SavedMediaItem = {
+  id: string;
+  kind: "image" | "video";
+  dataUrl: string;
+};
+
 export type SavedProject = {
   id: string;
   title: string;
@@ -8,6 +15,10 @@ export type SavedProject = {
   previewDataUrl: string;
   aspectPreset: FrameAspectPresetId;
   visualCount: number;
+  /** Serialized media library for full restore when reopening the project. */
+  mediaItems?: SavedMediaItem[];
+  /** Which media item is shown on the main canvas. */
+  activeMediaId?: string | null;
 };
 
 const STORAGE_KEY = "mindnow:saved-projects-v1";
