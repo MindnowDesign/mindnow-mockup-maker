@@ -94,7 +94,7 @@ export function WorkspaceVisualsFloatingBar({
           return (
             <li
               key={slot.id}
-              className="group/item relative flex w-full flex-col items-center justify-center gap-1 text-center"
+              className="group/item relative flex w-full flex-col items-center justify-center gap-2 text-center"
             >
               <span className="w-full text-center text-[11px] font-semibold tabular-nums leading-none text-foreground">
                 {oneBased}
@@ -129,10 +129,10 @@ export function WorkspaceVisualsFloatingBar({
                       removeVisual(slot.id);
                     }}
                     className={cn(
-                      "absolute -right-1 -top-1 z-10 flex size-6 items-center justify-center rounded-md border border-border bg-popover/95 text-red-400 shadow-md backdrop-blur-sm outline-none transition-opacity",
+                      "absolute -right-1 -top-1 z-10 flex size-6 items-center justify-center rounded-md border border-border bg-popover/95 text-red-400 shadow-md backdrop-blur-sm outline-none transition-[opacity,background-color,color]",
                       "opacity-0 pointer-events-none group-hover/item:pointer-events-auto group-hover/item:opacity-100",
                       "focus-visible:pointer-events-auto focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover",
-                      "hover:bg-red-500/20 hover:text-red-300"
+                      "hover:bg-red-700 hover:text-red-200"
                     )}
                   >
                     <Trash2 className="size-3.5" strokeWidth={2} aria-hidden />
@@ -144,26 +144,28 @@ export function WorkspaceVisualsFloatingBar({
         })}
       </ul>
 
-      <div
-        role="separator"
-        aria-hidden
-        className="h-px w-full shrink-0 self-stretch bg-border"
-      />
+      <div className="flex w-full flex-col items-center gap-3">
+        <div
+          role="separator"
+          aria-hidden
+          className="pointer-events-none h-px w-full shrink-0 self-stretch bg-border"
+        />
 
-      <button
-        type="button"
-        title="Add visual"
-        aria-label="Add visual"
-        onClick={() => addEmptyVisual()}
-        className={cn(
-          "mx-auto flex size-[56px] shrink-0 cursor-pointer items-center justify-center rounded-md border border-dashed border-border bg-transparent text-foreground outline-none transition-[box-shadow,transform,background-color]",
-          "ring-2 ring-border hover:bg-muted/80 hover:ring-muted-foreground/40",
-          "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover",
-          "active:scale-[0.98]"
-        )}
-      >
-        <Plus className="size-5 text-foreground" strokeWidth={2} aria-hidden />
-      </button>
+        <button
+          type="button"
+          title="Add visual"
+          aria-label="Add visual"
+          onClick={() => addEmptyVisual()}
+          className={cn(
+            "mx-auto flex size-[56px] shrink-0 cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-border bg-transparent text-foreground outline-none transition-[transform,background-color,border-color]",
+            "hover:bg-muted/80 hover:border-muted-foreground/45",
+            "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover",
+            "active:scale-[0.98]"
+          )}
+        >
+          <Plus className="size-5 text-foreground" strokeWidth={2} aria-hidden />
+        </button>
+      </div>
     </aside>
   );
 }
