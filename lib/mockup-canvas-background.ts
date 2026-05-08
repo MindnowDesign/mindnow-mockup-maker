@@ -34,6 +34,34 @@ export type PersistedCanvasBackground = {
 };
 
 /** Checkerboard pattern used for “transparency” preview in the canvas frame. */
+/** Compact fill for thumbnails / floating-bar previews (noise omitted). */
+export function persistedCanvasBackgroundToPeekStyle(
+  bg: PersistedCanvasBackground | null | undefined
+): CSSProperties {
+  if (bg == null || !bg.mode) {
+    return { backgroundColor: DEFAULT_CANVAS_SOLID_COLOR };
+  }
+  if (bg.mode === "transparent") {
+    return checkerboardBackgroundStyle();
+  }
+  if (bg.mode === "solid") {
+    return {
+      backgroundColor: bg.solidColor?.trim() || DEFAULT_CANVAS_SOLID_COLOR,
+    };
+  }
+  const url = bg.imageDataUrl?.trim();
+  if (url) {
+    return {
+      backgroundImage: `url(${url})`,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+    };
+  }
+  return {
+    backgroundColor: bg.solidColor?.trim() || DEFAULT_CANVAS_SOLID_COLOR,
+  };
+}
+
 export function checkerboardBackgroundStyle(): CSSProperties {
   return {
     backgroundColor: "#e4e4e4",

@@ -1,36 +1,49 @@
-import type { MockupMediaItem } from "@/components/mockup-media-context";
-import type { SavedMediaItem } from "@/lib/saved-projects";
+import type {
+  MockupLibraryItem,
+  MockupVisualSlot,
+} from "@/components/mockup-media-context";
+import type { SavedMediaItem, SavedVisualSlot } from "@/lib/saved-projects";
 import { resourceUrlToDataUrl } from "@/lib/resource-to-data-url";
 
 export async function serializeMockupMediaForSave(
-  items: MockupMediaItem[],
-  activeId: string | null
-): Promise<{ mediaItems: SavedMediaItem[]; activeMediaId: string | null }> {
+  library: MockupLibraryItem[],
+  visuals: MockupVisualSlot[],
+  activeVisualId: string | null
+): Promise<{
+  mediaItems: SavedMediaItem[];
+  visualSlots: SavedVisualSlot[];
+  activeVisualId: string | null;
+}> {
   const mediaItems: SavedMediaItem[] = [];
-  for (const item of items) {
+  for (const item of library) {
     try {
       const dataUrl = await resourceUrlToDataUrl(item.url);
-      const row: (typeof mediaItems)[number] = {
+      mediaItems.push({
         id: item.id,
         kind: item.kind,
         dataUrl,
-      };
-      if (item.label?.trim()) {
-        row.label = item.label.trim();
-      }
-      mediaItems.push(row);
+      });
     } catch (e) {
       console.error("Failed to serialize media item", e);
     }
   }
 
-  let activeMediaId = activeId;
-  if (activeMediaId && !mediaItems.some((m) => m.id === activeMediaId)) {
-    activeMediaId = mediaItems[mediaItems.length - 1]?.id ?? null;
+  let av = activeVisualId;
+  if (av && !visuals.some((v) => v.id === av)) {
+    av = visuals[visuals.length - 1]?.id ?? null;
   }
-  if (!activeMediaId && mediaItems.length > 0) {
-    activeMediaId = mediaItems[mediaItems.length - 1]!.id;
+  if (!av && visuals.length > 0) {
+    av = visuals[visuals.length - 1]!.id;
   }
 
-  return { mediaItems, activeMediaId };
+  const visualSlots: SavedVisualSlot[] = visuals.map((v) => ({
+    id: v.id,
+    mediaId:
+      v.mediaId && mediaItems.some((m) => m.id === v.mediaId)
+        ? v.mediaId
+        : null,
+    ...(v.label?.trim() ? { label: v.label.trim() } : {}),
+  }));
+
+  return { mediaItems, visualSlots, activeVisualId: av };
 }

@@ -13,12 +13,16 @@ import {
 import { usePathname } from "next/navigation";
 
 import { useMockupFrame } from "@/components/mockup-frame-context";
-import type { MockupMediaItem } from "@/components/mockup-media-context";
+import type {
+  MockupLibraryItem,
+  MockupVisualSlot,
+} from "@/components/mockup-media-context";
 import { useMockupMedia } from "@/components/mockup-media-context";
 import {
   captureWorkspaceSnapshot,
-  DEFAULT_WORKSPACE_SNAPSHOT,
+  createCanvasResetSnapshot,
   serializeWorkspaceSnapshot,
+  type VisualWorkspacePrefs,
   type WorkspaceSnapshot,
 } from "@/lib/mockup-workspace-snapshot";
 
@@ -35,6 +39,39 @@ type MockupWorkspaceHistoryValue = {
 const MockupWorkspaceHistoryContext =
   createContext<MockupWorkspaceHistoryValue | null>(null);
 
+function navFromIndex(snapshots: WorkspaceSnapshot[], index: number) {
+  return {
+    canUndo: index > 0,
+    canRedo: index >= 0 && index < snapshots.length - 1,
+  };
+}
+
+function coerceVisualState(snap: WorkspaceSnapshot): {
+  library: MockupLibraryItem[];
+  visuals: MockupVisualSlot[];
+  activeVisualId: string | null;
+} {
+  const library = snap.mediaItems as MockupLibraryItem[];
+  const visuals: MockupVisualSlot[] =
+    snap.visualSlots && snap.visualSlots.length > 0
+      ? (snap.visualSlots as MockupVisualSlot[])
+      : library.map((m) => ({
+          id: m.id,
+          mediaId: m.id,
+        }));
+  let activeVisualId = snap.activeVisualId ?? null;
+  if (
+    activeVisualId &&
+    !visuals.some((v) => v.id === activeVisualId)
+  ) {
+    activeVisualId = visuals[visuals.length - 1]?.id ?? null;
+  }
+  if (!activeVisualId && visuals.length > 0) {
+    activeVisualId = visuals[visuals.length - 1]!.id;
+  }
+  return { library, visuals, activeVisualId };
+}
+
 export function MockupWorkspaceHistoryProvider({
   children,
 }: {
@@ -50,12 +87,37 @@ export function MockupWorkspaceHistoryProvider({
   });
   const isApplyingRef = useRef(false);
   const canRecordRef = useRef(false);
-  const [, bump] = useState(0);
+  /** Derived from history stack — never read historyRef during render (concurrent-safe). */
+  const [navFlags, setNavFlags] = useState({ canUndo: false, canRedo: false });
+
+  const commitHistory = useCallback(
+    (snapshots: WorkspaceSnapshot[], index: number) => {
+      historyRef.current = { snapshots, index };
+      setNavFlags(navFromIndex(snapshots, index));
+    },
+    []
+  );
 
   const snapshot = useMemo(
-    () => captureWorkspaceSnapshot(frame, media),
-    [frame, media.items, media.activeId]
+    () =>
+      captureWorkspaceSnapshot(frame, {
+        library: media.library,
+        visuals: media.visuals,
+        activeVisualId: media.activeVisualId,
+        visualWorkspacePrefs: media.visualWorkspacePrefs,
+      }),
+    [
+      frame,
+      media.library,
+      media.visuals,
+      media.activeVisualId,
+      media.visualWorkspacePrefs,
+    ]
   );
+
+  useEffect(() => {
+    commitHistory([], -1);
+  }, [pathname, commitHistory]);
 
   useEffect(() => {
     canRecordRef.current = false;
@@ -66,9 +128,9 @@ export function MockupWorkspaceHistoryProvider({
   }, [pathname]);
 
   useEffect(() => {
-    if (!canRecordRef.current || isApplyingRef.current) return;
+    if (isApplyingRef.current) return;
     const handle = window.setTimeout(() => {
-      if (isApplyingRef.current) return;
+      if (!canRecordRef.current || isApplyingRef.current) return;
       const key = serializeWorkspaceSnapshot(snapshot);
       const { snapshots, index } = historyRef.current;
       const curKey =
@@ -81,21 +143,28 @@ export function MockupWorkspaceHistoryProvider({
       if (nextSnapshots.length > MAX_SNAPSHOTS) {
         nextSnapshots = nextSnapshots.slice(-MAX_SNAPSHOTS);
       }
-      historyRef.current = {
-        snapshots: nextSnapshots,
-        index: nextSnapshots.length - 1,
-      };
-      bump((n) => n + 1);
+      commitHistory(nextSnapshots, nextSnapshots.length - 1);
     }, 420);
     return () => window.clearTimeout(handle);
-  }, [snapshot]);
+  }, [snapshot, commitHistory]);
 
   const applySnapshot = useCallback(
     (snap: WorkspaceSnapshot) => {
       isApplyingRef.current = true;
       frame.setAspectPreset(snap.aspectPreset);
       frame.hydrateCanvasBackground(snap.canvasBackground);
-      media.replaceLibrary(snap.mediaItems as MockupMediaItem[], snap.activeMediaId);
+      const { library, visuals, activeVisualId } = coerceVisualState(snap);
+      const frameSeed: VisualWorkspacePrefs = {
+        aspectPreset: snap.aspectPreset,
+        canvasBackground: snap.canvasBackground ?? null,
+      };
+      media.replaceWorkspaceMedia(
+        library,
+        visuals,
+        activeVisualId,
+        frameSeed,
+        snap.visualWorkspacePrefs ?? null
+      );
       window.requestAnimationFrame(() => {
         isApplyingRef.current = false;
       });
@@ -107,45 +176,38 @@ export function MockupWorkspaceHistoryProvider({
     const { snapshots, index } = historyRef.current;
     if (index <= 0 || !snapshots[index - 1]) return;
     applySnapshot(snapshots[index - 1]!);
-    historyRef.current = { snapshots, index: index - 1 };
-    bump((n) => n + 1);
-  }, [applySnapshot]);
+    commitHistory(snapshots, index - 1);
+  }, [applySnapshot, commitHistory]);
 
   const redo = useCallback(() => {
     const { snapshots, index } = historyRef.current;
     if (index < 0 || index >= snapshots.length - 1) return;
     applySnapshot(snapshots[index + 1]!);
-    historyRef.current = { snapshots, index: index + 1 };
-    bump((n) => n + 1);
-  }, [applySnapshot]);
+    commitHistory(snapshots, index + 1);
+  }, [applySnapshot, commitHistory]);
 
   const resetAll = useCallback(() => {
-    const blank = {
-      ...DEFAULT_WORKSPACE_SNAPSHOT,
-      mediaItems: [],
-      activeMediaId: null,
-    };
-    applySnapshot(blank);
-    historyRef.current = {
-      snapshots: [blank],
-      index: 0,
-    };
-    bump((n) => n + 1);
-  }, [applySnapshot]);
-
-  const { snapshots, index } = historyRef.current;
-  const canUndo = index > 0;
-  const canRedo = index >= 0 && index < snapshots.length - 1;
+    const resetSnap = createCanvasResetSnapshot(
+      media.library.map((m) => ({ ...m }))
+    );
+    const { snapshots, index } = historyRef.current;
+    applySnapshot(resetSnap);
+    let nextSnapshots = [...snapshots.slice(0, index + 1), resetSnap];
+    if (nextSnapshots.length > MAX_SNAPSHOTS) {
+      nextSnapshots = nextSnapshots.slice(-MAX_SNAPSHOTS);
+    }
+    commitHistory(nextSnapshots, nextSnapshots.length - 1);
+  }, [applySnapshot, commitHistory, media.library]);
 
   const value = useMemo(
     () => ({
       undo,
       redo,
       resetAll,
-      canUndo,
-      canRedo,
+      canUndo: navFlags.canUndo,
+      canRedo: navFlags.canRedo,
     }),
-    [undo, redo, resetAll, canUndo, canRedo]
+    [undo, redo, resetAll, navFlags.canUndo, navFlags.canRedo]
   );
 
   return (

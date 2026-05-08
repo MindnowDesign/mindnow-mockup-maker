@@ -18,7 +18,7 @@ export function WorkspaceCanvasToolbar({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "flex items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-900/90 p-1 shadow-lg backdrop-blur-sm",
+        "relative isolate flex items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-900/90 p-1 shadow-lg backdrop-blur-sm",
         className
       )}
       role="toolbar"
@@ -30,7 +30,7 @@ export function WorkspaceCanvasToolbar({ className }: { className?: string }) {
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="text-zinc-300 hover:bg-white/10 hover:text-white"
+            className="text-zinc-300 hover:bg-white/10 hover:text-white [&_svg]:pointer-events-auto"
             aria-label="Undo"
             disabled={!canUndo}
             onClick={undo}
@@ -46,7 +46,7 @@ export function WorkspaceCanvasToolbar({ className }: { className?: string }) {
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="text-zinc-300 hover:bg-white/10 hover:text-white"
+            className="text-zinc-300 hover:bg-white/10 hover:text-white [&_svg]:pointer-events-auto"
             aria-label="Redo"
             disabled={!canRedo}
             onClick={redo}

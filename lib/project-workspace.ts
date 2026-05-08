@@ -1,3 +1,14 @@
+/** Dispatched after `ProjectWorkspaceHydrate` applies saved state (or resets `/projects/new`). */
+export const WORKSPACE_HYDRATED_EVENT = "mindnow:workspace-hydrated";
+
+export type WorkspaceHydratedDetail = {
+  pathname: string;
+};
+
+export function skipHydrateSessionStorageKey(projectId: string) {
+  return `mindnow:skip-hydrate:${projectId}`;
+}
+
 /** Strip trailing slashes so `/projects/new/` matches workspace routes like `/projects/new`. */
 function normalizePathname(pathname: string): string {
   const t = pathname.replace(/\/+$/, "");

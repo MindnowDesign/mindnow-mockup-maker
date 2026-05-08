@@ -11,41 +11,93 @@ import {
   type ReactNode,
 } from "react";
 
-import type { SavedMediaItem } from "@/lib/saved-projects";
+import { useMockupFrame } from "@/components/mockup-frame-context";
+import type { SavedMediaItem, SavedVisualSlot } from "@/lib/saved-projects";
+import {
+  captureVisualWorkspacePrefs,
+  DEFAULT_NEW_VISUAL_WORKSPACE_PREFS,
+  type VisualWorkspacePrefs,
+} from "@/lib/mockup-workspace-snapshot";
 
-export type MockupMediaItem = {
+/** Asset in the project library (blob or data URL). */
+export type MockupLibraryItem = {
   id: string;
   kind: "image" | "video";
   url: string;
-  /** User-editable name shown above the canvas for this visual. */
+};
+
+/** Canvas slot; optional assignment to a library asset by id. */
+export type MockupVisualSlot = {
+  id: string;
+  mediaId: string | null;
   label?: string;
 };
 
+/** @deprecated Use `MockupLibraryItem` — kept for snapshot/history casts. */
+export type MockupMediaItem = MockupLibraryItem;
+
 type MockupMediaState = {
-  items: MockupMediaItem[];
-  activeId: string | null;
+  library: MockupLibraryItem[];
+  visuals: MockupVisualSlot[];
+  activeVisualId: string | null;
+  /** Frame preset + canvas fill keyed by visual id (`undefined` = inherit global until first switch). */
+  visualWorkspacePrefs: Record<string, VisualWorkspacePrefs>;
 };
 
 export type HydrateFromSavedPayload = {
   mediaItems?: SavedMediaItem[];
+  visualSlots?: SavedVisualSlot[];
+  activeVisualId?: string | null;
+  /** Legacy — treated as active canvas slot id when `visualSlots` is absent. */
   activeMediaId?: string | null;
+  /** Seeds each visual’s saved frame appearance when reopening a project. */
+  projectFrameSeed?: VisualWorkspacePrefs | null;
+  /** Per-visual appearance from disk (preferred over `projectFrameSeed` per slot). */
+  visualWorkspacePrefs?: Record<string, VisualWorkspacePrefs> | null;
 } | null;
 
+function createFreshWorkspaceState(): MockupMediaState {
+  const vid = crypto.randomUUID();
+  return {
+    library: [],
+    visuals: [{ id: vid, mediaId: null }],
+    activeVisualId: vid,
+    visualWorkspacePrefs: {},
+  };
+}
+
 type MockupMediaContextValue = {
-  items: MockupMediaItem[];
-  activeId: string | null;
-  activeItem: MockupMediaItem | null;
+  library: MockupLibraryItem[];
+  visuals: MockupVisualSlot[];
+  activeVisualId: string | null;
+  activeVisual: MockupVisualSlot | null;
+  /** Resolved media for the active canvas (null = empty slot). */
+  activeItem: MockupLibraryItem | null;
+  /** Sidebar / pool: add files without creating a canvas slot. */
+  addLibraryFromFileList: (files: FileList | null) => void;
+  /** Canvas / paste / drop: assigns into the active visual (and library). */
   addFromFileList: (files: FileList | null) => void;
-  setActiveId: (id: string | null) => void;
-  updateItemLabel: (id: string, label: string) => void;
-  remove: (id: string) => void;
-  /** Replace library from localStorage (or clear when `null`). */
-  hydrateFromSaved: (payload: HydrateFromSavedPayload) => void;
+  setActiveVisualId: (id: string | null) => void;
+  addEmptyVisual: () => void;
+  assignMediaToActiveVisual: (libraryItemId: string) => void;
+  updateVisualLabel: (visualId: string, value: string) => void;
+  removeLibraryItem: (libraryItemId: string) => void;
+  /** Removes a canvas slot; library assets are kept. At least one visual remains. */
+  removeVisual: (visualId: string) => void;
   /**
-   * Replace the open media library (undo/redo). Revokes blob URLs only for
-   * items not present in the next list (matched by `id`).
+   * Adds a canvas slot pointing at an existing library asset (no blob copy).
    */
-  replaceLibrary: (items: MockupMediaItem[], activeId: string | null) => void;
+  createNewVisualFromItem: (libraryItemId: string) => Promise<void>;
+  hydrateFromSaved: (payload: HydrateFromSavedPayload) => void;
+  replaceWorkspaceMedia: (
+    library: MockupLibraryItem[],
+    visuals: MockupVisualSlot[],
+    activeVisualId: string | null,
+    frameSeed?: VisualWorkspacePrefs | null,
+    visualWorkspacePrefsOverride?: Record<string, VisualWorkspacePrefs> | null
+  ) => void;
+  /** Frame + canvas keyed by visual slot id (active canvas mirrors its entry). */
+  visualWorkspacePrefs: Record<string, VisualWorkspacePrefs>;
 };
 
 const MockupMediaContext = createContext<MockupMediaContextValue | null>(null);
@@ -60,142 +112,482 @@ function pickKind(file: File): "image" | "video" | null {
   return null;
 }
 
+function filesToLibraryItems(files: FileList): MockupLibraryItem[] {
+  const additions: MockupLibraryItem[] = [];
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const kind = pickKind(file);
+    if (!kind) continue;
+    additions.push({
+      id: crypto.randomUUID(),
+      kind,
+      url: URL.createObjectURL(file),
+    });
+  }
+  return additions;
+}
+
 export function MockupMediaProvider({ children }: { children: ReactNode }) {
-  const [{ items, activeId }, setState] = useState<MockupMediaState>({
-    items: [],
-    activeId: null,
-  });
-  const itemsRef = useRef(items);
-  itemsRef.current = items;
+  const frame = useMockupFrame();
+  const [{ library, visuals, activeVisualId, visualWorkspacePrefs }, setState] =
+    useState<MockupMediaState>(createFreshWorkspaceState);
+
+  const libraryRef = useRef(library);
+  libraryRef.current = library;
+
+  const visualWorkspacePrefsRef = useRef(visualWorkspacePrefs);
+  visualWorkspacePrefsRef.current = visualWorkspacePrefs;
+
+  const skipFramePrefsSyncRef = useRef(false);
 
   useEffect(() => {
     return () => {
-      for (const item of itemsRef.current) {
+      for (const item of libraryRef.current) {
         revokeIfBlobUrl(item.url);
       }
     };
   }, []);
 
+  const setAspectPresetRef = useRef(frame.setAspectPreset);
+  const hydrateCanvasBackgroundRef = useRef(frame.hydrateCanvasBackground);
+  setAspectPresetRef.current = frame.setAspectPreset;
+  hydrateCanvasBackgroundRef.current = frame.hydrateCanvasBackground;
+
+  useEffect(() => {
+    if (!activeVisualId) return;
+    const raw = visualWorkspacePrefsRef.current[activeVisualId];
+    const prefs = raw ?? DEFAULT_NEW_VISUAL_WORKSPACE_PREFS;
+    skipFramePrefsSyncRef.current = true;
+    setAspectPresetRef.current(prefs.aspectPreset);
+    hydrateCanvasBackgroundRef.current(prefs.canvasBackground);
+    if (raw === undefined) {
+      setState((s) => ({
+        ...s,
+        visualWorkspacePrefs: {
+          ...s.visualWorkspacePrefs,
+          [activeVisualId]: DEFAULT_NEW_VISUAL_WORKSPACE_PREFS,
+        },
+      }));
+    }
+  }, [activeVisualId]);
+
+  useEffect(() => {
+    if (!activeVisualId) return;
+    if (skipFramePrefsSyncRef.current) {
+      skipFramePrefsSyncRef.current = false;
+      return;
+    }
+    const snap = captureVisualWorkspacePrefs(frame);
+    setState((s) => ({
+      ...s,
+      visualWorkspacePrefs: {
+        ...s.visualWorkspacePrefs,
+        [activeVisualId]: snap,
+      },
+    }));
+  }, [
+    activeVisualId,
+    frame.aspectPreset,
+    frame.canvasBackgroundMode,
+    frame.canvasSolidColor,
+    frame.canvasBackgroundImageUrl,
+    frame.canvasNoisePercent,
+    frame.canvasBlurPercent,
+    frame.canvasNoiseType,
+    frame.canvasNoiseColor,
+    frame.canvasNoiseColorOpacity,
+    frame.canvasNoiseBlendMode,
+  ]);
+
   const hydrateFromSaved = useCallback((payload: HydrateFromSavedPayload) => {
     setState((s) => {
-      for (const item of s.items) {
+      for (const item of s.library) {
         revokeIfBlobUrl(item.url);
       }
       if (!payload?.mediaItems?.length) {
-        return { items: [], activeId: null };
+        return createFreshWorkspaceState();
       }
-      const nextItems: MockupMediaItem[] = payload.mediaItems.map((m) => ({
-        id: m.id,
-        kind: m.kind,
-        url: m.dataUrl,
-        ...(m.label?.trim() ? { label: m.label.trim() } : {}),
-      }));
-      let nextActive = payload.activeMediaId ?? null;
-      if (nextActive && !nextItems.some((i) => i.id === nextActive)) {
-        nextActive = null;
-      }
-      if (!nextActive) {
-        nextActive = nextItems[nextItems.length - 1]!.id;
-      }
-      return { items: nextItems, activeId: nextActive };
-    });
-  }, []);
 
-  const addFromFileList = useCallback((files: FileList | null) => {
-    const file = files?.[0];
-    if (!file) return;
-    const kind = pickKind(file);
-    if (!kind) return;
-    const id = crypto.randomUUID();
-    const url = URL.createObjectURL(file);
-    setState((s) => {
-      const entry: MockupMediaItem = { id, kind, url };
+      const nextLibrary: MockupLibraryItem[] = payload.mediaItems.map(
+        (m) => ({
+          id: m.id,
+          kind: m.kind,
+          url: m.dataUrl,
+        })
+      );
+
+      let nextVisuals: MockupVisualSlot[];
+      let nextActive: string | null;
+
+      if (payload.visualSlots?.length) {
+        nextVisuals = payload.visualSlots.map((v) => ({
+          id: v.id,
+          mediaId:
+            v.mediaId &&
+            nextLibrary.some((x) => x.id === v.mediaId)
+              ? v.mediaId
+              : null,
+          ...(v.label?.trim() ? { label: v.label.trim() } : {}),
+        }));
+        nextActive =
+          payload.activeVisualId ??
+          payload.activeMediaId ??
+          nextVisuals[nextVisuals.length - 1]!.id;
+      } else {
+        nextVisuals = nextLibrary.map((lib) => {
+          const legacyLabel = payload.mediaItems?.find(
+            (m) => m.id === lib.id
+          )?.label;
+          return {
+            id: lib.id,
+            mediaId: lib.id,
+            ...(legacyLabel?.trim()
+              ? { label: legacyLabel.trim() }
+              : {}),
+          };
+        });
+        nextActive =
+          payload.activeVisualId ??
+          payload.activeMediaId ??
+          nextVisuals[nextVisuals.length - 1]!.id;
+      }
+
+      if (
+        nextActive &&
+        !nextVisuals.some((v) => v.id === nextActive)
+      ) {
+        nextActive = nextVisuals[nextVisuals.length - 1]!.id;
+      }
+      if (!nextActive && nextVisuals.length > 0) {
+        nextActive = nextVisuals[nextVisuals.length - 1]!.id;
+      }
+
+      if (!nextVisuals.length) {
+        return createFreshWorkspaceState();
+      }
+
+      const seed = payload.projectFrameSeed ?? null;
+      const diskPrefs = payload.visualWorkspacePrefs ?? null;
+
+      const nextVisualWorkspacePrefs: Record<string, VisualWorkspacePrefs> =
+        {};
+      for (const v of nextVisuals) {
+        const per = diskPrefs?.[v.id];
+        if (per) {
+          nextVisualWorkspacePrefs[v.id] = per;
+        } else if (seed) {
+          nextVisualWorkspacePrefs[v.id] = {
+            aspectPreset: seed.aspectPreset,
+            canvasBackground: seed.canvasBackground,
+          };
+        }
+      }
+
       return {
-        items: [...s.items, entry],
-        activeId: id,
+        library: nextLibrary,
+        visuals: nextVisuals,
+        activeVisualId: nextActive,
+        visualWorkspacePrefs: nextVisualWorkspacePrefs,
       };
     });
   }, []);
 
-  const setActiveId = useCallback((id: string | null) => {
-    setState((s) => ({ ...s, activeId: id }));
+  const addLibraryFromFileList = useCallback((files: FileList | null) => {
+    if (!files?.length) return;
+    const additions = filesToLibraryItems(files);
+    if (!additions.length) return;
+    setState((s) => ({
+      ...s,
+      library: [...s.library, ...additions],
+    }));
   }, []);
 
-  const updateItemLabel = useCallback((id: string, label: string) => {
+  const addFromFileList = useCallback(
+    (files: FileList | null) => {
+      if (!files?.length) return;
+      const additions = filesToLibraryItems(files);
+      if (!additions.length) return;
+
+      const inheritPrefs = captureVisualWorkspacePrefs(frame);
+
+      setState((s) => {
+        const activeId = s.activeVisualId;
+        if (additions.length === 1 && activeId) {
+          const lib = additions[0]!;
+          return {
+            library: [...s.library, lib],
+            visuals: s.visuals.map((v) =>
+              v.id === activeId ? { ...v, mediaId: lib.id } : v
+            ),
+            activeVisualId: activeId,
+            visualWorkspacePrefs: s.visualWorkspacePrefs,
+          };
+        }
+
+        const newVisuals: MockupVisualSlot[] = additions.map((lib) => ({
+          id: crypto.randomUUID(),
+          mediaId: lib.id,
+        }));
+
+        const prefsMap = { ...s.visualWorkspacePrefs };
+        if (s.activeVisualId) {
+          prefsMap[s.activeVisualId] = inheritPrefs;
+        }
+        for (const nv of newVisuals) {
+          prefsMap[nv.id] = inheritPrefs;
+        }
+
+        return {
+          library: [...s.library, ...additions],
+          visuals: [...s.visuals, ...newVisuals],
+          activeVisualId: newVisuals[newVisuals.length - 1]!.id,
+          visualWorkspacePrefs: prefsMap,
+        };
+      });
+    },
+    [frame]
+  );
+
+  const setActiveVisualId = useCallback(
+    (id: string | null) => {
+      setState((s) => {
+        const prefsMap = { ...s.visualWorkspacePrefs };
+        if (s.activeVisualId != null && id !== s.activeVisualId) {
+          prefsMap[s.activeVisualId] = captureVisualWorkspacePrefs(frame);
+        }
+        return {
+          ...s,
+          visualWorkspacePrefs: prefsMap,
+          activeVisualId: id,
+        };
+      });
+    },
+    [frame]
+  );
+
+  const addEmptyVisual = useCallback(() => {
+    const snap = captureVisualWorkspacePrefs(frame);
+    setState((s) => {
+      const prefsMap = { ...s.visualWorkspacePrefs };
+      if (s.activeVisualId) {
+        prefsMap[s.activeVisualId] = snap;
+      }
+      const id = crypto.randomUUID();
+      prefsMap[id] = DEFAULT_NEW_VISUAL_WORKSPACE_PREFS;
+      return {
+        ...s,
+        visualWorkspacePrefs: prefsMap,
+        visuals: [...s.visuals, { id, mediaId: null }],
+        activeVisualId: id,
+      };
+    });
+  }, [frame]);
+
+  const assignMediaToActiveVisual = useCallback((libraryItemId: string) => {
+    setState((s) => {
+      if (!s.library.some((m) => m.id === libraryItemId)) return s;
+      if (!s.activeVisualId) return s;
+      return {
+        ...s,
+        visuals: s.visuals.map((v) =>
+          v.id === s.activeVisualId
+            ? { ...v, mediaId: libraryItemId }
+            : v
+        ),
+      };
+    });
+  }, []);
+
+  const updateVisualLabel = useCallback((visualId: string, label: string) => {
     setState((s) => {
       const trimmed = label.trim();
       return {
         ...s,
-        items: s.items.map((x) => {
-          if (x.id !== id) return x;
+        visuals: s.visuals.map((v) => {
+          if (v.id !== visualId) return v;
           if (trimmed === "") {
-            const { label: _removed, ...rest } = x;
-            return rest as MockupMediaItem;
+            const { label: _removed, ...rest } = v;
+            return rest as MockupVisualSlot;
           }
-          return { ...x, label: trimmed };
+          return { ...v, label: trimmed };
         }),
       };
     });
   }, []);
 
-  const remove = useCallback((id: string) => {
+  const removeLibraryItem = useCallback((libraryItemId: string) => {
     setState((s) => {
-      const target = s.items.find((x) => x.id === id);
+      const target = s.library.find((x) => x.id === libraryItemId);
       if (target) revokeIfBlobUrl(target.url);
-      const nextItems = s.items.filter((x) => x.id !== id);
-      let nextActive = s.activeId;
-      if (nextActive === id) {
-        nextActive = nextItems[nextItems.length - 1]?.id ?? null;
-      }
-      return { items: nextItems, activeId: nextActive };
+      const nextLibrary = s.library.filter((x) => x.id !== libraryItemId);
+      const nextVisuals = s.visuals.map((v) =>
+        v.mediaId === libraryItemId ? { ...v, mediaId: null } : v
+      );
+      return {
+        ...s,
+        library: nextLibrary,
+        visuals: nextVisuals,
+        activeVisualId: s.activeVisualId,
+      };
     });
   }, []);
 
-  const replaceLibrary = useCallback(
-    (nextItems: MockupMediaItem[], activeId: string | null) => {
+  const removeVisual = useCallback((visualId: string) => {
+    setState((s) => {
+      if (s.visuals.length <= 1) return s;
+      const nextVisuals = s.visuals.filter((v) => v.id !== visualId);
+      let nextActive = s.activeVisualId;
+      if (nextActive === visualId) {
+        nextActive = nextVisuals[nextVisuals.length - 1]!.id;
+      }
+      const prefsMap = { ...s.visualWorkspacePrefs };
+      delete prefsMap[visualId];
+      return {
+        ...s,
+        visuals: nextVisuals,
+        activeVisualId: nextActive,
+        visualWorkspacePrefs: prefsMap,
+      };
+    });
+  }, []);
+
+  const createNewVisualFromItem = useCallback(
+    async (libraryItemId: string) => {
+      const snap = captureVisualWorkspacePrefs(frame);
       setState((s) => {
-        const nextIds = new Set(nextItems.map((x) => x.id));
-        for (const item of s.items) {
+        if (!s.library.some((x) => x.id === libraryItemId)) return s;
+        const id = crypto.randomUUID();
+        const prefsMap = { ...s.visualWorkspacePrefs };
+        if (s.activeVisualId) prefsMap[s.activeVisualId] = snap;
+        prefsMap[id] = snap;
+        return {
+          ...s,
+          visualWorkspacePrefs: prefsMap,
+          visuals: [...s.visuals, { id, mediaId: libraryItemId }],
+          activeVisualId: id,
+        };
+      });
+    },
+    [frame]
+  );
+
+  const replaceWorkspaceMedia = useCallback(
+    (
+      nextLibrary: MockupLibraryItem[],
+      nextVisuals: MockupVisualSlot[],
+      nextActiveVisualId: string | null,
+      frameSeed?: VisualWorkspacePrefs | null,
+      visualWorkspacePrefsOverride?: Record<string, VisualWorkspacePrefs> | null
+    ) => {
+      setState((s) => {
+        const nextIds = new Set(nextLibrary.map((x) => x.id));
+        for (const item of s.library) {
           if (!nextIds.has(item.id)) {
             revokeIfBlobUrl(item.url);
           }
         }
+
+        let visuals = nextVisuals.map((x) => ({ ...x }));
+        let av = nextActiveVisualId;
+
+        if (visuals.length === 0) {
+          const vid = crypto.randomUUID();
+          visuals = [{ id: vid, mediaId: null }];
+          av = vid;
+        } else {
+          if (av && !visuals.some((v) => v.id === av)) {
+            av = visuals[visuals.length - 1]!.id;
+          }
+          if (!av) {
+            av = visuals[visuals.length - 1]!.id;
+          }
+        }
+
+        let nextPrefs: Record<string, VisualWorkspacePrefs>;
+        if (
+          visualWorkspacePrefsOverride &&
+          Object.keys(visualWorkspacePrefsOverride).length > 0
+        ) {
+          nextPrefs = Object.fromEntries(
+            visuals.map((v) => [
+              v.id,
+              visualWorkspacePrefsOverride[v.id] ??
+                DEFAULT_NEW_VISUAL_WORKSPACE_PREFS,
+            ])
+          );
+        } else if (frameSeed != null) {
+          nextPrefs = Object.fromEntries(
+            visuals.map((v) => [v.id, { ...frameSeed }])
+          );
+        } else {
+          nextPrefs = Object.fromEntries(
+            visuals.map((v) => [
+              v.id,
+              s.visualWorkspacePrefs[v.id] ??
+                DEFAULT_NEW_VISUAL_WORKSPACE_PREFS,
+            ])
+          );
+        }
+
         return {
-          items: nextItems.map((x) => ({ ...x })),
-          activeId,
+          library: nextLibrary.map((x) => ({ ...x })),
+          visuals,
+          activeVisualId: av,
+          visualWorkspacePrefs: nextPrefs,
         };
       });
     },
     []
   );
 
+  const activeVisual = useMemo(() => {
+    if (!activeVisualId) return null;
+    return visuals.find((v) => v.id === activeVisualId) ?? null;
+  }, [visuals, activeVisualId]);
+
   const activeItem = useMemo(() => {
-    if (!activeId) return null;
-    return items.find((x) => x.id === activeId) ?? null;
-  }, [items, activeId]);
+    if (!activeVisual?.mediaId) return null;
+    return library.find((m) => m.id === activeVisual.mediaId) ?? null;
+  }, [library, activeVisual]);
 
   const value = useMemo(
     () => ({
-      items,
-      activeId,
+      library,
+      visuals,
+      activeVisualId,
+      activeVisual,
       activeItem,
+      addLibraryFromFileList,
       addFromFileList,
-      setActiveId,
-      updateItemLabel,
-      remove,
+      setActiveVisualId,
+      addEmptyVisual,
+      assignMediaToActiveVisual,
+      updateVisualLabel,
+      removeLibraryItem,
+      removeVisual,
+      createNewVisualFromItem,
       hydrateFromSaved,
-      replaceLibrary,
+      replaceWorkspaceMedia,
+      visualWorkspacePrefs,
     }),
     [
-      items,
-      activeId,
+      library,
+      visuals,
+      activeVisualId,
+      activeVisual,
       activeItem,
+      visualWorkspacePrefs,
+      addLibraryFromFileList,
       addFromFileList,
-      setActiveId,
-      updateItemLabel,
-      remove,
+      setActiveVisualId,
+      addEmptyVisual,
+      assignMediaToActiveVisual,
+      updateVisualLabel,
+      removeLibraryItem,
+      removeVisual,
+      createNewVisualFromItem,
       hydrateFromSaved,
-      replaceLibrary,
+      replaceWorkspaceMedia,
     ]
   );
 

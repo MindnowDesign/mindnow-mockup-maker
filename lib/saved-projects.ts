@@ -1,12 +1,20 @@
 import type { FrameAspectPresetId } from "@/lib/mockup-aspect";
 import type { PersistedCanvasBackground } from "@/lib/mockup-canvas-background";
+import type { VisualWorkspacePrefs } from "@/lib/mockup-workspace-snapshot";
 
 /** One canvas media item persisted as a data URL (survives reload). */
 export type SavedMediaItem = {
   id: string;
   kind: "image" | "video";
   dataUrl: string;
-  /** Optional display name for this visual (shown above the canvas). */
+  /** @deprecated Prefer `SavedVisualSlot.label` — kept for legacy saves. */
+  label?: string;
+};
+
+/** One canvas slot referencing `SavedMediaItem.id` in the library. */
+export type SavedVisualSlot = {
+  id: string;
+  mediaId: string | null;
   label?: string;
 };
 
@@ -20,10 +28,16 @@ export type SavedProject = {
   /** Canvas frame fill (transparency preview, solid color, or image). */
   canvasBackground?: PersistedCanvasBackground;
   visualCount: number;
-  /** Serialized media library for full restore when reopening the project. */
+  /** Serialized media library (pool of assets). */
   mediaItems?: SavedMediaItem[];
-  /** Which media item is shown on the main canvas. */
+  /** Canvas slots; when absent, each legacy `mediaItems` row doubles as one slot. */
+  visualSlots?: SavedVisualSlot[];
+  /** Selected canvas slot id. */
+  activeVisualId?: string | null;
+  /** @deprecated Legacy — same as `activeVisualId` when `visualSlots` was not stored. */
   activeMediaId?: string | null;
+  /** Per-visual frame + canvas fill; legacy saves omit this (see root `aspectPreset` / `canvasBackground`). */
+  visualWorkspacePrefs?: Record<string, VisualWorkspacePrefs>;
 };
 
 const STORAGE_KEY = "mindnow:saved-projects-v1";

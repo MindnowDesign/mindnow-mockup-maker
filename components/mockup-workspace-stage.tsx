@@ -13,16 +13,11 @@ import {
 
 import { useMockupFrame } from "@/components/mockup-frame-context";
 import { useMockupMedia } from "@/components/mockup-media-context";
-import { hexToRgb } from "@/lib/color-hex-hsv";
+import { CanvasBackgroundNoiseOverlay } from "@/components/canvas-background-noise-overlay";
 import { scaledFramePixelSize } from "@/lib/mockup-aspect";
 import {
   checkerboardBackgroundStyle,
-  DEFAULT_CANVAS_NOISE_COLOR,
 } from "@/lib/mockup-canvas-background";
-import type { CanvasNoiseBlendModeId } from "@/lib/mockup-noise-blend";
-import { noiseBlendModeToCss } from "@/lib/mockup-noise-blend";
-import type { CanvasNoiseTypeId } from "@/lib/mockup-noise";
-import { noiseFilterPreset } from "@/lib/mockup-noise";
 import { defaultVisualLabel } from "@/lib/mockup-visual-label";
 import { cn } from "@/lib/utils";
 
@@ -43,85 +38,6 @@ function useFrameViewportCaps() {
   }, []);
 
   return caps;
-}
-
-function CanvasBackgroundNoiseOverlay({
-  strength,
-  filterId,
-  noiseType,
-  noiseColor,
-  noiseColorOpacity,
-  blendMode,
-}: {
-  /** 0–1 visual intensity */
-  strength: number;
-  filterId: string;
-  noiseType: CanvasNoiseTypeId;
-  noiseColor: string;
-  /** 0–100 opacity for the tinted grain layer */
-  noiseColorOpacity: number;
-  blendMode: CanvasNoiseBlendModeId;
-}) {
-  if (strength <= 0) return null;
-  const tintOpacity =
-    Math.min(100, Math.max(0, noiseColorOpacity)) / 100;
-  /** At noise 100% + tint 100%, layer opacity reaches 1 (grain reads nearly solid). */
-  const opacity = Math.min(1, strength * tintOpacity);
-  const preset = noiseFilterPreset(noiseType);
-  const rgb =
-    hexToRgb(noiseColor) ?? hexToRgb(DEFAULT_CANVAS_NOISE_COLOR)!;
-  const tr = rgb.r / 255;
-  const tg = rgb.g / 255;
-  const tb = rgb.b / 255;
-  const tintMatrix = `${tr} 0 0 0 0  0 ${tg} 0 0 0  0 0 ${tb} 0 0  0 0 0 1 0`;
-
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-0 z-[1] overflow-hidden rounded-[16px]"
-      style={{
-        opacity,
-        mixBlendMode: noiseBlendModeToCss(blendMode),
-      }}
-    >
-      <svg
-        className="h-full w-full"
-        xmlns="http://www.w3.org/2000/svg"
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <filter
-            id={filterId}
-            x="-20%"
-            y="-20%"
-            width="140%"
-            height="140%"
-          >
-            <feTurbulence
-              type={preset.turbulenceType}
-              baseFrequency={preset.baseFrequency}
-              numOctaves={preset.numOctaves}
-              seed={preset.seed}
-              stitchTiles="stitch"
-              result="turb"
-            />
-            <feColorMatrix
-              in="turb"
-              type="saturate"
-              values="0"
-              result="gray"
-            />
-            <feColorMatrix
-              in="gray"
-              type="matrix"
-              values={tintMatrix}
-            />
-          </filter>
-        </defs>
-        <rect width="100%" height="100%" filter={`url(#${filterId})`} />
-      </svg>
-    </div>
-  );
 }
 
 function MockupVisualTitle({
@@ -255,19 +171,21 @@ export function MockupWorkspaceStage() {
   const canvasNoiseFilterId = `canvas-noise-${useId().replace(/:/g, "")}`;
   const noiseBlendModeEffective =
     canvasNoiseBlendModePreview ?? canvasNoiseBlendMode;
-  const { activeItem, items, addFromFileList, updateItemLabel } =
-    useMockupMedia();
+  const {
+    activeVisual,
+    activeItem,
+    visuals,
+    addFromFileList,
+    updateVisualLabel,
+  } = useMockupMedia();
+
+  const visualForTitle = activeVisual ?? visuals[0] ?? null;
   const { maxW, maxH } = useFrameViewportCaps();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { width, height } = useMemo(
     () => scaledFramePixelSize(aspectPreset, maxW, maxH),
     [aspectPreset, maxW, maxH]
   );
-
-  function openFilePicker() {
-    fileInputRef.current?.click();
-  }
 
   const captureSurfaceStyle: CSSProperties = useMemo(() => {
     const base: CSSProperties = { width: "100%", height };
@@ -337,14 +255,17 @@ export function MockupWorkspaceStage() {
       className="flex max-w-full flex-col gap-2"
       style={{ width }}
     >
-      {activeItem ? (
+      {visualForTitle ? (
         <MockupVisualTitle
-          itemId={activeItem.id}
-          storedLabel={activeItem.label}
+          itemId={visualForTitle.id}
+          storedLabel={visualForTitle.label}
           fallbackLabel={defaultVisualLabel(
-            Math.max(0, items.findIndex((x) => x.id === activeItem.id)) + 1
+            Math.max(
+              0,
+              visuals.findIndex((x) => x.id === visualForTitle.id)
+            ) + 1
           )}
-          updateLabel={updateItemLabel}
+          updateLabel={updateVisualLabel}
         />
       ) : null}
       <div
@@ -417,45 +338,39 @@ export function MockupWorkspaceStage() {
               />
             </div>
           ) : (
-            <>
+            <label className="flex min-h-0 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-6 px-6 py-10 text-center outline-none transition-colors hover:bg-white/[0.03] focus-within:ring-2 focus-within:ring-white/25 focus-within:ring-inset">
+              <span className="sr-only">Upload images or videos</span>
               <input
-                ref={fileInputRef}
                 type="file"
                 accept="image/*,video/*"
+                multiple
                 className="sr-only"
                 onChange={(event) => {
                   addFromFileList(event.target.files);
                   event.target.value = "";
                 }}
               />
-              <button
-                type="button"
-                className="flex min-h-0 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-6 px-6 py-10 text-center outline-none transition-colors hover:bg-white/[0.03] focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-inset"
-                aria-label="Upload images or videos"
-                onClick={openFilePicker}
-              >
-                <div className="relative flex items-center justify-center">
-                  <span
-                    className="flex size-14 shrink-0 items-center justify-center rounded-full border border-dashed border-zinc-500 bg-zinc-900/35 transition-colors group-hover:border-zinc-400"
+              <div className="relative flex items-center justify-center">
+                <span
+                  className="flex size-14 shrink-0 items-center justify-center rounded-full border border-dashed border-zinc-500 bg-zinc-900/35 transition-colors group-hover:border-zinc-400"
+                  aria-hidden
+                >
+                  <Plus
+                    className="size-7 text-foreground transition-transform group-hover:scale-105"
+                    strokeWidth={2}
                     aria-hidden
-                  >
-                    <Plus
-                      className="size-7 text-foreground transition-transform group-hover:scale-105"
-                      strokeWidth={2}
-                      aria-hidden
-                    />
-                  </span>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xl font-semibold tracking-tight text-white md:text-2xl">
-                    Drop or Paste
-                  </p>
-                  <p className="text-sm font-medium text-zinc-500">
-                    Images &amp; Videos
-                  </p>
-                </div>
-              </button>
-            </>
+                  />
+                </span>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xl font-semibold tracking-tight text-white md:text-2xl">
+                  Drop or Paste
+                </p>
+                <p className="text-sm font-medium text-zinc-500">
+                  Images &amp; Videos
+                </p>
+              </div>
+            </label>
           )}
           </div>
         )}

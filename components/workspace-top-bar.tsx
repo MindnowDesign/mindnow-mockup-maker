@@ -1,11 +1,11 @@
 "use client";
 
-import { CloudCheck, Download, Loader2, Pencil } from "lucide-react";
+import { Download, Pencil } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useMockupFrame } from "@/components/mockup-frame-context";
 import { useMockupMedia } from "@/components/mockup-media-context";
@@ -14,6 +14,9 @@ import { useProjectWorkspaceTitle } from "@/components/project-workspace-title-c
 import {
   getProjectsWorkspaceSegment,
   getWorkspaceTitle,
+  skipHydrateSessionStorageKey,
+  WORKSPACE_HYDRATED_EVENT,
+  type WorkspaceHydratedDetail,
 } from "@/lib/project-workspace";
 import { captureMockupPreview } from "@/lib/capture-mockup-preview";
 import type { PersistedCanvasBackground } from "@/lib/mockup-canvas-background";
@@ -42,12 +45,11 @@ type WorkspaceTopBarProps = {
   logo?: ReactNode;
 };
 
-type SavePhase = "idle" | "loading" | "saved";
-
-const SAVE_SAVED_MS = 2000;
+const AUTOSAVE_DEBOUNCE_MS = 600;
 
 /**
- * Top bar for project workspace routes: logo (home) + editable title + Save / Export.
+ * Top bar for project workspace routes: logo (home) + editable title + Export.
+ * Project state persists automatically (debounced) without header UI.
  */
 export function WorkspaceTopBar({
   className,
@@ -68,27 +70,45 @@ export function WorkspaceTopBar({
     canvasNoiseColorOpacity,
     canvasNoiseBlendMode,
   } = useMockupFrame();
-  const { items: mediaItems, activeId: activeMediaId } = useMockupMedia();
+  const { library, visuals, activeVisualId, visualWorkspacePrefs } =
+    useMockupMedia();
   const { title, setTitle } = useProjectWorkspaceTitle();
   const fallbackTitle = getWorkspaceTitle(pathname);
   const titleInputRef = useRef<HTMLInputElement>(null);
-  const [savePhase, setSavePhase] = useState<SavePhase>("idle");
-  const saveTimersRef = useRef<{ reset?: ReturnType<typeof setTimeout> }>({});
+  const [hydrationReady, setHydrationReady] = useState(false);
+  const persistInFlightRef = useRef(false);
+  const persistQueuedRef = useRef(false);
 
   useEffect(() => {
-    return () => {
-      clearTimeout(saveTimersRef.current.reset);
-    };
-  }, []);
-
-  async function handleSave() {
-    if (savePhase !== "idle") return;
+    setHydrationReady(false);
     const segment = getProjectsWorkspaceSegment(pathname);
     if (!segment) return;
 
-    clearTimeout(saveTimersRef.current.reset);
+    function onHydrated(ev: Event) {
+      const e = ev as CustomEvent<WorkspaceHydratedDetail>;
+      if (e.detail?.pathname === pathname) {
+        setHydrationReady(true);
+      }
+    }
 
-    setSavePhase("loading");
+    window.addEventListener(WORKSPACE_HYDRATED_EVENT, onHydrated);
+    return () =>
+      window.removeEventListener(WORKSPACE_HYDRATED_EVENT, onHydrated);
+  }, [pathname]);
+
+  const runPersistRef = useRef(() => Promise.resolve());
+
+  const runPersist = useCallback(async () => {
+    if (persistInFlightRef.current) {
+      persistQueuedRef.current = true;
+      return;
+    }
+
+    const segment = getProjectsWorkspaceSegment(pathname);
+    if (!segment) return;
+
+    persistInFlightRef.current = true;
+    persistQueuedRef.current = false;
 
     try {
       const projectId = segment === "new" ? crypto.randomUUID() : segment;
@@ -97,12 +117,19 @@ export function WorkspaceTopBar({
         "[data-mockup-capture-target]"
       );
 
-      /** Capture first so the DOM isn’t competing with heavy blob→dataURL serialization. */
       const capturedPreview = el ? await captureMockupPreview(el) : "";
       const serialized = await serializeMockupMediaForSave(
-        mediaItems,
-        activeMediaId
+        library,
+        visuals,
+        activeVisualId
       );
+
+      if (library.length > 0 && serialized.mediaItems.length === 0) {
+        console.warn(
+          "Autosave skipped: library had items but serialization produced none."
+        );
+        return;
+      }
 
       const effectsPayload = {
         ...(canvasNoisePercent > 0 && { noisePercent: canvasNoisePercent }),
@@ -122,11 +149,14 @@ export function WorkspaceTopBar({
         }),
       };
 
-      let canvasBackground: PersistedCanvasBackground | undefined;
+      const activeStored =
+        activeVisualId != null ? visualWorkspacePrefs[activeVisualId] : undefined;
+
+      let canvasBackgroundFromFrame: PersistedCanvasBackground | undefined;
       if (canvasBackgroundMode === "transparent") {
-        canvasBackground = { mode: "transparent", ...effectsPayload };
+        canvasBackgroundFromFrame = { mode: "transparent", ...effectsPayload };
       } else if (canvasBackgroundMode === "solid") {
-        canvasBackground = {
+        canvasBackgroundFromFrame = {
           mode: "solid",
           solidColor: canvasSolidColor,
           ...effectsPayload,
@@ -136,11 +166,37 @@ export function WorkspaceTopBar({
           const imageDataUrl = await resourceUrlToDataUrl(
             canvasBackgroundImageUrl
           );
-          canvasBackground = { mode: "image", imageDataUrl, ...effectsPayload };
+          canvasBackgroundFromFrame = {
+            mode: "image",
+            imageDataUrl,
+            ...effectsPayload,
+          };
         } else {
-          canvasBackground = { mode: "image", ...effectsPayload };
+          canvasBackgroundFromFrame = { mode: "image", ...effectsPayload };
         }
       }
+
+      const aspectPresetRoot =
+        activeStored?.aspectPreset ?? aspectPreset;
+      const canvasBackgroundRoot =
+        activeStored != null
+          ? activeStored.canvasBackground ?? undefined
+          : canvasBackgroundFromFrame;
+
+      const prefsPayload =
+        Object.keys(visualWorkspacePrefs).length > 0
+          ? Object.fromEntries(
+              Object.entries(visualWorkspacePrefs).map(([id, p]) => [
+                id,
+                {
+                  aspectPreset: p.aspectPreset,
+                  canvasBackground: p.canvasBackground
+                    ? { ...p.canvasBackground }
+                    : null,
+                },
+              ])
+            )
+          : undefined;
 
       const previewDataUrl = capturedPreview;
 
@@ -152,11 +208,14 @@ export function WorkspaceTopBar({
           title: resolvedTitle,
           updatedAt: Date.now(),
           previewDataUrl,
-          aspectPreset,
-          canvasBackground,
-          visualCount: serialized.mediaItems.length,
+          aspectPreset: aspectPresetRoot,
+          canvasBackground: canvasBackgroundRoot,
+          visualCount: serialized.visualSlots.length,
           mediaItems: serialized.mediaItems,
-          activeMediaId: serialized.activeMediaId,
+          visualSlots: serialized.visualSlots,
+          activeVisualId: serialized.activeVisualId,
+          activeMediaId: serialized.activeVisualId,
+          ...(prefsPayload ? { visualWorkspacePrefs: prefsPayload } : {}),
         });
       } catch (persistErr) {
         if (
@@ -171,8 +230,8 @@ export function WorkspaceTopBar({
             title: resolvedTitle,
             updatedAt: Date.now(),
             previewDataUrl,
-            aspectPreset,
-            visualCount: serialized.mediaItems.length,
+            aspectPreset: aspectPresetRoot,
+            visualCount: serialized.visualSlots.length,
           });
         } else {
           throw persistErr;
@@ -181,18 +240,78 @@ export function WorkspaceTopBar({
       notifySavedProjectsChanged();
 
       if (segment === "new") {
+        persistQueuedRef.current = false;
+        try {
+          window.sessionStorage.setItem(
+            skipHydrateSessionStorageKey(projectId),
+            "1"
+          );
+        } catch {
+          /* ignore */
+        }
         router.replace(`/projects/${projectId}`);
       }
-
-      setSavePhase("saved");
-      saveTimersRef.current.reset = setTimeout(() => {
-        setSavePhase("idle");
-      }, SAVE_SAVED_MS);
     } catch (e) {
       console.error(e);
-      setSavePhase("idle");
+    } finally {
+      persistInFlightRef.current = false;
+      if (persistQueuedRef.current) {
+        persistQueuedRef.current = false;
+        void runPersistRef.current();
+      }
     }
-  }
+  }, [
+    pathname,
+    router,
+    aspectPreset,
+    canvasBackgroundMode,
+    canvasSolidColor,
+    canvasBackgroundImageUrl,
+    canvasNoisePercent,
+    canvasBlurPercent,
+    canvasNoiseType,
+    canvasNoiseColor,
+    canvasNoiseColorOpacity,
+    canvasNoiseBlendMode,
+    library,
+    visuals,
+    activeVisualId,
+    visualWorkspacePrefs,
+    title,
+    fallbackTitle,
+  ]);
+
+  runPersistRef.current = runPersist;
+
+  useEffect(() => {
+    if (!hydrationReady) return;
+    const segment = getProjectsWorkspaceSegment(pathname);
+    if (!segment) return;
+
+    const id = window.setTimeout(() => {
+      void runPersistRef.current();
+    }, AUTOSAVE_DEBOUNCE_MS);
+
+    return () => window.clearTimeout(id);
+  }, [
+    hydrationReady,
+    pathname,
+    aspectPreset,
+    canvasBackgroundMode,
+    canvasSolidColor,
+    canvasBackgroundImageUrl,
+    canvasNoisePercent,
+    canvasBlurPercent,
+    canvasNoiseType,
+    canvasNoiseColor,
+    canvasNoiseColorOpacity,
+    canvasNoiseBlendMode,
+    library,
+    visuals,
+    activeVisualId,
+    visualWorkspacePrefs,
+    title,
+  ]);
 
   return (
     <header
@@ -272,35 +391,6 @@ export function WorkspaceTopBar({
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="lg"
-          disabled={savePhase !== "idle"}
-          aria-busy={savePhase === "loading"}
-          onClick={handleSave}
-          className="border-zinc-700 bg-zinc-900/60 text-zinc-100 hover:bg-zinc-800 hover:text-white"
-        >
-          {savePhase === "loading" && (
-            <Loader2
-              className="size-4 shrink-0 animate-spin"
-              strokeWidth={1.75}
-              aria-hidden
-            />
-          )}
-          {savePhase === "saved" && (
-            <CloudCheck
-              className="size-4 shrink-0 text-emerald-400"
-              strokeWidth={1.75}
-              aria-hidden
-            />
-          )}
-          <span>
-            {savePhase === "loading" && "Saving…"}
-            {savePhase === "saved" && "Saved"}
-            {savePhase === "idle" && "Save"}
-          </span>
-        </Button>
         <Button
           type="button"
           variant="default"
