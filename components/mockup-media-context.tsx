@@ -232,7 +232,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
         nextActive =
           payload.activeVisualId ??
           payload.activeMediaId ??
-          nextVisuals[nextVisuals.length - 1]!.id;
+          nextVisuals[0]!.id;
       } else {
         nextVisuals = nextLibrary.map((lib) => {
           const legacyLabel = payload.mediaItems?.find(
@@ -249,17 +249,17 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
         nextActive =
           payload.activeVisualId ??
           payload.activeMediaId ??
-          nextVisuals[nextVisuals.length - 1]!.id;
+          nextVisuals[0]!.id;
       }
 
       if (
         nextActive &&
         !nextVisuals.some((v) => v.id === nextActive)
       ) {
-        nextActive = nextVisuals[nextVisuals.length - 1]!.id;
+        nextActive = nextVisuals[0]!.id;
       }
       if (!nextActive && nextVisuals.length > 0) {
-        nextActive = nextVisuals[nextVisuals.length - 1]!.id;
+        nextActive = nextVisuals[0]!.id;
       }
 
       if (!nextVisuals.length) {

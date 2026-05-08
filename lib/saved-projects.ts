@@ -24,6 +24,10 @@ export type SavedProject = {
   updatedAt: number;
   /** PNG data URL used on project cards (scaled down for storage). */
   previewDataUrl: string;
+  /** One thumbnail per canvas slot (workspace order); legacy / denormalized cache. */
+  previewDataUrls?: string[];
+  /** Per-visual PNG thumbnails for project cards; updated without switching the active canvas. */
+  previewThumbByVisualId?: Record<string, string>;
   aspectPreset: FrameAspectPresetId;
   /** Canvas frame fill (transparency preview, solid color, or image). */
   canvasBackground?: PersistedCanvasBackground;

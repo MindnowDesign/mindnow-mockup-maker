@@ -19,6 +19,7 @@ import {
   type WorkspaceHydratedDetail,
 } from "@/lib/project-workspace";
 import { captureMockupPreview } from "@/lib/capture-mockup-preview";
+import { waitForCaptureReady } from "@/lib/wait-for-capture-ready";
 import type { PersistedCanvasBackground } from "@/lib/mockup-canvas-background";
 import {
   DEFAULT_CANVAS_NOISE_COLOR,
@@ -32,7 +33,11 @@ import {
 } from "@/lib/mockup-noise";
 import { resourceUrlToDataUrl } from "@/lib/resource-to-data-url";
 import { serializeMockupMediaForSave } from "@/lib/serialize-mockup-media";
-import { notifySavedProjectsChanged, upsertSavedProject } from "@/lib/saved-projects";
+import {
+  getSavedProject,
+  notifySavedProjectsChanged,
+  upsertSavedProject,
+} from "@/lib/saved-projects";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_WORKSPACE_LOGO_SRC = "/images/logo.png";
@@ -113,11 +118,6 @@ export function WorkspaceTopBar({
     try {
       const projectId = segment === "new" ? crypto.randomUUID() : segment;
 
-      const el = document.querySelector<HTMLElement>(
-        "[data-mockup-capture-target]"
-      );
-
-      const capturedPreview = el ? await captureMockupPreview(el) : "";
       const serialized = await serializeMockupMediaForSave(
         library,
         visuals,
@@ -130,6 +130,46 @@ export function WorkspaceTopBar({
         );
         return;
       }
+
+      const captureEl = document.querySelector<HTMLElement>(
+        "[data-mockup-capture-target]"
+      );
+      let captured = "";
+      if (captureEl && serialized.activeVisualId) {
+        await waitForCaptureReady(captureEl);
+        captured = await captureMockupPreview(captureEl);
+      }
+
+      const slotIds = new Set(serialized.visualSlots.map((s) => s.id));
+      const disk = getSavedProject(projectId);
+      let mergedThumbs: Record<string, string> = {
+        ...(disk?.previewThumbByVisualId ?? {}),
+      };
+      if (
+        Object.keys(mergedThumbs).length === 0 &&
+        disk?.previewDataUrls?.length &&
+        disk.visualSlots?.length
+      ) {
+        mergedThumbs = {};
+        for (let i = 0; i < disk.visualSlots.length; i++) {
+          const u = disk.previewDataUrls![i];
+          if (u) mergedThumbs[disk.visualSlots[i]!.id] = u;
+        }
+      }
+      if (serialized.activeVisualId && captured) {
+        mergedThumbs[serialized.activeVisualId] = captured;
+      }
+      for (const id of Object.keys(mergedThumbs)) {
+        if (!slotIds.has(id)) delete mergedThumbs[id];
+      }
+
+      const previewDataUrls = serialized.visualSlots.map(
+        (s) => mergedThumbs[s.id] ?? ""
+      );
+      const previewDataUrl =
+        captured ||
+        previewDataUrls.find((u) => u.length > 0) ||
+        "";
 
       const effectsPayload = {
         ...(canvasNoisePercent > 0 && { noisePercent: canvasNoisePercent }),
@@ -198,8 +238,6 @@ export function WorkspaceTopBar({
             )
           : undefined;
 
-      const previewDataUrl = capturedPreview;
-
       const resolvedTitle = title.trim() || fallbackTitle;
 
       try {
@@ -208,6 +246,10 @@ export function WorkspaceTopBar({
           title: resolvedTitle,
           updatedAt: Date.now(),
           previewDataUrl,
+          ...(Object.keys(mergedThumbs).length > 0
+            ? { previewThumbByVisualId: mergedThumbs }
+            : {}),
+          ...(previewDataUrls.length > 0 ? { previewDataUrls } : {}),
           aspectPreset: aspectPresetRoot,
           canvasBackground: canvasBackgroundRoot,
           visualCount: serialized.visualSlots.length,
@@ -230,6 +272,10 @@ export function WorkspaceTopBar({
             title: resolvedTitle,
             updatedAt: Date.now(),
             previewDataUrl,
+            ...(Object.keys(mergedThumbs).length > 0
+              ? { previewThumbByVisualId: mergedThumbs }
+              : {}),
+            ...(previewDataUrls.length > 0 ? { previewDataUrls } : {}),
             aspectPreset: aspectPresetRoot,
             visualCount: serialized.visualSlots.length,
           });

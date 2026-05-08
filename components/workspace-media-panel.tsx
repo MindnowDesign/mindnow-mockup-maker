@@ -15,8 +15,7 @@ import { cn } from "@/lib/utils";
 export function WorkspaceMediaPanel() {
   const {
     library,
-    visuals,
-    activeVisualId,
+    activeItem,
     assignMediaToActiveVisual,
     addLibraryFromFileList,
     removeLibraryItem,
@@ -26,8 +25,6 @@ export function WorkspaceMediaPanel() {
   const [pendingDuplicateId, setPendingDuplicateId] = useState<string | null>(
     null
   );
-
-  const activeVisual = visuals.find((v) => v.id === activeVisualId);
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden">
@@ -51,29 +48,35 @@ export function WorkspaceMediaPanel() {
       </div>
 
       {library.length > 0 ? (
-        <ul className="grid w-full min-w-0 grid-cols-2 gap-1.5">
+        <ul className="grid w-full min-w-0 grid-cols-2 gap-[8px] [grid-template-columns:repeat(2,minmax(0,1fr))]">
           {library.map((item) => {
-            const isOnActiveCanvas = activeVisual?.mediaId === item.id;
+            const isSelected = activeItem?.id === item.id;
             return (
-              <li key={item.id} className="group relative min-w-0 max-w-full">
+              <li
+                key={item.id}
+                className="group relative w-full min-w-0 pb-[100%]"
+              >
                 <button
                   type="button"
                   onClick={() => assignMediaToActiveVisual(item.id)}
+                  data-selected={isSelected ? "true" : "false"}
                   className={cn(
-                    "relative aspect-square w-full max-w-full min-w-0 overflow-hidden rounded-lg bg-zinc-950 outline-none ring-offset-2 ring-offset-zinc-900 transition-shadow focus-visible:ring-2 focus-visible:ring-white/25",
-                    isOnActiveCanvas
-                      ? "ring-2 ring-white"
-                      : "ring-1 ring-zinc-700 hover:ring-zinc-500"
+                    "absolute inset-0 box-border overflow-hidden rounded-lg bg-zinc-950 outline-none transition-colors",
+                    /* Border survives `overflow-hidden`; rings were unreliable here. */
+                    isSelected
+                      ? "border-2 border-white shadow-[inset_0_0_0_1px_rgba(0,0,0,0.25)]"
+                      : "border border-zinc-700 hover:border-zinc-500",
+                    "focus-visible:border-white focus-visible:ring-2 focus-visible:ring-violet-400/90 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
                   )}
                   aria-label={`Place on active canvas — ${item.kind}`}
-                  aria-pressed={isOnActiveCanvas}
+                  aria-pressed={isSelected}
                 >
                   {item.kind === "image" ? (
                     // eslint-disable-next-line @next/next/no-img-element -- project blob URL
                     <img
                       src={item.url}
                       alt=""
-                      className="h-full w-full object-cover"
+                      className="pointer-events-none block size-full object-cover select-none"
                       draggable={false}
                     />
                   ) : (
@@ -81,7 +84,8 @@ export function WorkspaceMediaPanel() {
                       src={item.url}
                       muted
                       playsInline
-                      className="h-full w-full object-cover"
+                      preload="metadata"
+                      className="pointer-events-none block size-full object-cover select-none"
                     />
                   )}
                 </button>

@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { MoreHorizontal, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, MoreHorizontal, Trash2 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,8 @@ export type ProjectProductCardProps = {
   href?: string;
   /** Last saved canvas preview (often a PNG data URL). */
   previewSrc?: string | null;
+  /** Optional list of previews (one per visual); enables hover arrows when length > 1. */
+  previewSrcs?: string[] | null;
   /** When set, shows the overflow menu (e.g. delete). */
   projectId?: string;
 };
@@ -50,16 +53,30 @@ export function ProjectProductCard({
   className,
   href,
   previewSrc,
+  previewSrcs,
   projectId,
 }: ProjectProductCardProps) {
   const router = useRouter();
   const pathname = usePathname();
   const visualBadgeLabel = `${visualCount} ${visualCount === 1 ? "visual" : "visuals"} in this project`;
 
+  const previewSources = useMemo(() => {
+    const list = previewSrcs?.filter((u) => u && u.length > 0) ?? [];
+    if (list.length > 0) return list;
+    return previewSrc ? [previewSrc] : [];
+  }, [previewSrcs, previewSrc]);
+
+  const [previewIdx, setPreviewIdx] = useState(0);
+  const n = previewSources.length;
+  const displayPreviewSrc =
+    n > 0 ? previewSources[((previewIdx % n) + n) % n]! : null;
+  const showPreviewSwitcher =
+    visualCount > 1 && previewSources.length > 1;
+
   const card = (
     <Card
       className={cn(
-        "flex h-full min-h-0 flex-col gap-0 overflow-hidden py-0 ring-zinc-800/80 transition-shadow hover:shadow-md",
+        "group/card flex h-full min-h-0 flex-col gap-0 overflow-hidden py-0 ring-zinc-800/80 transition-shadow hover:shadow-md",
         href && "relative",
         className
       )}
@@ -80,10 +97,10 @@ export function ProjectProductCard({
       >
         <div className="relative aspect-[4/3] w-full shrink-0 bg-zinc-950">
           <div className="absolute inset-0 flex items-center justify-center p-6 md:p-8">
-            {previewSrc ? (
+            {displayPreviewSrc ? (
               // eslint-disable-next-line @next/next/no-img-element -- PNG data URLs from saved projects; layout needs object-contain like design reference
               <img
-                src={previewSrc}
+                src={displayPreviewSrc}
                 alt=""
                 className="max-h-full max-w-full object-contain object-center rounded-[8px]"
                 draggable={false}
@@ -92,6 +109,42 @@ export function ProjectProductCard({
               <span className="sr-only">Project preview placeholder image</span>
             )}
           </div>
+          {showPreviewSwitcher ? (
+            <>
+              <div className="pointer-events-auto absolute left-2 top-1/2 z-[3] -translate-y-1/2 opacity-0 group-hover/card:opacity-100">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  className="size-8 rounded-full border border-white/10 bg-black/45 text-white shadow-md backdrop-blur-sm hover:bg-black/60"
+                  aria-label="Previous canvas preview"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setPreviewIdx((i) => (i - 1 + n) % n);
+                  }}
+                >
+                  <ChevronLeft className="size-4" strokeWidth={2} aria-hidden />
+                </Button>
+              </div>
+              <div className="pointer-events-auto absolute right-2 top-1/2 z-[3] -translate-y-1/2 opacity-0 group-hover/card:opacity-100">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  className="size-8 rounded-full border border-white/10 bg-black/45 text-white shadow-md backdrop-blur-sm hover:bg-black/60"
+                  aria-label="Next canvas preview"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setPreviewIdx((i) => (i + 1) % n);
+                  }}
+                >
+                  <ChevronRight className="size-4" strokeWidth={2} aria-hidden />
+                </Button>
+              </div>
+            </>
+          ) : null}
         </div>
 
         <CardHeader className="flex flex-row items-start justify-between gap-3 border-b border-border/50 p-[16px]">

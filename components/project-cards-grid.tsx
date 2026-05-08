@@ -7,6 +7,17 @@ import { StartFromScratchCard } from "@/components/start-from-scratch-card";
 import { formatEditedAgo } from "@/lib/format-edited-ago";
 import { listSavedProjects, type SavedProject } from "@/lib/saved-projects";
 
+function cardPreviewSrcs(p: SavedProject): string[] | undefined {
+  if (p.visualSlots?.length && p.previewThumbByVisualId) {
+    const urls = p.visualSlots
+      .map((s) => p.previewThumbByVisualId![s.id])
+      .filter((u): u is string => !!u && u.length > 0);
+    if (urls.length > 0) return urls;
+  }
+  const legacy = p.previewDataUrls?.filter((u) => !!u && u.length > 0);
+  return legacy?.length ? legacy : undefined;
+}
+
 /** Same grid as the home “My projects” section — create tile + project tiles. */
 export function ProjectCardsGrid() {
   const [projects, setProjects] = useState<SavedProject[]>([]);
@@ -35,6 +46,7 @@ export function ProjectCardsGrid() {
           editedLabel={formatEditedAgo(p.updatedAt)}
           href={`/projects/${p.id}`}
           previewSrc={p.previewDataUrl || null}
+          previewSrcs={cardPreviewSrcs(p)}
           projectId={p.id}
         />
       ))}

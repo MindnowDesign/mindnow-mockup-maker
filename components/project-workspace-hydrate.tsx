@@ -63,16 +63,13 @@ export function ProjectWorkspaceHydrate() {
 
     const saved = getSavedProject(segment);
     if (saved) {
-      const resolvedActive =
-        saved.activeVisualId ??
-        saved.activeMediaId ??
-        saved.visualSlots?.[saved.visualSlots.length - 1]?.id ??
-        saved.mediaItems?.[saved.mediaItems.length - 1]?.id ??
-        null;
+      /** Opening a project always starts on the first canvas (same order as the visuals strip). */
+      const firstVisualId =
+        saved.visualSlots?.[0]?.id ?? saved.mediaItems?.[0]?.id ?? null;
 
       const perVisual: VisualWorkspacePrefs | undefined =
-        resolvedActive != null
-          ? saved.visualWorkspacePrefs?.[resolvedActive]
+        firstVisualId != null
+          ? saved.visualWorkspacePrefs?.[firstVisualId]
           : undefined;
       const projectFrameSeed: VisualWorkspacePrefs = {
         aspectPreset: saved.aspectPreset,
@@ -85,8 +82,7 @@ export function ProjectWorkspaceHydrate() {
       hydrateFromSaved({
         mediaItems: saved.mediaItems,
         visualSlots: saved.visualSlots,
-        activeVisualId:
-          saved.activeVisualId ?? saved.activeMediaId ?? null,
+        activeVisualId: firstVisualId,
         projectFrameSeed,
         visualWorkspacePrefs: saved.visualWorkspacePrefs ?? null,
       });

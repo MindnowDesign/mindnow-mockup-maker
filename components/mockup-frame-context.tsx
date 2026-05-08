@@ -115,7 +115,22 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
         setCanvasBgImageUrl(null);
         return;
       }
-      setCanvasBgImageUrl(URL.createObjectURL(file));
+      /**
+       * Use a data URL, not `blob:` — blob URLs are revoked when switching visuals
+       * or hydrating another visual’s prefs (`setCanvasBgImageUrl(null)`), but
+       * `visualWorkspacePrefs` still held the old blob string, so the image vanished.
+       */
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result;
+        if (typeof result === "string") {
+          setCanvasBgImageUrl(result);
+        }
+      };
+      reader.onerror = () => {
+        setCanvasBgImageUrl(null);
+      };
+      reader.readAsDataURL(file);
     },
     [setCanvasBgImageUrl]
   );
