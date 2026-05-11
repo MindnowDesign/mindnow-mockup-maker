@@ -11,14 +11,16 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+import { useMockupFrame } from "@/components/mockup-frame-context";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MOCKUP_DEVICE_BY_ID } from "@/lib/mockup-device-templates";
 import { cn } from "@/lib/utils";
 
 export type FrameDeviceValue =
@@ -129,6 +131,7 @@ function TemplateTile({
 }
 
 export function FrameDevicePicker() {
+  const { deviceTemplateId, setDeviceTemplateId } = useMockupFrame();
   const [open, setOpen] = useState(false);
   const [filterTab, setFilterTab] = useState<DeviceFilterTab>("screenshot");
   const [selection, setSelection] = useState<TemplatePick>({
@@ -138,6 +141,24 @@ export function FrameDevicePicker() {
   });
 
   const SelectedIcon = TRIGGER_META[selection.preset].icon;
+
+  useEffect(() => {
+    if (deviceTemplateId === "iphone-17-black") {
+      setSelection({
+        preset: "phone",
+        headline: "iPhone 17",
+        detail: "402 × 874",
+      });
+      setFilterTab("phone");
+      return;
+    }
+    setSelection({
+      preset: "screenshot",
+      headline: TRIGGER_META.screenshot.label,
+      detail: undefined,
+    });
+    setFilterTab("screenshot");
+  }, [deviceTemplateId]);
 
   function pickTemplate(next: TemplatePick) {
     setSelection(next);
@@ -237,13 +258,14 @@ export function FrameDevicePicker() {
                             <div className={TILE_PREVIEW_INNER} />
                           </PreviewPlate>
                         }
-                        onPick={() =>
+                        onPick={() => {
+                          setDeviceTemplateId(null);
                           pickTemplate({
                             preset: "screenshot",
                             headline: "Screenshot",
                             detail: undefined,
-                          })
-                        }
+                          });
+                        }}
                       />
                     </div>
                   </div>
@@ -259,13 +281,14 @@ export function FrameDevicePicker() {
                           <div className={TILE_PREVIEW_INNER} />
                         </PreviewPlate>
                       }
-                      onPick={() =>
+                      onPick={() => {
+                        setDeviceTemplateId("iphone-17-black");
                         pickTemplate({
                           preset: "phone",
                           headline: "iPhone 17",
                           detail: "402 × 874",
-                        })
-                      }
+                        });
+                      }}
                     />
                     <TemplateTile
                       title="iPhone 17 Air"
@@ -414,7 +437,9 @@ export function FrameDevicePicker() {
         </Popover>
       </div>
       <p className="text-sm leading-relaxed text-zinc-500">
-        {TRIGGER_META[selection.preset].label} controls will go here.
+        {deviceTemplateId && MOCKUP_DEVICE_BY_ID[deviceTemplateId]
+          ? `Screen content is clipped to the frame. Use a PNG with a transparent screen area so your image shows through — otherwise the bezel layer may hide it.`
+          : `${TRIGGER_META[selection.preset].label} — pick a device frame to wrap your media.`}
         {selection.detail ? (
           <span className="mt-1 block font-mono text-xs text-zinc-600">
             {selection.detail}

@@ -140,6 +140,12 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
 
   const skipFramePrefsSyncRef = useRef(false);
 
+  const activeVisualPrefsKey = useMemo(() => {
+    if (!activeVisualId) return "";
+    const raw = visualWorkspacePrefs[activeVisualId];
+    return JSON.stringify(raw ?? "__none__");
+  }, [activeVisualId, visualWorkspacePrefs]);
+
   useEffect(() => {
     return () => {
       for (const item of libraryRef.current) {
@@ -150,8 +156,10 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
 
   const setAspectPresetRef = useRef(frame.setAspectPreset);
   const hydrateCanvasBackgroundRef = useRef(frame.hydrateCanvasBackground);
+  const setDeviceTemplateIdRef = useRef(frame.setDeviceTemplateId);
   setAspectPresetRef.current = frame.setAspectPreset;
   hydrateCanvasBackgroundRef.current = frame.hydrateCanvasBackground;
+  setDeviceTemplateIdRef.current = frame.setDeviceTemplateId;
 
   useEffect(() => {
     if (!activeVisualId) return;
@@ -160,6 +168,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
     skipFramePrefsSyncRef.current = true;
     setAspectPresetRef.current(prefs.aspectPreset);
     hydrateCanvasBackgroundRef.current(prefs.canvasBackground);
+    setDeviceTemplateIdRef.current(prefs.deviceTemplateId ?? null);
     if (raw === undefined) {
       setState((s) => ({
         ...s,
@@ -169,7 +178,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
         },
       }));
     }
-  }, [activeVisualId]);
+  }, [activeVisualId, activeVisualPrefsKey]);
 
   useEffect(() => {
     if (!activeVisualId) return;
@@ -197,6 +206,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
     frame.canvasNoiseColor,
     frame.canvasNoiseColorOpacity,
     frame.canvasNoiseBlendMode,
+    frame.deviceTemplateId,
   ]);
 
   const hydrateFromSaved = useCallback((payload: HydrateFromSavedPayload) => {
@@ -279,6 +289,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
           nextVisualWorkspacePrefs[v.id] = {
             aspectPreset: seed.aspectPreset,
             canvasBackground: seed.canvasBackground,
+            deviceTemplateId: seed.deviceTemplateId ?? null,
           };
         }
       }

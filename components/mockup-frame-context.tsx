@@ -66,6 +66,9 @@ type MockupFrameContextValue = {
   hydrateCanvasBackground: (
     payload: PersistedCanvasBackground | null | undefined
   ) => void;
+  /** Device PNG overlay (`null` = plain canvas). */
+  deviceTemplateId: string | null;
+  setDeviceTemplateId: (id: string | null) => void;
 };
 
 const MockupFrameContext = createContext<MockupFrameContextValue | null>(null);
@@ -100,6 +103,8 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
     useState<CanvasNoiseBlendModeId>(DEFAULT_CANVAS_NOISE_BLEND_MODE);
   const [canvasNoiseBlendModePreview, setCanvasNoiseBlendModePreview] =
     useState<CanvasNoiseBlendModeId | null>(null);
+
+  const [deviceTemplateId, setDeviceTemplateId] = useState<string | null>(null);
 
   const canvasBgImageUrlRef = useRef<string | null>(null);
 
@@ -212,6 +217,8 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       canvasNoiseBlendModePreview,
       setCanvasNoiseBlendModePreview,
       hydrateCanvasBackground,
+      deviceTemplateId,
+      setDeviceTemplateId,
     }),
     [
       aspectPreset,
@@ -225,6 +232,7 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       canvasNoiseColorOpacity,
       canvasNoiseBlendMode,
       canvasNoiseBlendModePreview,
+      deviceTemplateId,
       setCanvasBackgroundImageFromFile,
       hydrateCanvasBackground,
     ]

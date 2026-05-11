@@ -40,18 +40,22 @@ export type FrameLike = {
   canvasNoiseColor: string;
   canvasNoiseColorOpacity: number;
   canvasNoiseBlendMode: import("@/lib/mockup-noise-blend").CanvasNoiseBlendModeId;
+  deviceTemplateId: string | null;
 };
 
 /** Frame + canvas appearance stored per visual slot. */
 export type VisualWorkspacePrefs = {
   aspectPreset: FrameAspectPresetId;
   canvasBackground: PersistedCanvasBackground | null;
+  /** `mockup-device-templates` id, or `null` / omitted for plain canvas (no device PNG). */
+  deviceTemplateId?: string | null;
 };
 
 export function captureVisualWorkspacePrefs(f: FrameLike): VisualWorkspacePrefs {
   return {
     aspectPreset: f.aspectPreset,
     canvasBackground: frameLikeToPersistedCanvasBackground(f),
+    deviceTemplateId: f.deviceTemplateId,
   };
 }
 
@@ -59,6 +63,7 @@ export function captureVisualWorkspacePrefs(f: FrameLike): VisualWorkspacePrefs 
 export const DEFAULT_NEW_VISUAL_WORKSPACE_PREFS: VisualWorkspacePrefs = {
   aspectPreset: "square-1-1",
   canvasBackground: null,
+  deviceTemplateId: null,
 };
 
 export function frameLikeToPersistedCanvasBackground(

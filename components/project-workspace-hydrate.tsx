@@ -20,7 +20,8 @@ import {
  */
 export function ProjectWorkspaceHydrate() {
   const pathname = usePathname();
-  const { setAspectPreset, hydrateCanvasBackground } = useMockupFrame();
+  const { setAspectPreset, hydrateCanvasBackground, setDeviceTemplateId } =
+    useMockupFrame();
   const { hydrateFromSaved } = useMockupMedia();
 
   useEffect(() => {
@@ -38,6 +39,7 @@ export function ProjectWorkspaceHydrate() {
     if (segment === "new") {
       setAspectPreset("square-1-1");
       hydrateCanvasBackground(null);
+      setDeviceTemplateId(null);
       hydrateFromSaved(null);
       signalHydrated();
       return;
@@ -74,11 +76,13 @@ export function ProjectWorkspaceHydrate() {
       const projectFrameSeed: VisualWorkspacePrefs = {
         aspectPreset: saved.aspectPreset,
         canvasBackground: saved.canvasBackground ?? null,
+        deviceTemplateId: null,
       };
       const seedForFrame = perVisual ?? projectFrameSeed;
 
       setAspectPreset(seedForFrame.aspectPreset);
       hydrateCanvasBackground(seedForFrame.canvasBackground);
+      setDeviceTemplateId(seedForFrame.deviceTemplateId ?? null);
       hydrateFromSaved({
         mediaItems: saved.mediaItems,
         visualSlots: saved.visualSlots,
@@ -88,10 +92,17 @@ export function ProjectWorkspaceHydrate() {
       });
     } else {
       hydrateCanvasBackground(null);
+      setDeviceTemplateId(null);
       hydrateFromSaved(null);
     }
     signalHydrated();
-  }, [pathname, setAspectPreset, hydrateCanvasBackground, hydrateFromSaved]);
+  }, [
+    pathname,
+    setAspectPreset,
+    hydrateCanvasBackground,
+    setDeviceTemplateId,
+    hydrateFromSaved,
+  ]);
 
   return null;
 }

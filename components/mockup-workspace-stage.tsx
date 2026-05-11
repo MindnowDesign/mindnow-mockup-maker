@@ -12,6 +12,7 @@ import {
 } from "react";
 
 import { useMockupFrame } from "@/components/mockup-frame-context";
+import { MockupDeviceFrame } from "@/components/mockup-device-frame";
 import { useMockupMedia } from "@/components/mockup-media-context";
 import { CanvasBackgroundNoiseOverlay } from "@/components/canvas-background-noise-overlay";
 import { scaledFramePixelSize } from "@/lib/mockup-aspect";
@@ -167,6 +168,7 @@ export function MockupWorkspaceStage() {
     canvasNoiseColorOpacity,
     canvasNoiseBlendMode,
     canvasNoiseBlendModePreview,
+    deviceTemplateId,
   } = useMockupFrame();
   const canvasNoiseFilterId = `canvas-noise-${useId().replace(/:/g, "")}`;
   const noiseBlendModeEffective =
@@ -310,7 +312,8 @@ export function MockupWorkspaceStage() {
           noiseColorOpacity={canvasNoiseColorOpacity}
           blendMode={noiseBlendModeEffective}
         />
-        <div className="relative z-10 flex min-h-0 min-w-0 items-center justify-center">
+        <div className="relative z-10 flex min-h-0 min-w-0 flex-1 items-center justify-center">
+          <MockupDeviceFrame deviceTemplateId={deviceTemplateId}>
         {activeItem?.kind === "image" ? (
           // eslint-disable-next-line @next/next/no-img-element -- user-provided blob URL
           <img
@@ -322,7 +325,10 @@ export function MockupWorkspaceStage() {
         ) : (
           <div
             className={cn(
-              "flex aspect-square max-h-full max-w-full min-h-0 min-w-0 flex-col overflow-hidden rounded-[16px]",
+              "flex max-h-full max-w-full min-h-0 min-w-0 flex-col overflow-hidden rounded-[16px]",
+              deviceTemplateId
+                ? "h-full min-h-[140px] w-full"
+                : "aspect-square",
               activeItem
                 ? "bg-zinc-950"
                 : "border border-zinc-900/80 bg-zinc-950 shadow-[0_24px_64px_-12px_rgba(0,0,0,0.9)]"
@@ -374,6 +380,7 @@ export function MockupWorkspaceStage() {
           )}
           </div>
         )}
+          </MockupDeviceFrame>
         </div>
       </div>
     </div>
