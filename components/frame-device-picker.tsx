@@ -20,7 +20,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MOCKUP_DEVICE_BY_ID } from "@/lib/mockup-device-templates";
+import { FrameDeviceStyles } from "@/components/frame-device-styles";
 import { cn } from "@/lib/utils";
 
 export type FrameDeviceValue =
@@ -58,17 +58,9 @@ type TemplatePick = {
   detail?: string;
 };
 
-function MiniThumbRow({ count = 4 }: { count?: number }) {
+function TemplateFooterHint() {
   return (
-    <div className="flex items-center gap-1">
-      {Array.from({ length: Math.min(count, 4) }).map((_, i) => (
-        <span
-          key={i}
-          className="size-6 shrink-0 rounded border border-zinc-700/80 bg-zinc-800"
-        />
-      ))}
-      <span className="pl-1 text-[10px] font-medium text-zinc-500">+9</span>
-    </div>
+    <span className="text-xs font-medium leading-snug text-zinc-500">6 styles</span>
   );
 }
 
@@ -124,7 +116,7 @@ function TemplateTile({
             </div>
           ) : null}
         </div>
-        {footer ?? <MiniThumbRow />}
+        {footer ?? <TemplateFooterHint />}
       </div>
     </button>
   );
@@ -148,6 +140,15 @@ export function FrameDevicePicker() {
         preset: "phone",
         headline: "iPhone 17",
         detail: "402 × 874",
+      });
+      setFilterTab("phone");
+      return;
+    }
+    if (deviceTemplateId?.startsWith("iphone-17-pro-max-")) {
+      setSelection({
+        preset: "phone",
+        headline: "iPhone 17 Pro Max",
+        detail: "440 × 956",
       });
       setFilterTab("phone");
       return;
@@ -248,7 +249,7 @@ export function FrameDevicePicker() {
               </div>
               <div className="max-h-[min(520px,calc(70vh))] overflow-y-auto overscroll-contain px-3 py-4">
                 <TabsContent value="screenshot" className="m-0 outline-none">
-                  <div className="flex justify-center">
+                  <div className="flex justify-start">
                     <div className="w-full min-w-0 max-w-[calc((100%-0.5rem)/2)]">
                       <TemplateTile
                         title="Screenshot"
@@ -291,20 +292,21 @@ export function FrameDevicePicker() {
                       }}
                     />
                     <TemplateTile
-                      title="iPhone 17 Air"
-                      resolution="420 × 912"
+                      title="iPhone 17 Pro Max"
+                      resolution="440 × 956"
                       preview={
                         <PreviewPlate>
                           <div className={TILE_PREVIEW_INNER} />
                         </PreviewPlate>
                       }
-                      onPick={() =>
+                      onPick={() => {
+                        setDeviceTemplateId("iphone-17-pro-max-silver");
                         pickTemplate({
                           preset: "phone",
-                          headline: "iPhone 17 Air",
-                          detail: "420 × 912",
-                        })
-                      }
+                          headline: "iPhone 17 Pro Max",
+                          detail: "440 × 956",
+                        });
+                      }}
                     />
                   </div>
                 </TabsContent>
@@ -367,7 +369,6 @@ export function FrameDevicePicker() {
                           </div>
                         </PreviewPlate>
                       }
-                      footer={<MiniThumbRow count={3} />}
                       onPick={() =>
                         pickTemplate({
                           preset: "desktop",
@@ -436,16 +437,7 @@ export function FrameDevicePicker() {
           </PopoverContent>
         </Popover>
       </div>
-      <p className="text-sm leading-relaxed text-zinc-500">
-        {deviceTemplateId && MOCKUP_DEVICE_BY_ID[deviceTemplateId]
-          ? `Screen content is clipped to the frame. Use a PNG with a transparent screen area so your image shows through — otherwise the bezel layer may hide it.`
-          : `${TRIGGER_META[selection.preset].label} — pick a device frame to wrap your media.`}
-        {selection.detail ? (
-          <span className="mt-1 block font-mono text-xs text-zinc-600">
-            {selection.detail}
-          </span>
-        ) : null}
-      </p>
+      <FrameDeviceStyles />
     </div>
   );
 }
