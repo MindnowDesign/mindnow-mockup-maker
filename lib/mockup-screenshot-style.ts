@@ -8,6 +8,88 @@ export type ScreenshotStyleId = "default" | "border" | "glass" | "outline";
 export type ScreenshotBorderPosition = "inside" | "center" | "outside";
 
 /**
+ * `sharp | curved | round` are presets surfaced as buttons; clicking one snaps
+ * the slider to a fixed value. `custom` means the user moved the slider/input
+ * freely so no preset is highlighted.
+ */
+export type ScreenshotCornerType =
+  | "sharp"
+  | "curved"
+  | "round"
+  | "custom";
+
+export type ScreenshotCornerPresetId = Exclude<
+  ScreenshotCornerType,
+  "custom"
+>;
+
+export const DEFAULT_SCREENSHOT_CORNER_TYPE: ScreenshotCornerType = "sharp";
+export const DEFAULT_SCREENSHOT_CORNER_RADIUS = 0;
+export const SCREENSHOT_CORNER_RADIUS_MIN = 0;
+export const SCREENSHOT_CORNER_RADIUS_MAX = 100;
+/**
+ * The slider/displayed value goes 0–100 (a normalized scale), but the actual
+ * border-radius applied to the screenshot caps at half of that. This keeps
+ * the maximum visual rounding sensible across image sizes while letting the
+ * UI expose a clean 0–100 range.
+ */
+export const SCREENSHOT_CORNER_RADIUS_DISPLAY_TO_PIXEL = 0.5;
+
+export const SCREENSHOT_CORNER_TYPE_PRESETS: Record<
+  ScreenshotCornerPresetId,
+  number
+> = {
+  sharp: 0,
+  curved: 40,
+  round: SCREENSHOT_CORNER_RADIUS_MAX,
+};
+
+export const SCREENSHOT_CORNER_TYPE_OPTIONS: {
+  id: ScreenshotCornerPresetId;
+  label: string;
+}[] = [
+  { id: "sharp", label: "Sharp" },
+  { id: "curved", label: "Curved" },
+  { id: "round", label: "Round" },
+];
+
+export function parseScreenshotCornerType(
+  value: unknown
+): ScreenshotCornerType {
+  if (
+    value === "sharp" ||
+    value === "curved" ||
+    value === "round" ||
+    value === "custom"
+  ) {
+    return value;
+  }
+  return DEFAULT_SCREENSHOT_CORNER_TYPE;
+}
+
+export function clampScreenshotCornerRadius(
+  value: number | undefined
+): number {
+  if (value == null || Number.isNaN(value)) {
+    return DEFAULT_SCREENSHOT_CORNER_RADIUS;
+  }
+  return Math.min(
+    SCREENSHOT_CORNER_RADIUS_MAX,
+    Math.max(SCREENSHOT_CORNER_RADIUS_MIN, Math.round(value))
+  );
+}
+
+/**
+ * Effective `border-radius` (px) applied to the screenshot shell. The slider
+ * value (0–100) is scaled down to a sensible pixel range so 100 maps to the
+ * visual cap (≈50px). The corner type is purely a UI hint (which preset is
+ * highlighted) and does not influence the rendered radius.
+ */
+export function screenshotEffectiveCornerRadius(radius: number): number {
+  return Math.max(0, radius * SCREENSHOT_CORNER_RADIUS_DISPLAY_TO_PIXEL);
+}
+
+/**
  * Detached stroke around the screenshot (à la `shots.so` "Outline").
  * Geometry is fixed; only the color is user-editable.
  */
@@ -71,6 +153,10 @@ export type PersistedScreenshotStyle = {
   outlineColor?: string;
   /** 0–100 — opacity of the outline stroke color. */
   outlineColorOpacity?: number;
+  /** Corner shape preset for the screenshot shell. */
+  cornerType?: ScreenshotCornerType;
+  /** Pixel radius for non-sharp corner types. */
+  cornerRadius?: number;
 };
 
 export function parseScreenshotStyle(value: unknown): ScreenshotStyleId {

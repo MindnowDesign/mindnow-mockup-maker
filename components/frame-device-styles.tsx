@@ -15,8 +15,11 @@ import {
 import { Check, ChevronDown, Rows3 } from "lucide-react";
 import {
   useEffect,
+  useId,
   useState,
+  type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
+  type ReactElement,
 } from "react";
 
 import { CanvasSolidColorPopoverPanel } from "@/components/canvas-solid-color-picker";
@@ -36,7 +39,12 @@ import {
   SCREENSHOT_BORDER_POSITION_OPTIONS,
   SCREENSHOT_BORDER_WEIGHT_MAX,
   SCREENSHOT_BORDER_WEIGHT_MIN,
+  SCREENSHOT_CORNER_RADIUS_MAX,
+  SCREENSHOT_CORNER_RADIUS_MIN,
+  SCREENSHOT_CORNER_TYPE_OPTIONS,
+  SCREENSHOT_CORNER_TYPE_PRESETS,
   type ScreenshotBorderPosition,
+  type ScreenshotCornerPresetId,
   type ScreenshotStyleId,
 } from "@/lib/mockup-screenshot-style";
 import { cn } from "@/lib/utils";
@@ -481,6 +489,256 @@ function ScreenshotBorderWeightField({
   );
 }
 
+function CornerSharpIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      <path d="M5 19V5h14" />
+    </svg>
+  );
+}
+
+function CornerCurvedIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      <path d="M5 19C5 11.268 11.268 5 19 5" />
+    </svg>
+  );
+}
+
+function CornerRoundIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      <path d="M5 19V13A8 8 0 0 1 13 5H19" />
+    </svg>
+  );
+}
+
+const CORNER_TYPE_ICONS: Record<
+  ScreenshotCornerPresetId,
+  ({ className }: { className?: string }) => ReactElement
+> = {
+  sharp: CornerSharpIcon,
+  curved: CornerCurvedIcon,
+  round: CornerRoundIcon,
+};
+
+function clampCornerRadius(value: number): number {
+  if (Number.isNaN(value)) return SCREENSHOT_CORNER_RADIUS_MIN;
+  return Math.min(
+    SCREENSHOT_CORNER_RADIUS_MAX,
+    Math.max(SCREENSHOT_CORNER_RADIUS_MIN, Math.round(value))
+  );
+}
+
+function ScreenshotCornerRadiusField({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (next: number) => void;
+}) {
+  const [focused, setFocused] = useState(false);
+  const [text, setText] = useState(String(value));
+
+  useEffect(() => {
+    if (!focused) setText(String(value));
+  }, [value, focused]);
+
+  function commit(raw: string) {
+    const cleaned = raw.replace(/[^0-9]/g, "");
+    if (cleaned === "") {
+      onChange(SCREENSHOT_CORNER_RADIUS_MIN);
+      setText(String(SCREENSHOT_CORNER_RADIUS_MIN));
+      return;
+    }
+    onChange(clampCornerRadius(parseInt(cleaned, 10)));
+  }
+
+  function handleArrowKeys(e: ReactKeyboardEvent<HTMLInputElement>) {
+    if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+    e.preventDefault();
+    const step = e.shiftKey ? 10 : 1;
+    const current = parseInt(text, 10);
+    const base = Number.isNaN(current) ? value : current;
+    const delta = e.key === "ArrowUp" ? step : -step;
+    const next = clampCornerRadius(base + delta);
+    onChange(next);
+    setText(String(next));
+  }
+
+  return (
+    <div className="flex min-w-0 shrink-0 items-center rounded-md border border-zinc-800 bg-zinc-950 px-1.5">
+      <input
+        type="text"
+        inputMode="numeric"
+        autoComplete="off"
+        aria-label="Corner radius value"
+        value={text}
+        onFocus={() => setFocused(true)}
+        onBlur={() => {
+          setFocused(false);
+          commit(text);
+        }}
+        onChange={(e) => {
+          const digits = e.target.value.replace(/\D/g, "").slice(0, 3);
+          setText(digits);
+          if (digits !== "") {
+            onChange(clampCornerRadius(parseInt(digits, 10)));
+          }
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+            handleArrowKeys(e);
+            return;
+          }
+          if (e.key === "Enter") e.currentTarget.blur();
+        }}
+        className="min-w-0 max-w-[2.5rem] bg-transparent px-1 py-2 text-right font-mono text-[11px] leading-none tabular-nums text-zinc-100 outline-none focus-visible:bg-white/5"
+      />
+    </div>
+  );
+}
+
+function ScreenshotCornerRadiusSliderRow({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (next: number) => void;
+}) {
+  const sliderId = `${useId()}-corner-radius`;
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2">
+        <input
+          id={sliderId}
+          type="range"
+          min={SCREENSHOT_CORNER_RADIUS_MIN}
+          max={SCREENSHOT_CORNER_RADIUS_MAX}
+          step={1}
+          value={value}
+          aria-label="Radius"
+          onChange={(e) => onChange(Number(e.target.value))}
+          style={
+            {
+              ["--range-pct" as string]: `${
+                ((value - SCREENSHOT_CORNER_RADIUS_MIN) /
+                  (SCREENSHOT_CORNER_RADIUS_MAX - SCREENSHOT_CORNER_RADIUS_MIN)) *
+                100
+              }%`,
+            } as CSSProperties
+          }
+          className="canvas-effect-range w-full min-w-0 flex-1 cursor-pointer"
+          aria-valuemin={SCREENSHOT_CORNER_RADIUS_MIN}
+          aria-valuemax={SCREENSHOT_CORNER_RADIUS_MAX}
+          aria-valuenow={value}
+        />
+        <ScreenshotCornerRadiusField value={value} onChange={onChange} />
+      </div>
+    </div>
+  );
+}
+
+function ScreenshotCornerRadiusControls() {
+  const {
+    screenshotCornerType,
+    setScreenshotCornerType,
+    screenshotCornerRadius,
+    setScreenshotCornerRadius,
+  } = useMockupFrame();
+
+  function applyPreset(id: ScreenshotCornerPresetId) {
+    setScreenshotCornerType(id);
+    setScreenshotCornerRadius(SCREENSHOT_CORNER_TYPE_PRESETS[id]);
+  }
+
+  function applyCustomRadius(next: number) {
+    setScreenshotCornerType("custom");
+    setScreenshotCornerRadius(next);
+  }
+
+  return (
+    <div className="space-y-2 pt-1">
+      <span
+        className="text-xs font-medium text-zinc-400"
+        id="frame-screenshot-corner-radius-label"
+      >
+        Corner radius
+      </span>
+      <div className="space-y-2 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950 p-2">
+        <div
+          role="radiogroup"
+          aria-labelledby="frame-screenshot-corner-radius-label"
+          className="grid grid-cols-3 gap-1"
+        >
+          {SCREENSHOT_CORNER_TYPE_OPTIONS.map(({ id, label }) => {
+            const selected = screenshotCornerType === id;
+            const Icon = CORNER_TYPE_ICONS[id];
+            return (
+              <button
+                key={id}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                aria-label={label}
+                title={label}
+                onClick={() => applyPreset(id)}
+                className={cn(
+                  "flex min-h-[44px] flex-col items-center justify-center gap-0.5 rounded-md border px-1 py-1.5 text-[10px] font-medium transition-colors",
+                  selected
+                    ? "border-zinc-500 bg-zinc-800 text-white shadow-sm"
+                    : "border-transparent bg-transparent text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
+                )}
+              >
+                <Icon className="size-4" />
+                <span>{label}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex items-center gap-2 px-1">
+          <span className="shrink-0 text-[11px] font-medium text-zinc-500">
+            Radius
+          </span>
+          <div className="min-w-0 flex-1">
+            <ScreenshotCornerRadiusSliderRow
+              value={screenshotCornerRadius}
+              onChange={applyCustomRadius}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ScreenshotStyleControls() {
   const {
     screenshotStyle,
@@ -576,6 +834,8 @@ function ScreenshotStyleControls() {
           />
         </div>
       ) : null}
+
+      <ScreenshotCornerRadiusControls />
     </div>
   );
 }

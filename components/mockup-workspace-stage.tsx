@@ -24,6 +24,7 @@ import {
   SCREENSHOT_GLASS_LIGHT,
   SCREENSHOT_OUTLINE,
   screenshotBorderOutlineOffset,
+  screenshotEffectiveCornerRadius,
   type ScreenshotBorderPosition,
   type ScreenshotStyleId,
 } from "@/lib/mockup-screenshot-style";
@@ -74,13 +75,16 @@ function UploadedScreenshotImage({
   border,
   outlineColor,
   outlineColorOpacity,
+  cornerRadius,
 }: {
   src: string;
   style: ScreenshotStyleId;
   border: ScreenshotBorderStyle | null;
   outlineColor: string;
   outlineColorOpacity: number;
+  cornerRadius: number;
 }) {
+  const effectiveCornerRadius = screenshotEffectiveCornerRadius(cornerRadius);
   const stageRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const [viewport, setViewport] = useState({ w: 0, h: 0 });
@@ -152,17 +156,16 @@ function UploadedScreenshotImage({
    */
   const outlineFrameStyle = useMemo<CSSProperties | undefined>(() => {
     if (style !== "outline") return undefined;
-    const innerImageRadius = 0;
     return {
       padding: `${SCREENSHOT_OUTLINE.gap}px`,
       border: `${SCREENSHOT_OUTLINE.weight}px solid ${rgbaFromHex(
         outlineColor,
         outlineColorOpacity
       )}`,
-      borderRadius: `${innerImageRadius + SCREENSHOT_OUTLINE.gap}px`,
+      borderRadius: `${effectiveCornerRadius + SCREENSHOT_OUTLINE.gap}px`,
       boxSizing: "border-box",
     };
-  }, [style, outlineColor, outlineColorOpacity]);
+  }, [style, outlineColor, outlineColorOpacity, effectiveCornerRadius]);
 
   const wrapperStyle = glassFrameStyle ?? outlineFrameStyle;
 
@@ -170,17 +173,22 @@ function UploadedScreenshotImage({
     const base: CSSProperties = fitted
       ? { width: fitted.w, height: fitted.h }
       : {};
+    const radiusBase: CSSProperties =
+      effectiveCornerRadius > 0
+        ? { borderRadius: `${effectiveCornerRadius}px`, overflow: "hidden" }
+        : {};
     if (style === "glass") {
       return {
         ...base,
-        borderRadius: `${SCREENSHOT_GLASS_LIGHT.imageRadius}px`,
+        borderRadius: `${effectiveCornerRadius}px`,
+        ...(effectiveCornerRadius > 0 ? { overflow: "hidden" } : {}),
       };
     }
     if (style === "outline") {
-      return base;
+      return { ...base, ...radiusBase };
     }
-    return { ...base, ...borderStyle };
-  }, [fitted, style, borderStyle]);
+    return { ...base, ...radiusBase, ...borderStyle };
+  }, [fitted, style, borderStyle, effectiveCornerRadius]);
 
   return (
     <div
@@ -369,6 +377,7 @@ export function MockupWorkspaceStage() {
     screenshotBorderWeight,
     screenshotOutlineColor,
     screenshotOutlineColorOpacity,
+    screenshotCornerRadius,
   } = useMockupFrame();
   const canvasNoiseFilterId = `canvas-noise-${useId().replace(/:/g, "")}`;
   const noiseBlendModeEffective =
@@ -546,6 +555,7 @@ export function MockupWorkspaceStage() {
                   border={screenshotBorder}
                   outlineColor={screenshotOutlineColor}
                   outlineColorOpacity={screenshotOutlineColorOpacity}
+                  cornerRadius={screenshotCornerRadius}
                 />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element -- user-provided blob URL

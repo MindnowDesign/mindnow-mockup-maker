@@ -217,6 +217,8 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
     frame.screenshotBorderWeight,
     frame.screenshotOutlineColor,
     frame.screenshotOutlineColorOpacity,
+    frame.screenshotCornerType,
+    frame.screenshotCornerRadius,
   ]);
 
   const hydrateFromSaved = useCallback((payload: HydrateFromSavedPayload) => {

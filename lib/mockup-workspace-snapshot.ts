@@ -3,6 +3,7 @@ import type { PersistedCanvasBackground } from "@/lib/mockup-canvas-background";
 import type {
   PersistedScreenshotStyle,
   ScreenshotBorderPosition,
+  ScreenshotCornerType,
   ScreenshotStyleId,
 } from "@/lib/mockup-screenshot-style";
 import {
@@ -10,6 +11,8 @@ import {
   DEFAULT_SCREENSHOT_BORDER_COLOR_OPACITY,
   DEFAULT_SCREENSHOT_BORDER_POSITION,
   DEFAULT_SCREENSHOT_BORDER_WEIGHT,
+  DEFAULT_SCREENSHOT_CORNER_RADIUS,
+  DEFAULT_SCREENSHOT_CORNER_TYPE,
   DEFAULT_SCREENSHOT_OUTLINE_COLOR,
   DEFAULT_SCREENSHOT_OUTLINE_COLOR_OPACITY,
   DEFAULT_SCREENSHOT_STYLE,
@@ -62,6 +65,8 @@ export type FrameLike = {
   screenshotBorderWeight: number;
   screenshotOutlineColor: string;
   screenshotOutlineColorOpacity: number;
+  screenshotCornerType: ScreenshotCornerType;
+  screenshotCornerRadius: number;
 };
 
 /** Frame + canvas appearance stored per visual slot. */
@@ -85,6 +90,8 @@ export function frameLikeToPersistedScreenshotStyle(
     borderWeight: f.screenshotBorderWeight,
     outlineColor: f.screenshotOutlineColor.trim().toUpperCase(),
     outlineColorOpacity: f.screenshotOutlineColorOpacity,
+    cornerType: f.screenshotCornerType,
+    cornerRadius: f.screenshotCornerRadius,
   };
 }
 
@@ -110,6 +117,8 @@ export const DEFAULT_NEW_VISUAL_WORKSPACE_PREFS: VisualWorkspacePrefs = {
     borderWeight: DEFAULT_SCREENSHOT_BORDER_WEIGHT,
     outlineColor: DEFAULT_SCREENSHOT_OUTLINE_COLOR,
     outlineColorOpacity: DEFAULT_SCREENSHOT_OUTLINE_COLOR_OPACITY,
+    cornerType: DEFAULT_SCREENSHOT_CORNER_TYPE,
+    cornerRadius: DEFAULT_SCREENSHOT_CORNER_RADIUS,
   },
 };
 

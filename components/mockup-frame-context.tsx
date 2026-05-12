@@ -34,19 +34,24 @@ import {
 import type {
   PersistedScreenshotStyle,
   ScreenshotBorderPosition,
+  ScreenshotCornerType,
   ScreenshotStyleId,
 } from "@/lib/mockup-screenshot-style";
 import {
   clampScreenshotBorderOpacity,
   clampScreenshotBorderWeight,
+  clampScreenshotCornerRadius,
   DEFAULT_SCREENSHOT_BORDER_COLOR,
   DEFAULT_SCREENSHOT_BORDER_COLOR_OPACITY,
   DEFAULT_SCREENSHOT_BORDER_POSITION,
   DEFAULT_SCREENSHOT_BORDER_WEIGHT,
+  DEFAULT_SCREENSHOT_CORNER_RADIUS,
+  DEFAULT_SCREENSHOT_CORNER_TYPE,
   DEFAULT_SCREENSHOT_OUTLINE_COLOR,
   DEFAULT_SCREENSHOT_OUTLINE_COLOR_OPACITY,
   DEFAULT_SCREENSHOT_STYLE,
   parseScreenshotBorderPosition,
+  parseScreenshotCornerType,
   parseScreenshotStyle,
 } from "@/lib/mockup-screenshot-style";
 
@@ -102,6 +107,10 @@ type MockupFrameContextValue = {
   setScreenshotOutlineColor: (hex: string) => void;
   screenshotOutlineColorOpacity: number;
   setScreenshotOutlineColorOpacity: (value: number) => void;
+  screenshotCornerType: ScreenshotCornerType;
+  setScreenshotCornerType: (type: ScreenshotCornerType) => void;
+  screenshotCornerRadius: number;
+  setScreenshotCornerRadius: (value: number) => void;
   hydrateScreenshotStyle: (
     payload: PersistedScreenshotStyle | null | undefined
   ) => void;
@@ -159,6 +168,11 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
   );
   const [screenshotOutlineColorOpacity, setScreenshotOutlineColorOpacityState] =
     useState(DEFAULT_SCREENSHOT_OUTLINE_COLOR_OPACITY);
+  const [screenshotCornerType, setScreenshotCornerTypeState] =
+    useState<ScreenshotCornerType>(DEFAULT_SCREENSHOT_CORNER_TYPE);
+  const [screenshotCornerRadius, setScreenshotCornerRadiusState] = useState(
+    DEFAULT_SCREENSHOT_CORNER_RADIUS
+  );
 
   const setScreenshotStyle = useCallback((id: ScreenshotStyleId) => {
     setScreenshotStyleState(parseScreenshotStyle(id));
@@ -196,6 +210,12 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       clampScreenshotBorderOpacity(value)
     );
   }, []);
+  const setScreenshotCornerType = useCallback((type: ScreenshotCornerType) => {
+    setScreenshotCornerTypeState(parseScreenshotCornerType(type));
+  }, []);
+  const setScreenshotCornerRadius = useCallback((value: number) => {
+    setScreenshotCornerRadiusState(clampScreenshotCornerRadius(value));
+  }, []);
 
   const hydrateScreenshotStyle = useCallback(
     (payload: PersistedScreenshotStyle | null | undefined) => {
@@ -211,6 +231,8 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
         setScreenshotOutlineColorOpacityState(
           DEFAULT_SCREENSHOT_OUTLINE_COLOR_OPACITY
         );
+        setScreenshotCornerTypeState(DEFAULT_SCREENSHOT_CORNER_TYPE);
+        setScreenshotCornerRadiusState(DEFAULT_SCREENSHOT_CORNER_RADIUS);
         return;
       }
       setScreenshotStyleState(parseScreenshotStyle(payload.style));
@@ -237,6 +259,12 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       );
       setScreenshotOutlineColorOpacityState(
         clampScreenshotBorderOpacity(payload.outlineColorOpacity)
+      );
+      setScreenshotCornerTypeState(
+        parseScreenshotCornerType(payload.cornerType)
+      );
+      setScreenshotCornerRadiusState(
+        clampScreenshotCornerRadius(payload.cornerRadius)
       );
     },
     []
@@ -369,6 +397,10 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       setScreenshotOutlineColor,
       screenshotOutlineColorOpacity,
       setScreenshotOutlineColorOpacity,
+      screenshotCornerType,
+      setScreenshotCornerType,
+      screenshotCornerRadius,
+      setScreenshotCornerRadius,
       hydrateScreenshotStyle,
     }),
     [
@@ -400,6 +432,10 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       setScreenshotOutlineColor,
       screenshotOutlineColorOpacity,
       setScreenshotOutlineColorOpacity,
+      screenshotCornerType,
+      setScreenshotCornerType,
+      screenshotCornerRadius,
+      setScreenshotCornerRadius,
       hydrateScreenshotStyle,
     ]
   );
