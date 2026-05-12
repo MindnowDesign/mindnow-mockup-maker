@@ -234,6 +234,9 @@ export function WorkspaceTopBar({
                     ? { ...p.canvasBackground }
                     : null,
                   deviceTemplateId: p.deviceTemplateId ?? null,
+                  screenshotStyle: p.screenshotStyle
+                    ? { ...p.screenshotStyle }
+                    : null,
                 },
               ])
             )

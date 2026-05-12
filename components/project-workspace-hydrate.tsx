@@ -24,6 +24,7 @@ export function ProjectWorkspaceHydrate() {
     setAspectPreset,
     hydrateCanvasBackground,
     setDeviceTemplateId,
+    hydrateScreenshotStyle,
   } = useMockupFrame();
   const { hydrateFromSaved } = useMockupMedia();
 
@@ -43,6 +44,7 @@ export function ProjectWorkspaceHydrate() {
       setAspectPreset("square-1-1");
       hydrateCanvasBackground(null);
       setDeviceTemplateId(null);
+      hydrateScreenshotStyle(null);
       hydrateFromSaved(null);
       signalHydrated();
       return;
@@ -80,12 +82,14 @@ export function ProjectWorkspaceHydrate() {
         aspectPreset: saved.aspectPreset,
         canvasBackground: saved.canvasBackground ?? null,
         deviceTemplateId: null,
+        screenshotStyle: null,
       };
       const seedForFrame = perVisual ?? projectFrameSeed;
 
       setAspectPreset(seedForFrame.aspectPreset);
       hydrateCanvasBackground(seedForFrame.canvasBackground);
       setDeviceTemplateId(seedForFrame.deviceTemplateId ?? null);
+      hydrateScreenshotStyle(seedForFrame.screenshotStyle ?? null);
       hydrateFromSaved({
         mediaItems: saved.mediaItems,
         visualSlots: saved.visualSlots,
@@ -96,6 +100,7 @@ export function ProjectWorkspaceHydrate() {
     } else {
       hydrateCanvasBackground(null);
       setDeviceTemplateId(null);
+      hydrateScreenshotStyle(null);
       hydrateFromSaved(null);
     }
     signalHydrated();
@@ -104,6 +109,7 @@ export function ProjectWorkspaceHydrate() {
     setAspectPreset,
     hydrateCanvasBackground,
     setDeviceTemplateId,
+    hydrateScreenshotStyle,
     hydrateFromSaved,
   ]);
 

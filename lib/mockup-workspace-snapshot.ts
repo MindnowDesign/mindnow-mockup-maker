@@ -1,5 +1,19 @@
 import type { FrameAspectPresetId } from "@/lib/mockup-aspect";
 import type { PersistedCanvasBackground } from "@/lib/mockup-canvas-background";
+import type {
+  PersistedScreenshotStyle,
+  ScreenshotBorderPosition,
+  ScreenshotStyleId,
+} from "@/lib/mockup-screenshot-style";
+import {
+  DEFAULT_SCREENSHOT_BORDER_COLOR,
+  DEFAULT_SCREENSHOT_BORDER_COLOR_OPACITY,
+  DEFAULT_SCREENSHOT_BORDER_POSITION,
+  DEFAULT_SCREENSHOT_BORDER_WEIGHT,
+  DEFAULT_SCREENSHOT_OUTLINE_COLOR,
+  DEFAULT_SCREENSHOT_OUTLINE_COLOR_OPACITY,
+  DEFAULT_SCREENSHOT_STYLE,
+} from "@/lib/mockup-screenshot-style";
 
 /** Matches `MockupLibraryItem` — kept here to avoid lib ↔ component cycles. */
 export type WorkspaceMediaEntry = {
@@ -41,6 +55,13 @@ export type FrameLike = {
   canvasNoiseColorOpacity: number;
   canvasNoiseBlendMode: import("@/lib/mockup-noise-blend").CanvasNoiseBlendModeId;
   deviceTemplateId: string | null;
+  screenshotStyle: ScreenshotStyleId;
+  screenshotBorderColor: string;
+  screenshotBorderColorOpacity: number;
+  screenshotBorderPosition: ScreenshotBorderPosition;
+  screenshotBorderWeight: number;
+  screenshotOutlineColor: string;
+  screenshotOutlineColorOpacity: number;
 };
 
 /** Frame + canvas appearance stored per visual slot. */
@@ -49,13 +70,30 @@ export type VisualWorkspacePrefs = {
   canvasBackground: PersistedCanvasBackground | null;
   /** `mockup-device-templates` id, or `null` / omitted for plain canvas (no device PNG). */
   deviceTemplateId?: string | null;
+  /** Screenshot styling (only meaningful when `deviceTemplateId` is null). */
+  screenshotStyle?: PersistedScreenshotStyle | null;
 };
+
+export function frameLikeToPersistedScreenshotStyle(
+  f: FrameLike
+): PersistedScreenshotStyle {
+  return {
+    style: f.screenshotStyle,
+    borderColor: f.screenshotBorderColor.trim().toUpperCase(),
+    borderColorOpacity: f.screenshotBorderColorOpacity,
+    borderPosition: f.screenshotBorderPosition,
+    borderWeight: f.screenshotBorderWeight,
+    outlineColor: f.screenshotOutlineColor.trim().toUpperCase(),
+    outlineColorOpacity: f.screenshotOutlineColorOpacity,
+  };
+}
 
 export function captureVisualWorkspacePrefs(f: FrameLike): VisualWorkspacePrefs {
   return {
     aspectPreset: f.aspectPreset,
     canvasBackground: frameLikeToPersistedCanvasBackground(f),
     deviceTemplateId: f.deviceTemplateId,
+    screenshotStyle: frameLikeToPersistedScreenshotStyle(f),
   };
 }
 
@@ -64,6 +102,15 @@ export const DEFAULT_NEW_VISUAL_WORKSPACE_PREFS: VisualWorkspacePrefs = {
   aspectPreset: "square-1-1",
   canvasBackground: null,
   deviceTemplateId: null,
+  screenshotStyle: {
+    style: DEFAULT_SCREENSHOT_STYLE,
+    borderColor: DEFAULT_SCREENSHOT_BORDER_COLOR,
+    borderColorOpacity: DEFAULT_SCREENSHOT_BORDER_COLOR_OPACITY,
+    borderPosition: DEFAULT_SCREENSHOT_BORDER_POSITION,
+    borderWeight: DEFAULT_SCREENSHOT_BORDER_WEIGHT,
+    outlineColor: DEFAULT_SCREENSHOT_OUTLINE_COLOR,
+    outlineColorOpacity: DEFAULT_SCREENSHOT_OUTLINE_COLOR_OPACITY,
+  },
 };
 
 export function frameLikeToPersistedCanvasBackground(

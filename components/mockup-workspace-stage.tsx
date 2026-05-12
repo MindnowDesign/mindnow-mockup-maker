@@ -15,12 +15,34 @@ import { useMockupFrame } from "@/components/mockup-frame-context";
 import { MockupDeviceFrame } from "@/components/mockup-device-frame";
 import { useMockupMedia } from "@/components/mockup-media-context";
 import { CanvasBackgroundNoiseOverlay } from "@/components/canvas-background-noise-overlay";
+import { hexToRgb } from "@/lib/color-hex-hsv";
 import { scaledFramePixelSize } from "@/lib/mockup-aspect";
 import {
   checkerboardBackgroundStyle,
 } from "@/lib/mockup-canvas-background";
+import {
+  SCREENSHOT_GLASS_LIGHT,
+  SCREENSHOT_OUTLINE,
+  screenshotBorderOutlineOffset,
+  type ScreenshotBorderPosition,
+  type ScreenshotStyleId,
+} from "@/lib/mockup-screenshot-style";
 import { defaultVisualLabel } from "@/lib/mockup-visual-label";
 import { cn } from "@/lib/utils";
+
+function rgbaFromHex(hex: string, opacityPercent: number): string {
+  const rgb = hexToRgb(hex) ?? { r: 0, g: 0, b: 0 };
+  const a = Math.min(1, Math.max(0, opacityPercent / 100));
+  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${a})`;
+}
+
+type ScreenshotBorderStyle = {
+  /** Pixel weight; pass 0 to disable. */
+  weight: number;
+  color: string;
+  opacity: number;
+  position: ScreenshotBorderPosition;
+};
 
 /** Max border-box size for the orange frame (fits main canvas). */
 function useFrameViewportCaps() {
@@ -46,7 +68,19 @@ function useFrameViewportCaps() {
  * gets explicit width/height matching `object-contain` math so DevTools shows a tight box
  * around the image (CSS % alone often resolves against the grid cell, not the bitmap).
  */
-function UploadedScreenshotImage({ src }: { src: string }) {
+function UploadedScreenshotImage({
+  src,
+  style,
+  border,
+  outlineColor,
+  outlineColorOpacity,
+}: {
+  src: string;
+  style: ScreenshotStyleId;
+  border: ScreenshotBorderStyle | null;
+  outlineColor: string;
+  outlineColorOpacity: number;
+}) {
   const stageRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const [viewport, setViewport] = useState({ w: 0, h: 0 });
@@ -86,43 +120,115 @@ function UploadedScreenshotImage({ src }: { src: string }) {
     };
   }, [natural, viewport.w, viewport.h]);
 
+  const borderStyle = useMemo<CSSProperties | undefined>(() => {
+    if (style !== "border") return undefined;
+    if (!border || border.weight <= 0) return undefined;
+    return {
+      outlineStyle: "solid",
+      outlineColor: rgbaFromHex(border.color, border.opacity),
+      outlineWidth: `${border.weight}px`,
+      outlineOffset: `${screenshotBorderOutlineOffset(
+        border.position,
+        border.weight
+      )}px`,
+    };
+  }, [border, style]);
+
+  const glassFrameStyle = useMemo<CSSProperties | undefined>(() => {
+    if (style !== "glass") return undefined;
+    return {
+      padding: `${SCREENSHOT_GLASS_LIGHT.framePadding}px`,
+      borderRadius: `${SCREENSHOT_GLASS_LIGHT.frameRadius}px`,
+      background: SCREENSHOT_GLASS_LIGHT.background,
+      backdropFilter: SCREENSHOT_GLASS_LIGHT.backdropFilter,
+      WebkitBackdropFilter: SCREENSHOT_GLASS_LIGHT.backdropFilter,
+    };
+  }, [style]);
+
+  /**
+   * Outline = wrapper border with `padding` for the gap so the stroke ends up
+   * `gap` px from the image, and follows the image's corner radius via the
+   * wrapper's own `border-radius` (image radius + gap).
+   */
+  const outlineFrameStyle = useMemo<CSSProperties | undefined>(() => {
+    if (style !== "outline") return undefined;
+    const innerImageRadius = 0;
+    return {
+      padding: `${SCREENSHOT_OUTLINE.gap}px`,
+      border: `${SCREENSHOT_OUTLINE.weight}px solid ${rgbaFromHex(
+        outlineColor,
+        outlineColorOpacity
+      )}`,
+      borderRadius: `${innerImageRadius + SCREENSHOT_OUTLINE.gap}px`,
+      boxSizing: "border-box",
+    };
+  }, [style, outlineColor, outlineColorOpacity]);
+
+  const wrapperStyle = glassFrameStyle ?? outlineFrameStyle;
+
+  const shellStyle = useMemo<CSSProperties>(() => {
+    const base: CSSProperties = fitted
+      ? { width: fitted.w, height: fitted.h }
+      : {};
+    if (style === "glass") {
+      return {
+        ...base,
+        borderRadius: `${SCREENSHOT_GLASS_LIGHT.imageRadius}px`,
+      };
+    }
+    if (style === "outline") {
+      return base;
+    }
+    return { ...base, ...borderStyle };
+  }, [fitted, style, borderStyle]);
+
   return (
     <div
       ref={stageRef}
       data-mockup-canvas-stage
-      className="grid h-full min-h-0 w-full min-w-0 grid-cols-1 grid-rows-1 place-content-center place-items-center overflow-hidden"
+      /**
+       * No `overflow-hidden`: outside borders / glass frames need to bleed past
+       * the stage when the screenshot fills it on one axis. The outer
+       * `[data-mockup-capture-target]` keeps the rounded canvas clip, so any
+       * bleed still stops at the visible canvas edge.
+       */
+      className="grid h-full min-h-0 w-full min-w-0 grid-cols-1 grid-rows-1 place-content-center place-items-center"
     >
       <div
-        data-mockup-media-shell
         className={cn(
-          "relative shrink-0 overflow-hidden",
+          "relative shrink-0",
           !fitted && "max-h-full max-w-full"
         )}
-        style={
-          fitted
-            ? { width: fitted.w, height: fitted.h }
-            : undefined
-        }
+        style={wrapperStyle}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element -- user-provided blob URL */}
-        <img
-          ref={imgRef}
-          src={src}
-          alt=""
-          draggable={false}
-          onLoad={(e) =>
-            setNatural({
-              w: e.currentTarget.naturalWidth,
-              h: e.currentTarget.naturalHeight,
-            })
-          }
+        <div
+          data-mockup-media-shell
           className={cn(
-            "pointer-events-none select-none object-contain",
-            fitted
-              ? "block h-full w-full"
-              : "block h-auto w-auto max-h-full max-w-full"
+            "relative shrink-0",
+            !fitted && "max-h-full max-w-full"
           )}
-        />
+          style={shellStyle}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- user-provided blob URL */}
+          <img
+            ref={imgRef}
+            src={src}
+            alt=""
+            draggable={false}
+            onLoad={(e) =>
+              setNatural({
+                w: e.currentTarget.naturalWidth,
+                h: e.currentTarget.naturalHeight,
+              })
+            }
+            className={cn(
+              "pointer-events-none select-none object-contain",
+              fitted
+                ? "block h-full w-full"
+                : "block h-auto w-auto max-h-full max-w-full"
+            )}
+          />
+        </div>
       </div>
     </div>
   );
@@ -256,6 +362,13 @@ export function MockupWorkspaceStage() {
     canvasNoiseBlendMode,
     canvasNoiseBlendModePreview,
     deviceTemplateId,
+    screenshotStyle,
+    screenshotBorderColor,
+    screenshotBorderColorOpacity,
+    screenshotBorderPosition,
+    screenshotBorderWeight,
+    screenshotOutlineColor,
+    screenshotOutlineColorOpacity,
   } = useMockupFrame();
   const canvasNoiseFilterId = `canvas-noise-${useId().replace(/:/g, "")}`;
   const noiseBlendModeEffective =
@@ -307,6 +420,29 @@ export function MockupWorkspaceStage() {
     () => (canvasBlurPercent / 100) * 28,
     [canvasBlurPercent]
   );
+
+  const screenshotBorder = useMemo<ScreenshotBorderStyle | null>(() => {
+    if (deviceTemplateId != null) return null;
+    if (screenshotStyle !== "border") return null;
+    if (screenshotBorderWeight <= 0) return null;
+    return {
+      weight: screenshotBorderWeight,
+      color: screenshotBorderColor,
+      opacity: screenshotBorderColorOpacity,
+      position: screenshotBorderPosition,
+    };
+  }, [
+    deviceTemplateId,
+    screenshotStyle,
+    screenshotBorderColor,
+    screenshotBorderColorOpacity,
+    screenshotBorderPosition,
+    screenshotBorderWeight,
+  ]);
+
+  /** Glass styling has no inputs — only the `style` flag is needed downstream. */
+  const screenshotStyleForCanvas =
+    deviceTemplateId == null ? screenshotStyle : "default";
 
   /**
    * Blur on a layer that is then clipped to rounded rect can look like a vignette
@@ -406,6 +542,10 @@ export function MockupWorkspaceStage() {
                 <UploadedScreenshotImage
                   key={activeItem.url}
                   src={activeItem.url}
+                  style={screenshotStyleForCanvas}
+                  border={screenshotBorder}
+                  outlineColor={screenshotOutlineColor}
+                  outlineColorOpacity={screenshotOutlineColorOpacity}
                 />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element -- user-provided blob URL

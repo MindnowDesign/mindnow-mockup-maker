@@ -31,6 +31,24 @@ import {
   DEFAULT_CANVAS_NOISE_TYPE,
   parseCanvasNoiseType,
 } from "@/lib/mockup-noise";
+import type {
+  PersistedScreenshotStyle,
+  ScreenshotBorderPosition,
+  ScreenshotStyleId,
+} from "@/lib/mockup-screenshot-style";
+import {
+  clampScreenshotBorderOpacity,
+  clampScreenshotBorderWeight,
+  DEFAULT_SCREENSHOT_BORDER_COLOR,
+  DEFAULT_SCREENSHOT_BORDER_COLOR_OPACITY,
+  DEFAULT_SCREENSHOT_BORDER_POSITION,
+  DEFAULT_SCREENSHOT_BORDER_WEIGHT,
+  DEFAULT_SCREENSHOT_OUTLINE_COLOR,
+  DEFAULT_SCREENSHOT_OUTLINE_COLOR_OPACITY,
+  DEFAULT_SCREENSHOT_STYLE,
+  parseScreenshotBorderPosition,
+  parseScreenshotStyle,
+} from "@/lib/mockup-screenshot-style";
 
 function clampPercent(n: number | undefined): number {
   if (n == null || Number.isNaN(n)) return 0;
@@ -69,6 +87,24 @@ type MockupFrameContextValue = {
   /** Device PNG overlay (`null` = plain canvas). */
   deviceTemplateId: string | null;
   setDeviceTemplateId: (id: string | null) => void;
+  /** Screenshot styling (only applied when no device frame is selected). */
+  screenshotStyle: ScreenshotStyleId;
+  setScreenshotStyle: (id: ScreenshotStyleId) => void;
+  screenshotBorderColor: string;
+  setScreenshotBorderColor: (hex: string) => void;
+  screenshotBorderColorOpacity: number;
+  setScreenshotBorderColorOpacity: (value: number) => void;
+  screenshotBorderPosition: ScreenshotBorderPosition;
+  setScreenshotBorderPosition: (position: ScreenshotBorderPosition) => void;
+  screenshotBorderWeight: number;
+  setScreenshotBorderWeight: (value: number) => void;
+  screenshotOutlineColor: string;
+  setScreenshotOutlineColor: (hex: string) => void;
+  screenshotOutlineColorOpacity: number;
+  setScreenshotOutlineColorOpacity: (value: number) => void;
+  hydrateScreenshotStyle: (
+    payload: PersistedScreenshotStyle | null | undefined
+  ) => void;
 };
 
 const MockupFrameContext = createContext<MockupFrameContextValue | null>(null);
@@ -105,6 +141,106 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
     useState<CanvasNoiseBlendModeId | null>(null);
 
   const [deviceTemplateId, setDeviceTemplateId] = useState<string | null>(null);
+
+  const [screenshotStyle, setScreenshotStyleState] =
+    useState<ScreenshotStyleId>(DEFAULT_SCREENSHOT_STYLE);
+  const [screenshotBorderColor, setScreenshotBorderColorState] = useState(
+    DEFAULT_SCREENSHOT_BORDER_COLOR
+  );
+  const [screenshotBorderColorOpacity, setScreenshotBorderColorOpacityState] =
+    useState(DEFAULT_SCREENSHOT_BORDER_COLOR_OPACITY);
+  const [screenshotBorderPosition, setScreenshotBorderPositionState] =
+    useState<ScreenshotBorderPosition>(DEFAULT_SCREENSHOT_BORDER_POSITION);
+  const [screenshotBorderWeight, setScreenshotBorderWeightState] = useState(
+    DEFAULT_SCREENSHOT_BORDER_WEIGHT
+  );
+  const [screenshotOutlineColor, setScreenshotOutlineColorState] = useState(
+    DEFAULT_SCREENSHOT_OUTLINE_COLOR
+  );
+  const [screenshotOutlineColorOpacity, setScreenshotOutlineColorOpacityState] =
+    useState(DEFAULT_SCREENSHOT_OUTLINE_COLOR_OPACITY);
+
+  const setScreenshotStyle = useCallback((id: ScreenshotStyleId) => {
+    setScreenshotStyleState(parseScreenshotStyle(id));
+  }, []);
+  const setScreenshotBorderColor = useCallback((hex: string) => {
+    const trimmed = hex.trim();
+    if (/^#[0-9A-Fa-f]{6}$/.test(trimmed)) {
+      setScreenshotBorderColorState(trimmed.toUpperCase());
+    } else {
+      setScreenshotBorderColorState(DEFAULT_SCREENSHOT_BORDER_COLOR);
+    }
+  }, []);
+  const setScreenshotBorderColorOpacity = useCallback((value: number) => {
+    setScreenshotBorderColorOpacityState(clampScreenshotBorderOpacity(value));
+  }, []);
+  const setScreenshotBorderPosition = useCallback(
+    (position: ScreenshotBorderPosition) => {
+      setScreenshotBorderPositionState(parseScreenshotBorderPosition(position));
+    },
+    []
+  );
+  const setScreenshotBorderWeight = useCallback((value: number) => {
+    setScreenshotBorderWeightState(clampScreenshotBorderWeight(value));
+  }, []);
+  const setScreenshotOutlineColor = useCallback((hex: string) => {
+    const trimmed = hex.trim();
+    if (/^#[0-9A-Fa-f]{6}$/.test(trimmed)) {
+      setScreenshotOutlineColorState(trimmed.toUpperCase());
+    } else {
+      setScreenshotOutlineColorState(DEFAULT_SCREENSHOT_OUTLINE_COLOR);
+    }
+  }, []);
+  const setScreenshotOutlineColorOpacity = useCallback((value: number) => {
+    setScreenshotOutlineColorOpacityState(
+      clampScreenshotBorderOpacity(value)
+    );
+  }, []);
+
+  const hydrateScreenshotStyle = useCallback(
+    (payload: PersistedScreenshotStyle | null | undefined) => {
+      if (!payload) {
+        setScreenshotStyleState(DEFAULT_SCREENSHOT_STYLE);
+        setScreenshotBorderColorState(DEFAULT_SCREENSHOT_BORDER_COLOR);
+        setScreenshotBorderColorOpacityState(
+          DEFAULT_SCREENSHOT_BORDER_COLOR_OPACITY
+        );
+        setScreenshotBorderPositionState(DEFAULT_SCREENSHOT_BORDER_POSITION);
+        setScreenshotBorderWeightState(DEFAULT_SCREENSHOT_BORDER_WEIGHT);
+        setScreenshotOutlineColorState(DEFAULT_SCREENSHOT_OUTLINE_COLOR);
+        setScreenshotOutlineColorOpacityState(
+          DEFAULT_SCREENSHOT_OUTLINE_COLOR_OPACITY
+        );
+        return;
+      }
+      setScreenshotStyleState(parseScreenshotStyle(payload.style));
+      const rawColor = payload.borderColor?.trim();
+      setScreenshotBorderColorState(
+        rawColor && /^#[0-9A-Fa-f]{6}$/.test(rawColor)
+          ? rawColor.toUpperCase()
+          : DEFAULT_SCREENSHOT_BORDER_COLOR
+      );
+      setScreenshotBorderColorOpacityState(
+        clampScreenshotBorderOpacity(payload.borderColorOpacity)
+      );
+      setScreenshotBorderPositionState(
+        parseScreenshotBorderPosition(payload.borderPosition)
+      );
+      setScreenshotBorderWeightState(
+        clampScreenshotBorderWeight(payload.borderWeight)
+      );
+      const rawOutlineColor = payload.outlineColor?.trim();
+      setScreenshotOutlineColorState(
+        rawOutlineColor && /^#[0-9A-Fa-f]{6}$/.test(rawOutlineColor)
+          ? rawOutlineColor.toUpperCase()
+          : DEFAULT_SCREENSHOT_OUTLINE_COLOR
+      );
+      setScreenshotOutlineColorOpacityState(
+        clampScreenshotBorderOpacity(payload.outlineColorOpacity)
+      );
+    },
+    []
+  );
 
   const canvasBgImageUrlRef = useRef<string | null>(null);
 
@@ -219,6 +355,21 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       hydrateCanvasBackground,
       deviceTemplateId,
       setDeviceTemplateId,
+      screenshotStyle,
+      setScreenshotStyle,
+      screenshotBorderColor,
+      setScreenshotBorderColor,
+      screenshotBorderColorOpacity,
+      setScreenshotBorderColorOpacity,
+      screenshotBorderPosition,
+      setScreenshotBorderPosition,
+      screenshotBorderWeight,
+      setScreenshotBorderWeight,
+      screenshotOutlineColor,
+      setScreenshotOutlineColor,
+      screenshotOutlineColorOpacity,
+      setScreenshotOutlineColorOpacity,
+      hydrateScreenshotStyle,
     }),
     [
       aspectPreset,
@@ -235,6 +386,21 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       deviceTemplateId,
       setCanvasBackgroundImageFromFile,
       hydrateCanvasBackground,
+      screenshotStyle,
+      setScreenshotStyle,
+      screenshotBorderColor,
+      setScreenshotBorderColor,
+      screenshotBorderColorOpacity,
+      setScreenshotBorderColorOpacity,
+      screenshotBorderPosition,
+      setScreenshotBorderPosition,
+      screenshotBorderWeight,
+      setScreenshotBorderWeight,
+      screenshotOutlineColor,
+      setScreenshotOutlineColor,
+      screenshotOutlineColorOpacity,
+      setScreenshotOutlineColorOpacity,
+      hydrateScreenshotStyle,
     ]
   );
 
