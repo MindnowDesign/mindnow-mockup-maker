@@ -254,6 +254,11 @@ export function FrameDevicePicker() {
                       <TemplateTile
                         title="Screenshot"
                         subtitle="Adapts to media"
+                        footer={
+                          <span className="text-xs font-medium leading-snug text-zinc-500">
+                            Plain canvas
+                          </span>
+                        }
                         preview={
                           <PreviewPlate>
                             <div className={TILE_PREVIEW_INNER} />

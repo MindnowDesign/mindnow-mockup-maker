@@ -20,8 +20,11 @@ import {
  */
 export function ProjectWorkspaceHydrate() {
   const pathname = usePathname();
-  const { setAspectPreset, hydrateCanvasBackground, setDeviceTemplateId } =
-    useMockupFrame();
+  const {
+    setAspectPreset,
+    hydrateCanvasBackground,
+    setDeviceTemplateId,
+  } = useMockupFrame();
   const { hydrateFromSaved } = useMockupMedia();
 
   useEffect(() => {

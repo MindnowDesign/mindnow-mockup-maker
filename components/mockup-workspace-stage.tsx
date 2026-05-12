@@ -41,6 +41,93 @@ function useFrameViewportCaps() {
   return caps;
 }
 
+/**
+ * Screenshot upload: outer stage fills the canvas cell; inner `[data-mockup-media-shell]`
+ * gets explicit width/height matching `object-contain` math so DevTools shows a tight box
+ * around the image (CSS % alone often resolves against the grid cell, not the bitmap).
+ */
+function UploadedScreenshotImage({ src }: { src: string }) {
+  const stageRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [viewport, setViewport] = useState({ w: 0, h: 0 });
+  const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
+
+  useLayoutEffect(() => {
+    setNatural(null);
+    const id = window.requestAnimationFrame(() => {
+      const img = imgRef.current;
+      if (img?.complete && img.naturalWidth > 0) {
+        setNatural({ w: img.naturalWidth, h: img.naturalHeight });
+      }
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [src]);
+
+  useLayoutEffect(() => {
+    const el = stageRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const cr = entries[0]?.contentRect;
+      if (!cr) return;
+      setViewport({ w: cr.width, h: cr.height });
+    });
+    ro.observe(el);
+    const r0 = el.getBoundingClientRect();
+    setViewport({ w: r0.width, h: r0.height });
+    return () => ro.disconnect();
+  }, []);
+
+  const fitted = useMemo(() => {
+    if (!natural || viewport.w < 1 || viewport.h < 1) return null;
+    const s = Math.min(viewport.w / natural.w, viewport.h / natural.h);
+    return {
+      w: Math.max(1, Math.round(natural.w * s)),
+      h: Math.max(1, Math.round(natural.h * s)),
+    };
+  }, [natural, viewport.w, viewport.h]);
+
+  return (
+    <div
+      ref={stageRef}
+      data-mockup-canvas-stage
+      className="grid h-full min-h-0 w-full min-w-0 grid-cols-1 grid-rows-1 place-content-center place-items-center overflow-hidden"
+    >
+      <div
+        data-mockup-media-shell
+        className={cn(
+          "relative shrink-0 overflow-hidden",
+          !fitted && "max-h-full max-w-full"
+        )}
+        style={
+          fitted
+            ? { width: fitted.w, height: fitted.h }
+            : undefined
+        }
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element -- user-provided blob URL */}
+        <img
+          ref={imgRef}
+          src={src}
+          alt=""
+          draggable={false}
+          onLoad={(e) =>
+            setNatural({
+              w: e.currentTarget.naturalWidth,
+              h: e.currentTarget.naturalHeight,
+            })
+          }
+          className={cn(
+            "pointer-events-none select-none object-contain",
+            fitted
+              ? "block h-full w-full"
+              : "block h-auto w-auto max-h-full max-w-full"
+          )}
+        />
+      </div>
+    </div>
+  );
+}
+
 function MockupVisualTitle({
   itemId,
   storedLabel,
@@ -314,72 +401,81 @@ export function MockupWorkspaceStage() {
         />
         <div className="relative z-10 flex min-h-0 min-w-0 flex-1 items-center justify-center">
           <MockupDeviceFrame deviceTemplateId={deviceTemplateId}>
-        {activeItem?.kind === "image" ? (
-          // eslint-disable-next-line @next/next/no-img-element -- user-provided blob URL
-          <img
-            src={activeItem.url}
-            alt=""
-            draggable={false}
-            className="pointer-events-none select-none block max-h-full max-w-full h-auto w-auto"
-          />
-        ) : (
-          <div
-            className={cn(
-              "flex max-h-full max-w-full min-h-0 min-w-0 flex-col overflow-hidden rounded-[16px]",
-              deviceTemplateId
-                ? "h-full min-h-[140px] w-full"
-                : "aspect-square",
-              activeItem
-                ? "bg-zinc-950"
-                : "border border-zinc-900/80 bg-zinc-950 shadow-[0_24px_64px_-12px_rgba(0,0,0,0.9)]"
+            {activeItem?.kind === "image" ? (
+              deviceTemplateId == null ? (
+                <UploadedScreenshotImage
+                  key={activeItem.url}
+                  src={activeItem.url}
+                />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element -- user-provided blob URL
+                <img
+                  src={activeItem.url}
+                  alt=""
+                  draggable={false}
+                  className={cn(
+                    "pointer-events-none select-none block max-h-full max-w-full h-auto w-auto object-contain"
+                  )}
+                />
+              )
+            ) : (
+              <div
+                className={cn(
+                  "flex max-h-full max-w-full min-h-0 min-w-0 flex-col overflow-hidden rounded-[16px]",
+                  deviceTemplateId
+                    ? "h-full min-h-[140px] w-full"
+                    : "aspect-square",
+                  activeItem
+                    ? "bg-zinc-950"
+                    : "border border-zinc-900/80 bg-zinc-950 shadow-[0_24px_64px_-12px_rgba(0,0,0,0.9)]"
+                )}
+              >
+                {activeItem ? (
+                  <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+                    <video
+                      src={activeItem.url}
+                      controls
+                      playsInline
+                      className="h-full w-full min-h-0 min-w-0 object-contain"
+                    />
+                  </div>
+                ) : (
+                  <label className="flex min-h-0 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-6 px-6 py-10 text-center outline-none transition-colors hover:bg-white/[0.03] focus-within:ring-2 focus-within:ring-white/25 focus-within:ring-inset">
+                    <span className="sr-only">Upload images or videos</span>
+                    <input
+                      type="file"
+                      accept="image/*,video/*"
+                      multiple
+                      className="sr-only"
+                      onChange={(event) => {
+                        addFromFileList(event.target.files);
+                        event.target.value = "";
+                      }}
+                    />
+                    <div className="relative flex items-center justify-center">
+                      <span
+                        className="flex size-14 shrink-0 items-center justify-center rounded-full border border-dashed border-zinc-500 bg-zinc-900/35 transition-colors group-hover:border-zinc-400"
+                        aria-hidden
+                      >
+                        <Plus
+                          className="size-7 text-foreground transition-transform group-hover:scale-105"
+                          strokeWidth={2}
+                          aria-hidden
+                        />
+                      </span>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xl font-semibold tracking-tight text-white md:text-2xl">
+                        Drop or Paste
+                      </p>
+                      <p className="text-sm font-medium text-zinc-500">
+                        Images &amp; Videos
+                      </p>
+                    </div>
+                  </label>
+                )}
+              </div>
             )}
-          >
-          {activeItem ? (
-            <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-              <video
-                src={activeItem.url}
-                controls
-                playsInline
-                className="h-full w-full min-h-0 min-w-0 object-contain"
-              />
-            </div>
-          ) : (
-            <label className="flex min-h-0 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-6 px-6 py-10 text-center outline-none transition-colors hover:bg-white/[0.03] focus-within:ring-2 focus-within:ring-white/25 focus-within:ring-inset">
-              <span className="sr-only">Upload images or videos</span>
-              <input
-                type="file"
-                accept="image/*,video/*"
-                multiple
-                className="sr-only"
-                onChange={(event) => {
-                  addFromFileList(event.target.files);
-                  event.target.value = "";
-                }}
-              />
-              <div className="relative flex items-center justify-center">
-                <span
-                  className="flex size-14 shrink-0 items-center justify-center rounded-full border border-dashed border-zinc-500 bg-zinc-900/35 transition-colors group-hover:border-zinc-400"
-                  aria-hidden
-                >
-                  <Plus
-                    className="size-7 text-foreground transition-transform group-hover:scale-105"
-                    strokeWidth={2}
-                    aria-hidden
-                  />
-                </span>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xl font-semibold tracking-tight text-white md:text-2xl">
-                  Drop or Paste
-                </p>
-                <p className="text-sm font-medium text-zinc-500">
-                  Images &amp; Videos
-                </p>
-              </div>
-            </label>
-          )}
-          </div>
-        )}
           </MockupDeviceFrame>
         </div>
       </div>

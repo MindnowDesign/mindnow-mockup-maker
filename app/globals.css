@@ -125,6 +125,17 @@ body {
   * {
     @apply border-border outline-ring/50;
   }
+  /**
+   * Next.js injects `<nextjs-portal>` (dev overlay / error UI, shadow root) and
+   * `<next-route-announcer>` on `document.body`. They must not inherit the universal
+   * border/outline tokens — that can confuse layout and devtools (vercel/next.js#70675).
+   */
+  nextjs-portal,
+  next-route-announcer {
+    border: 0 solid transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
   body {
     @apply bg-background text-foreground;
   }

@@ -284,7 +284,11 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
       for (const v of nextVisuals) {
         const per = diskPrefs?.[v.id];
         if (per) {
-          nextVisualWorkspacePrefs[v.id] = per;
+          nextVisualWorkspacePrefs[v.id] = {
+            aspectPreset: per.aspectPreset,
+            canvasBackground: per.canvasBackground,
+            deviceTemplateId: per.deviceTemplateId ?? null,
+          };
         } else if (seed) {
           nextVisualWorkspacePrefs[v.id] = {
             aspectPreset: seed.aspectPreset,
