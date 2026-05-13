@@ -3,7 +3,12 @@
  * frame PNG is selected (i.e. `deviceTemplateId === null`).
  */
 
-export type ScreenshotStyleId = "default" | "border" | "glass" | "outline";
+export type ScreenshotStyleId =
+  | "default"
+  | "border"
+  | "glass"
+  | "liquidGlass"
+  | "outline";
 
 export type ScreenshotBorderPosition = "inside" | "center" | "outside";
 
@@ -107,15 +112,13 @@ export const DEFAULT_SCREENSHOT_OUTLINE_COLOR_OPACITY = 100;
 /**
  * Frosted-glass frame around the screenshot (à la `shots.so` "Glass Light").
  * Tweaked here so designers get a single source of truth for both the canvas
- * stage and the picker preview.
+ * stage and the picker preview. The stage applies the outer wrapper radius as
+ * `screenshotEffectiveCornerRadius(cornerRadius) + framePadding` so the glass
+ * band follows the same Corner radius controls as the image.
  */
 export const SCREENSHOT_GLASS_LIGHT = {
   /** Padding (px) between the image and the outer glass frame. */
   framePadding: 8,
-  /** Outer rounded corner radius of the glass frame (px). */
-  frameRadius: 0,
-  /** Rounded corner of the inner image (px). */
-  imageRadius: 0,
   /** Background fill for the glass frame (translucent). */
   background:
     "linear-gradient(135deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.18) 100%)",
@@ -123,11 +126,24 @@ export const SCREENSHOT_GLASS_LIGHT = {
   backdropFilter: "blur(20px) saturate(160%)",
 } as const;
 
+/**
+ * Stronger “liquid” glass (à la `shots.so` Liquid Glass) — cooler tint, higher
+ * saturation/blur, and a soft specular rim so it reads wet vs frosted glass.
+ */
+export const SCREENSHOT_LIQUID_GLASS = {
+  framePadding: 10,
+  background:
+    "linear-gradient(155deg, rgba(255, 255, 255, 0.5) 0%, rgba(186, 230, 253, 0.32) 42%, rgba(255, 255, 255, 0.1) 68%, rgba(165, 210, 255, 0.22) 100%)",
+  backdropFilter: "blur(28px) saturate(210%) brightness(1.06)",
+  boxShadow:
+    "inset 0 1px 0 rgba(255, 255, 255, 0.55), inset 0 -1px 0 rgba(56, 120, 200, 0.14), 0 4px 20px -6px rgba(30, 100, 200, 0.18)",
+} as const;
+
 export const DEFAULT_SCREENSHOT_STYLE: ScreenshotStyleId = "default";
 export const DEFAULT_SCREENSHOT_BORDER_COLOR = "#000000";
 export const DEFAULT_SCREENSHOT_BORDER_COLOR_OPACITY = 100;
 export const DEFAULT_SCREENSHOT_BORDER_POSITION: ScreenshotBorderPosition =
-  "inside";
+  "outside";
 export const DEFAULT_SCREENSHOT_BORDER_WEIGHT = 2;
 export const SCREENSHOT_BORDER_WEIGHT_MIN = 0;
 export const SCREENSHOT_BORDER_WEIGHT_MAX = 64;
@@ -162,6 +178,7 @@ export type PersistedScreenshotStyle = {
 export function parseScreenshotStyle(value: unknown): ScreenshotStyleId {
   if (value === "border") return "border";
   if (value === "glass") return "glass";
+  if (value === "liquidGlass") return "liquidGlass";
   if (value === "outline") return "outline";
   return "default";
 }

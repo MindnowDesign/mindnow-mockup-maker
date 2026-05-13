@@ -38,6 +38,7 @@ import {
   notifySavedProjectsChanged,
   upsertSavedProject,
 } from "@/lib/saved-projects";
+import { resolveVisualPrefsForSave } from "@/lib/mockup-workspace-snapshot";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_WORKSPACE_LOGO_SRC = "/images/logo.png";
@@ -63,6 +64,7 @@ export function WorkspaceTopBar({
 }: WorkspaceTopBarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const frame = useMockupFrame();
   const {
     aspectPreset,
     canvasBackgroundMode,
@@ -74,7 +76,17 @@ export function WorkspaceTopBar({
     canvasNoiseColor,
     canvasNoiseColorOpacity,
     canvasNoiseBlendMode,
-  } = useMockupFrame();
+    deviceTemplateId,
+    screenshotStyle,
+    screenshotBorderColor,
+    screenshotBorderColorOpacity,
+    screenshotBorderPosition,
+    screenshotBorderWeight,
+    screenshotOutlineColor,
+    screenshotOutlineColorOpacity,
+    screenshotCornerType,
+    screenshotCornerRadius,
+  } = frame;
   const { library, visuals, activeVisualId, visualWorkspacePrefs } =
     useMockupMedia();
   const { title, setTitle } = useProjectWorkspaceTitle();
@@ -189,8 +201,15 @@ export function WorkspaceTopBar({
         }),
       };
 
-      const activeStored =
-        activeVisualId != null ? visualWorkspacePrefs[activeVisualId] : undefined;
+      const activeResolved =
+        activeVisualId != null
+          ? resolveVisualPrefsForSave(
+              activeVisualId,
+              activeVisualId,
+              visualWorkspacePrefs,
+              frame
+            )
+          : undefined;
 
       let canvasBackgroundFromFrame: PersistedCanvasBackground | undefined;
       if (canvasBackgroundMode === "transparent") {
@@ -217,28 +236,36 @@ export function WorkspaceTopBar({
       }
 
       const aspectPresetRoot =
-        activeStored?.aspectPreset ?? aspectPreset;
+        activeResolved?.aspectPreset ?? aspectPreset;
       const canvasBackgroundRoot =
-        activeStored != null
-          ? activeStored.canvasBackground ?? undefined
+        activeResolved != null
+          ? activeResolved.canvasBackground ?? undefined
           : canvasBackgroundFromFrame;
 
       const prefsPayload =
-        Object.keys(visualWorkspacePrefs).length > 0
+        serialized.visualSlots.length > 0
           ? Object.fromEntries(
-              Object.entries(visualWorkspacePrefs).map(([id, p]) => [
-                id,
-                {
-                  aspectPreset: p.aspectPreset,
-                  canvasBackground: p.canvasBackground
-                    ? { ...p.canvasBackground }
-                    : null,
-                  deviceTemplateId: p.deviceTemplateId ?? null,
-                  screenshotStyle: p.screenshotStyle
-                    ? { ...p.screenshotStyle }
-                    : null,
-                },
-              ])
+              serialized.visualSlots.map((slot) => {
+                const n = resolveVisualPrefsForSave(
+                  slot.id,
+                  activeVisualId,
+                  visualWorkspacePrefs,
+                  frame
+                );
+                return [
+                  slot.id,
+                  {
+                    aspectPreset: n.aspectPreset,
+                    canvasBackground: n.canvasBackground
+                      ? { ...n.canvasBackground }
+                      : null,
+                    deviceTemplateId: n.deviceTemplateId ?? null,
+                    screenshotStyle: n.screenshotStyle
+                      ? { ...n.screenshotStyle }
+                      : null,
+                  },
+                ];
+              })
             )
           : undefined;
 
@@ -282,6 +309,7 @@ export function WorkspaceTopBar({
             ...(previewDataUrls.length > 0 ? { previewDataUrls } : {}),
             aspectPreset: aspectPresetRoot,
             visualCount: serialized.visualSlots.length,
+            ...(prefsPayload ? { visualWorkspacePrefs: prefsPayload } : {}),
           });
         } else {
           throw persistErr;
@@ -329,9 +357,12 @@ export function WorkspaceTopBar({
     visualWorkspacePrefs,
     title,
     fallbackTitle,
+    frame,
   ]);
 
-  runPersistRef.current = runPersist;
+  useEffect(() => {
+    runPersistRef.current = runPersist;
+  }, [runPersist]);
 
   useEffect(() => {
     if (!hydrationReady) return;
@@ -361,6 +392,7 @@ export function WorkspaceTopBar({
     activeVisualId,
     visualWorkspacePrefs,
     title,
+    frame,
   ]);
 
   return (

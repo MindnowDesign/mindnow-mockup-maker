@@ -69,7 +69,12 @@ export type FrameLike = {
   screenshotCornerRadius: number;
 };
 
-/** Frame + canvas appearance stored per visual slot. */
+/**
+ * Frame + canvas appearance stored per visual slot (sidebar “Frame” tools).
+ * When adding new persisted sidebar fields: extend this type, update
+ * `captureVisualWorkspacePrefs`, `normalizeVisualWorkspacePrefs`, frame context,
+ * and the sync effect deps in `mockup-media-context.tsx`.
+ */
 export type VisualWorkspacePrefs = {
   aspectPreset: FrameAspectPresetId;
   canvasBackground: PersistedCanvasBackground | null;
@@ -121,6 +126,59 @@ export const DEFAULT_NEW_VISUAL_WORKSPACE_PREFS: VisualWorkspacePrefs = {
     cornerRadius: DEFAULT_SCREENSHOT_CORNER_RADIUS,
   },
 };
+
+/**
+ * Merge disk / partial prefs with defaults so legacy saves and incomplete objects
+ * round-trip safely (autosave + reopen).
+ */
+export function normalizeVisualWorkspacePrefs(
+  partial: Partial<VisualWorkspacePrefs> | null | undefined
+): VisualWorkspacePrefs {
+  const d = DEFAULT_NEW_VISUAL_WORKSPACE_PREFS;
+  if (!partial) {
+    return {
+      aspectPreset: d.aspectPreset,
+      canvasBackground: d.canvasBackground,
+      deviceTemplateId: d.deviceTemplateId ?? null,
+      screenshotStyle: d.screenshotStyle ? { ...d.screenshotStyle } : null,
+    };
+  }
+  const screenshotStyle =
+    partial.screenshotStyle != null
+      ? { ...partial.screenshotStyle }
+      : d.screenshotStyle
+        ? { ...d.screenshotStyle }
+        : null;
+  return {
+    aspectPreset: partial.aspectPreset ?? d.aspectPreset,
+    canvasBackground:
+      partial.canvasBackground !== undefined
+        ? partial.canvasBackground
+        : d.canvasBackground,
+    deviceTemplateId:
+      partial.deviceTemplateId !== undefined
+        ? partial.deviceTemplateId
+        : d.deviceTemplateId ?? null,
+    screenshotStyle,
+  };
+}
+
+/** Resolve prefs for one canvas slot when building a save payload (never drops the active frame). */
+export function resolveVisualPrefsForSave(
+  visualId: string,
+  activeVisualId: string | null,
+  prefsMap: Record<string, VisualWorkspacePrefs>,
+  frame: FrameLike
+): VisualWorkspacePrefs {
+  const stored = prefsMap[visualId];
+  if (stored !== undefined) {
+    return normalizeVisualWorkspacePrefs(stored);
+  }
+  if (visualId === activeVisualId) {
+    return captureVisualWorkspacePrefs(frame);
+  }
+  return normalizeVisualWorkspacePrefs(null);
+}
 
 export function frameLikeToPersistedCanvasBackground(
   f: FrameLike

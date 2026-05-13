@@ -649,42 +649,64 @@ export function CanvasBackgroundControls() {
               </p>
             </>
           ) : (
-            <>
+            <div className="group/preview relative w-full overflow-hidden rounded-md border border-zinc-800">
               {/* eslint-disable-next-line @next/next/no-img-element -- blob / data URL preview */}
               <img
                 src={canvasBackgroundImageUrl}
                 alt=""
-                className="max-h-24 w-full rounded-md border border-zinc-800 object-cover"
+                className="max-h-24 w-full object-cover"
               />
-              <div className="flex min-w-0 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setCanvasBackgroundImageFromFile(null)}
-                  className={cn(
-                    "inline-flex min-h-9 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-950 px-2.5 text-xs font-medium text-zinc-300 outline-none transition-colors",
-                    "hover:border-red-900/80 hover:bg-red-950/40 hover:text-red-200",
-                    "focus-visible:ring-2 focus-visible:ring-white/25"
-                  )}
-                  aria-label="Remove background image"
-                >
-                  <Trash2 className="size-3.5 shrink-0" strokeWidth={2} aria-hidden />
-                  Remove
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fileRef.current?.click()}
-                  className={cn(
-                    "inline-flex min-h-9 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-950 px-2.5 text-xs font-medium text-zinc-200 outline-none transition-colors",
-                    "hover:border-zinc-500 hover:bg-zinc-900 hover:text-white",
-                    "focus-visible:ring-2 focus-visible:ring-white/25"
-                  )}
-                  aria-label="Upload another background image"
-                >
-                  <Upload className="size-3.5 shrink-0" strokeWidth={2} aria-hidden />
-                  Upload another
-                </button>
+              <div
+                className={cn(
+                  "pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-150",
+                  "group-hover/preview:pointer-events-auto group-hover/preview:opacity-100",
+                  "group-focus-within/preview:pointer-events-auto group-focus-within/preview:opacity-100"
+                )}
+              >
+                <TooltipProvider delayDuration={300}>
+                  <div className="absolute right-1 top-1 flex gap-1">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => setCanvasBackgroundImageFromFile(null)}
+                          className={cn(
+                            "flex size-8 shrink-0 items-center justify-center rounded-md border border-zinc-600/80 bg-zinc-950/90 text-zinc-300 shadow-md backdrop-blur-sm outline-none transition-colors",
+                            "hover:border-red-900/70 hover:bg-red-950/50 hover:text-red-200",
+                            "focus-visible:ring-2 focus-visible:ring-white/35"
+                          )}
+                          aria-label="Remove background image"
+                        >
+                          <Trash2 className="size-4" strokeWidth={2} aria-hidden />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" sideOffset={6}>
+                        Remove
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => fileRef.current?.click()}
+                          className={cn(
+                            "flex size-8 shrink-0 items-center justify-center rounded-md border border-zinc-600/80 bg-zinc-950/90 text-zinc-200 shadow-md backdrop-blur-sm outline-none transition-colors",
+                            "hover:border-zinc-500 hover:bg-zinc-800 hover:text-white",
+                            "focus-visible:ring-2 focus-visible:ring-white/35"
+                          )}
+                          aria-label="Upload another background image"
+                        >
+                          <Upload className="size-4" strokeWidth={2} aria-hidden />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" sideOffset={6}>
+                        Upload another
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </TooltipProvider>
               </div>
-            </>
+            </div>
           )}
         </div>
       ) : null}

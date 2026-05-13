@@ -1,8 +1,9 @@
 "use client";
 
-import { CopyPlus, EllipsisVertical, Trash2 } from "lucide-react";
+import { CopyPlus, EllipsisVertical, Image as ImageIcon, Trash2 } from "lucide-react";
 import { useState } from "react";
 
+import { useMockupFrame } from "@/components/mockup-frame-context";
 import { useMockupMedia } from "@/components/mockup-media-context";
 import {
   DropdownMenu,
@@ -10,9 +11,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { frameLikeToPersistedCanvasBackground } from "@/lib/mockup-workspace-snapshot";
+import { resourceUrlToDataUrl } from "@/lib/resource-to-data-url";
 import { cn } from "@/lib/utils";
 
 export function WorkspaceMediaPanel() {
+  const frame = useMockupFrame();
   const {
     library,
     activeItem,
@@ -23,6 +27,9 @@ export function WorkspaceMediaPanel() {
   } = useMockupMedia();
 
   const [pendingDuplicateId, setPendingDuplicateId] = useState<string | null>(
+    null
+  );
+  const [pendingBackgroundId, setPendingBackgroundId] = useState<string | null>(
     null
   );
 
@@ -112,6 +119,43 @@ export function WorkspaceMediaPanel() {
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="min-w-44">
+                    {item.kind === "image" ? (
+                      <DropdownMenuItem
+                        disabled={pendingBackgroundId === item.id}
+                        className="gap-2"
+                        onSelect={() => {
+                          void (async () => {
+                            setPendingBackgroundId(item.id);
+                            try {
+                              const dataUrl = await resourceUrlToDataUrl(
+                                item.url
+                              );
+                              const base =
+                                frameLikeToPersistedCanvasBackground(frame);
+                              frame.hydrateCanvasBackground({
+                                ...base,
+                                mode: "image",
+                                imageDataUrl: dataUrl,
+                              });
+                            } catch (e) {
+                              console.error(
+                                "Failed to use media as canvas background",
+                                e
+                              );
+                            } finally {
+                              setPendingBackgroundId(null);
+                            }
+                          })();
+                        }}
+                      >
+                        <ImageIcon
+                          className="size-4 shrink-0"
+                          strokeWidth={2}
+                          aria-hidden
+                        />
+                        Use as background
+                      </DropdownMenuItem>
+                    ) : null}
                     <DropdownMenuItem
                       disabled={pendingDuplicateId === item.id}
                       className="gap-2"

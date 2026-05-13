@@ -22,6 +22,7 @@ import {
 } from "@/lib/mockup-canvas-background";
 import {
   SCREENSHOT_GLASS_LIGHT,
+  SCREENSHOT_LIQUID_GLASS,
   SCREENSHOT_OUTLINE,
   screenshotBorderOutlineOffset,
   screenshotEffectiveCornerRadius,
@@ -139,15 +140,22 @@ function UploadedScreenshotImage({
   }, [border, style]);
 
   const glassFrameStyle = useMemo<CSSProperties | undefined>(() => {
-    if (style !== "glass") return undefined;
+    if (style !== "glass" && style !== "liquidGlass") return undefined;
+    const spec =
+      style === "liquidGlass" ? SCREENSHOT_LIQUID_GLASS : SCREENSHOT_GLASS_LIGHT;
+    /** Same geometry as outline: outer radius tracks the screenshot radius + gap. */
+    const outerRadius = effectiveCornerRadius + spec.framePadding;
     return {
-      padding: `${SCREENSHOT_GLASS_LIGHT.framePadding}px`,
-      borderRadius: `${SCREENSHOT_GLASS_LIGHT.frameRadius}px`,
-      background: SCREENSHOT_GLASS_LIGHT.background,
-      backdropFilter: SCREENSHOT_GLASS_LIGHT.backdropFilter,
-      WebkitBackdropFilter: SCREENSHOT_GLASS_LIGHT.backdropFilter,
+      padding: `${spec.framePadding}px`,
+      borderRadius: `${outerRadius}px`,
+      background: spec.background,
+      backdropFilter: spec.backdropFilter,
+      WebkitBackdropFilter: spec.backdropFilter,
+      ...(style === "liquidGlass"
+        ? { boxShadow: SCREENSHOT_LIQUID_GLASS.boxShadow }
+        : {}),
     };
-  }, [style]);
+  }, [style, effectiveCornerRadius]);
 
   /**
    * Outline = wrapper border with `padding` for the gap so the stroke ends up
@@ -177,7 +185,7 @@ function UploadedScreenshotImage({
       effectiveCornerRadius > 0
         ? { borderRadius: `${effectiveCornerRadius}px`, overflow: "hidden" }
         : {};
-    if (style === "glass") {
+    if (style === "glass" || style === "liquidGlass") {
       return {
         ...base,
         borderRadius: `${effectiveCornerRadius}px`,

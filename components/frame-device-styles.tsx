@@ -12,11 +12,18 @@ import {
   Value as SelectValue,
   Viewport as SelectViewport,
 } from "@radix-ui/react-select";
-import { Check, ChevronDown, Rows3 } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  CircleOff,
+  Rows3,
+  Square,
+} from "lucide-react";
 import {
   useEffect,
   useId,
   useState,
+  type ComponentType,
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactElement,
@@ -25,10 +32,22 @@ import {
 import { CanvasSolidColorPopoverPanel } from "@/components/canvas-solid-color-picker";
 import { useMockupFrame } from "@/components/mockup-frame-context";
 import {
+  ScreenshotStyleGlassIcon,
+  ScreenshotStyleLiquidGlassIcon,
+  ScreenshotStyleOutlinedIcon,
+  type ScreenshotPickerIconProps,
+} from "@/components/screenshot-style-picker-icons";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   IPHONE_17_PRO_MAX_STYLES,
   isIphone17ProMaxTemplateId,
@@ -76,11 +95,16 @@ function normalizeOutlineHex(raw: string): string {
   return DEFAULT_SCREENSHOT_OUTLINE_COLOR;
 }
 
-const SCREENSHOT_STYLE_OPTIONS: { id: ScreenshotStyleId; label: string }[] = [
-  { id: "default", label: "Default" },
-  { id: "border", label: "Border" },
-  { id: "glass", label: "Glass" },
-  { id: "outline", label: "Outline" },
+const SCREENSHOT_STYLE_OPTIONS: {
+  id: ScreenshotStyleId;
+  Icon: ComponentType<ScreenshotPickerIconProps>;
+  tooltip: string;
+}[] = [
+  { id: "default", Icon: CircleOff, tooltip: "None" },
+  { id: "border", Icon: Square, tooltip: "Border" },
+  { id: "outline", Icon: ScreenshotStyleOutlinedIcon, tooltip: "Outlined" },
+  { id: "glass", Icon: ScreenshotStyleGlassIcon, tooltip: "Glass" },
+  { id: "liquidGlass", Icon: ScreenshotStyleLiquidGlassIcon, tooltip: "Liquid Glass" },
 ];
 
 function ScreenshotOutlineColorRow({
@@ -765,32 +789,47 @@ function ScreenshotStyleControls() {
       >
         Styles
       </span>
-      <div
-        role="radiogroup"
-        aria-labelledby="frame-screenshot-styles-label"
-        className="grid grid-cols-2 gap-2"
-      >
-        {SCREENSHOT_STYLE_OPTIONS.map(({ id, label }) => {
-          const selected = screenshotStyle === id;
-          return (
-            <button
-              key={id}
-              type="button"
-              role="radio"
-              aria-checked={selected}
-              onClick={() => setScreenshotStyle(id)}
-              className={cn(
-                "flex min-h-10 items-center justify-center rounded-lg border px-2 py-2 text-xs font-medium transition-colors",
-                selected
-                  ? "border-zinc-500 bg-zinc-800 text-white shadow-sm"
-                  : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:bg-zinc-900 hover:text-zinc-200"
-              )}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
+      <TooltipProvider delayDuration={300}>
+        <div
+          role="radiogroup"
+          aria-labelledby="frame-screenshot-styles-label"
+          className="grid min-w-0 grid-cols-5 gap-2"
+        >
+          {SCREENSHOT_STYLE_OPTIONS.map(({ id, Icon, tooltip }) => {
+            const selected = screenshotStyle === id;
+            return (
+              <Tooltip key={id}>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    aria-label={tooltip}
+                    onClick={() => setScreenshotStyle(id)}
+                    className={cn(
+                      "flex aspect-square w-full min-w-0 shrink-0 items-center justify-center rounded-lg border p-1.5 transition-colors",
+                      selected
+                        ? "border-zinc-500 bg-zinc-800 text-white shadow-sm"
+                        : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:bg-zinc-900 hover:text-zinc-200"
+                    )}
+                  >
+                    <span className="flex size-[20px] shrink-0 items-center justify-center [&>svg]:block [&>svg]:size-[20px]">
+                      <Icon
+                        className="size-[20px] shrink-0"
+                        strokeWidth={2}
+                        aria-hidden
+                      />
+                    </span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" sideOffset={6}>
+                  {tooltip}
+                </TooltipContent>
+              </Tooltip>
+            );
+          })}
+        </div>
+      </TooltipProvider>
 
       {screenshotStyle === "border" ? (
         <div className="space-y-2 pt-1">
@@ -801,19 +840,13 @@ function ScreenshotStyleControls() {
             onOpacityChange={setScreenshotBorderColorOpacity}
           />
           <div className="grid grid-cols-2 gap-2">
-            <div className="flex min-w-0 flex-col gap-1.5">
-              <span className="text-[11px] font-medium text-zinc-500">
-                Position
-              </span>
+            <div className="min-w-0">
               <ScreenshotBorderPositionSelect
                 value={screenshotBorderPosition}
                 onChange={setScreenshotBorderPosition}
               />
             </div>
-            <div className="flex min-w-0 flex-col gap-1.5">
-              <span className="text-[11px] font-medium text-zinc-500">
-                Weight
-              </span>
+            <div className="min-w-0">
               <ScreenshotBorderWeightField
                 value={screenshotBorderWeight}
                 onChange={setScreenshotBorderWeight}
@@ -824,8 +857,7 @@ function ScreenshotStyleControls() {
       ) : null}
 
       {screenshotStyle === "outline" ? (
-        <div className="space-y-1.5 pt-1">
-          <span className="text-[11px] font-medium text-zinc-500">Color</span>
+        <div className="pt-1">
           <ScreenshotOutlineColorRow
             color={screenshotOutlineColor}
             onColorChange={setScreenshotOutlineColor}

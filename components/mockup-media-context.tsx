@@ -16,6 +16,7 @@ import type { SavedMediaItem, SavedVisualSlot } from "@/lib/saved-projects";
 import {
   captureVisualWorkspacePrefs,
   DEFAULT_NEW_VISUAL_WORKSPACE_PREFS,
+  normalizeVisualWorkspacePrefs,
   type VisualWorkspacePrefs,
 } from "@/lib/mockup-workspace-snapshot";
 
@@ -296,17 +297,11 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
       for (const v of nextVisuals) {
         const per = diskPrefs?.[v.id];
         if (per) {
-          nextVisualWorkspacePrefs[v.id] = {
-            aspectPreset: per.aspectPreset,
-            canvasBackground: per.canvasBackground,
-            deviceTemplateId: per.deviceTemplateId ?? null,
-          };
+          nextVisualWorkspacePrefs[v.id] = normalizeVisualWorkspacePrefs(per);
         } else if (seed) {
-          nextVisualWorkspacePrefs[v.id] = {
-            aspectPreset: seed.aspectPreset,
-            canvasBackground: seed.canvasBackground,
-            deviceTemplateId: seed.deviceTemplateId ?? null,
-          };
+          nextVisualWorkspacePrefs[v.id] = normalizeVisualWorkspacePrefs(seed);
+        } else {
+          nextVisualWorkspacePrefs[v.id] = normalizeVisualWorkspacePrefs(null);
         }
       }
 
