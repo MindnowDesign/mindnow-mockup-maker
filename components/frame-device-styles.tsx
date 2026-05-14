@@ -709,14 +709,14 @@ function ScreenshotCornerRadiusControls() {
   }
 
   return (
-    <div className="space-y-2 pt-1">
+    <div className="flex flex-col gap-2 pt-1">
       <span
         className="text-xs font-medium text-zinc-400"
         id="frame-screenshot-corner-radius-label"
       >
         Corner radius
       </span>
-      <div className="space-y-2 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950 p-2">
+      <div className="space-y-2 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950 p-3">
         <div
           role="radiogroup"
           aria-labelledby="frame-screenshot-corner-radius-label"
@@ -782,19 +782,20 @@ function ScreenshotStyleControls() {
   } = useMockupFrame();
 
   return (
-    <div className="flex flex-col gap-2">
-      <span
-        className="text-xs font-medium text-zinc-400"
-        id="frame-screenshot-styles-label"
-      >
-        Styles
-      </span>
-      <TooltipProvider delayDuration={300}>
-        <div
-          role="radiogroup"
-          aria-labelledby="frame-screenshot-styles-label"
-          className="grid min-w-0 grid-cols-5 gap-2"
+    <div className="flex flex-col gap-6">
+      <div className="flex min-w-0 flex-col gap-2">
+        <span
+          className="text-xs font-medium text-zinc-400"
+          id="frame-screenshot-styles-label"
         >
+          Styles
+        </span>
+        <TooltipProvider delayDuration={300}>
+          <div
+            role="radiogroup"
+            aria-labelledby="frame-screenshot-styles-label"
+            className="grid min-w-0 grid-cols-5 gap-2"
+          >
           {SCREENSHOT_STYLE_OPTIONS.map(({ id, Icon, tooltip }) => {
             const selected = screenshotStyle === id;
             return (
@@ -828,8 +829,8 @@ function ScreenshotStyleControls() {
               </Tooltip>
             );
           })}
-        </div>
-      </TooltipProvider>
+          </div>
+        </TooltipProvider>
 
       {screenshotStyle === "border" ? (
         <div className="space-y-2 pt-1">
@@ -866,6 +867,7 @@ function ScreenshotStyleControls() {
           />
         </div>
       ) : null}
+      </div>
 
       <ScreenshotCornerRadiusControls />
     </div>
@@ -875,18 +877,19 @@ function ScreenshotStyleControls() {
 function IphoneProMaxStyleControls() {
   const { deviceTemplateId, setDeviceTemplateId } = useMockupFrame();
   return (
-    <div className="flex flex-col gap-2">
-      <span
-        className="text-xs font-medium text-zinc-400"
-        id="frame-styles-label"
-      >
-        Styles
-      </span>
-      <div
-        role="radiogroup"
-        aria-labelledby="frame-styles-label"
-        className="grid grid-cols-4 gap-x-1 gap-y-2"
-      >
+    <div className="flex flex-col gap-6">
+      <div className="flex min-w-0 flex-col gap-2">
+        <span
+          className="text-xs font-medium text-zinc-400"
+          id="frame-styles-label"
+        >
+          Styles
+        </span>
+        <div
+          role="radiogroup"
+          aria-labelledby="frame-styles-label"
+          className="grid grid-cols-4 gap-x-1 gap-y-2"
+        >
         {IPHONE_17_PRO_MAX_STYLES.map(({ templateId, shortLabel, coverSrc }) => {
           const selected = deviceTemplateId === templateId;
           return (
@@ -929,6 +932,7 @@ function IphoneProMaxStyleControls() {
             </div>
           );
         })}
+        </div>
       </div>
     </div>
   );

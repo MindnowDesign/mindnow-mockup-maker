@@ -159,10 +159,12 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
   const hydrateCanvasBackgroundRef = useRef(frame.hydrateCanvasBackground);
   const setDeviceTemplateIdRef = useRef(frame.setDeviceTemplateId);
   const hydrateScreenshotStyleRef = useRef(frame.hydrateScreenshotStyle);
+  const hydrateFrameShadowRef = useRef(frame.hydrateFrameShadow);
   setAspectPresetRef.current = frame.setAspectPreset;
   hydrateCanvasBackgroundRef.current = frame.hydrateCanvasBackground;
   setDeviceTemplateIdRef.current = frame.setDeviceTemplateId;
   hydrateScreenshotStyleRef.current = frame.hydrateScreenshotStyle;
+  hydrateFrameShadowRef.current = frame.hydrateFrameShadow;
 
   useEffect(() => {
     if (!activeVisualId) return;
@@ -173,6 +175,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
     hydrateCanvasBackgroundRef.current(prefs.canvasBackground);
     setDeviceTemplateIdRef.current(prefs.deviceTemplateId ?? null);
     hydrateScreenshotStyleRef.current(prefs.screenshotStyle ?? null);
+    hydrateFrameShadowRef.current(prefs.frameShadow ?? null);
     if (raw === undefined) {
       setState((s) => ({
         ...s,
@@ -220,6 +223,13 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
     frame.screenshotOutlineColorOpacity,
     frame.screenshotCornerType,
     frame.screenshotCornerRadius,
+    frame.frameShadowPreset,
+    frame.frameShadowOffsetX,
+    frame.frameShadowOffsetY,
+    frame.frameShadowBlur,
+    frame.frameShadowSpread,
+    frame.frameShadowColor,
+    frame.frameShadowColorOpacity,
   ]);
 
   const hydrateFromSaved = useCallback((payload: HydrateFromSavedPayload) => {

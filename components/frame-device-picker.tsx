@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FrameDeviceStyles } from "@/components/frame-device-styles";
+import { FrameShadowControls } from "@/components/frame-shadow-controls";
 import { cn } from "@/lib/utils";
 
 export type FrameDeviceValue =
@@ -167,7 +168,7 @@ export function FrameDevicePicker() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex flex-col gap-2">
         <span
           className="text-xs font-medium text-zinc-400"
@@ -443,6 +444,7 @@ export function FrameDevicePicker() {
         </Popover>
       </div>
       <FrameDeviceStyles />
+      <FrameShadowControls />
     </div>
   );
 }

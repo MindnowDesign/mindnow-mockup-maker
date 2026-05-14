@@ -17,6 +17,7 @@ import { useMockupMedia } from "@/components/mockup-media-context";
 import { CanvasBackgroundNoiseOverlay } from "@/components/canvas-background-noise-overlay";
 import { hexToRgb } from "@/lib/color-hex-hsv";
 import { scaledFramePixelSize } from "@/lib/mockup-aspect";
+import { buildFrameShadowBoxShadow } from "@/lib/mockup-frame-shadow";
 import {
   checkerboardBackgroundStyle,
 } from "@/lib/mockup-canvas-background";
@@ -77,6 +78,7 @@ function UploadedScreenshotImage({
   outlineColor,
   outlineColorOpacity,
   cornerRadius,
+  mediaBoxShadow,
 }: {
   src: string;
   style: ScreenshotStyleId;
@@ -84,6 +86,7 @@ function UploadedScreenshotImage({
   outlineColor: string;
   outlineColorOpacity: number;
   cornerRadius: number;
+  mediaBoxShadow?: string | null;
 }) {
   const effectiveCornerRadius = screenshotEffectiveCornerRadius(cornerRadius);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -185,18 +188,23 @@ function UploadedScreenshotImage({
       effectiveCornerRadius > 0
         ? { borderRadius: `${effectiveCornerRadius}px`, overflow: "hidden" }
         : {};
+    let inner: CSSProperties;
     if (style === "glass" || style === "liquidGlass") {
-      return {
+      inner = {
         ...base,
         borderRadius: `${effectiveCornerRadius}px`,
         ...(effectiveCornerRadius > 0 ? { overflow: "hidden" } : {}),
       };
+    } else if (style === "outline") {
+      inner = { ...base, ...radiusBase };
+    } else {
+      inner = { ...base, ...radiusBase, ...borderStyle };
     }
-    if (style === "outline") {
-      return { ...base, ...radiusBase };
+    if (mediaBoxShadow) {
+      return { ...inner, boxShadow: mediaBoxShadow };
     }
-    return { ...base, ...radiusBase, ...borderStyle };
-  }, [fitted, style, borderStyle, effectiveCornerRadius]);
+    return inner;
+  }, [fitted, style, borderStyle, effectiveCornerRadius, mediaBoxShadow]);
 
   return (
     <div
@@ -386,6 +394,12 @@ export function MockupWorkspaceStage() {
     screenshotOutlineColor,
     screenshotOutlineColorOpacity,
     screenshotCornerRadius,
+    frameShadowOffsetX,
+    frameShadowOffsetY,
+    frameShadowBlur,
+    frameShadowSpread,
+    frameShadowColor,
+    frameShadowColorOpacity,
   } = useMockupFrame();
   const canvasNoiseFilterId = `canvas-noise-${useId().replace(/:/g, "")}`;
   const noiseBlendModeEffective =
@@ -460,6 +474,26 @@ export function MockupWorkspaceStage() {
   /** Glass styling has no inputs — only the `style` flag is needed downstream. */
   const screenshotStyleForCanvas =
     deviceTemplateId == null ? screenshotStyle : "default";
+
+  const screenshotMediaBoxShadow = useMemo(() => {
+    if (deviceTemplateId != null) return null;
+    return buildFrameShadowBoxShadow({
+      offsetX: frameShadowOffsetX,
+      offsetY: frameShadowOffsetY,
+      blur: frameShadowBlur,
+      spread: frameShadowSpread,
+      color: frameShadowColor,
+      colorOpacity: frameShadowColorOpacity,
+    });
+  }, [
+    deviceTemplateId,
+    frameShadowOffsetX,
+    frameShadowOffsetY,
+    frameShadowBlur,
+    frameShadowSpread,
+    frameShadowColor,
+    frameShadowColorOpacity,
+  ]);
 
   /**
    * Blur on a layer that is then clipped to rounded rect can look like a vignette
@@ -564,6 +598,7 @@ export function MockupWorkspaceStage() {
                   outlineColor={screenshotOutlineColor}
                   outlineColorOpacity={screenshotOutlineColorOpacity}
                   cornerRadius={screenshotCornerRadius}
+                  mediaBoxShadow={screenshotMediaBoxShadow}
                 />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element -- user-provided blob URL

@@ -263,6 +263,7 @@ export function WorkspaceTopBar({
                     screenshotStyle: n.screenshotStyle
                       ? { ...n.screenshotStyle }
                       : null,
+                    frameShadow: n.frameShadow ? { ...n.frameShadow } : null,
                   },
                 ];
               })

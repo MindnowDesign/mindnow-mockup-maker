@@ -7,6 +7,13 @@ import type {
   ScreenshotStyleId,
 } from "@/lib/mockup-screenshot-style";
 import {
+  DEFAULT_FRAME_SHADOW_PRESET,
+  defaultFrameShadowNumbers,
+  frameShadowToPersisted,
+  type FrameShadowPresetId,
+  type PersistedFrameShadow,
+} from "@/lib/mockup-frame-shadow";
+import {
   DEFAULT_SCREENSHOT_BORDER_COLOR,
   DEFAULT_SCREENSHOT_BORDER_COLOR_OPACITY,
   DEFAULT_SCREENSHOT_BORDER_POSITION,
@@ -67,6 +74,13 @@ export type FrameLike = {
   screenshotOutlineColorOpacity: number;
   screenshotCornerType: ScreenshotCornerType;
   screenshotCornerRadius: number;
+  frameShadowPreset: FrameShadowPresetId;
+  frameShadowOffsetX: number;
+  frameShadowOffsetY: number;
+  frameShadowBlur: number;
+  frameShadowSpread: number;
+  frameShadowColor: string;
+  frameShadowColorOpacity: number;
 };
 
 /**
@@ -82,6 +96,8 @@ export type VisualWorkspacePrefs = {
   deviceTemplateId?: string | null;
   /** Screenshot styling (only meaningful when `deviceTemplateId` is null). */
   screenshotStyle?: PersistedScreenshotStyle | null;
+  /** Drop shadow on plain screenshot media (`deviceTemplateId` null). */
+  frameShadow?: PersistedFrameShadow | null;
 };
 
 export function frameLikeToPersistedScreenshotStyle(
@@ -101,11 +117,20 @@ export function frameLikeToPersistedScreenshotStyle(
 }
 
 export function captureVisualWorkspacePrefs(f: FrameLike): VisualWorkspacePrefs {
+  const shadowNums = {
+    offsetX: f.frameShadowOffsetX,
+    offsetY: f.frameShadowOffsetY,
+    blur: f.frameShadowBlur,
+    spread: f.frameShadowSpread,
+    color: f.frameShadowColor,
+    colorOpacity: f.frameShadowColorOpacity,
+  };
   return {
     aspectPreset: f.aspectPreset,
     canvasBackground: frameLikeToPersistedCanvasBackground(f),
     deviceTemplateId: f.deviceTemplateId,
     screenshotStyle: frameLikeToPersistedScreenshotStyle(f),
+    frameShadow: frameShadowToPersisted(f.frameShadowPreset, shadowNums),
   };
 }
 
@@ -125,6 +150,10 @@ export const DEFAULT_NEW_VISUAL_WORKSPACE_PREFS: VisualWorkspacePrefs = {
     cornerType: DEFAULT_SCREENSHOT_CORNER_TYPE,
     cornerRadius: DEFAULT_SCREENSHOT_CORNER_RADIUS,
   },
+  frameShadow: frameShadowToPersisted(
+    DEFAULT_FRAME_SHADOW_PRESET,
+    defaultFrameShadowNumbers()
+  ),
 };
 
 /**
@@ -141,6 +170,7 @@ export function normalizeVisualWorkspacePrefs(
       canvasBackground: d.canvasBackground,
       deviceTemplateId: d.deviceTemplateId ?? null,
       screenshotStyle: d.screenshotStyle ? { ...d.screenshotStyle } : null,
+      frameShadow: d.frameShadow ? { ...d.frameShadow } : null,
     };
   }
   const screenshotStyle =
@@ -148,6 +178,14 @@ export function normalizeVisualWorkspacePrefs(
       ? { ...partial.screenshotStyle }
       : d.screenshotStyle
         ? { ...d.screenshotStyle }
+        : null;
+  const frameShadow =
+    partial.frameShadow !== undefined
+      ? partial.frameShadow
+        ? { ...partial.frameShadow }
+        : null
+      : d.frameShadow
+        ? { ...d.frameShadow }
         : null;
   return {
     aspectPreset: partial.aspectPreset ?? d.aspectPreset,
@@ -160,6 +198,7 @@ export function normalizeVisualWorkspacePrefs(
         ? partial.deviceTemplateId
         : d.deviceTemplateId ?? null,
     screenshotStyle,
+    frameShadow,
   };
 }
 

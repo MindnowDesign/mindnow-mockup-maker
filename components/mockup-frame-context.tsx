@@ -38,6 +38,14 @@ import type {
   ScreenshotStyleId,
 } from "@/lib/mockup-screenshot-style";
 import {
+  DEFAULT_FRAME_SHADOW_PRESET,
+  defaultFrameShadowNumbers,
+  FRAME_SHADOW_PRESET_SPECS,
+  type FrameShadowPresetId,
+  type PersistedFrameShadow,
+  normalizePersistedFrameShadow,
+} from "@/lib/mockup-frame-shadow";
+import {
   clampScreenshotBorderOpacity,
   clampScreenshotBorderWeight,
   clampScreenshotCornerRadius,
@@ -114,6 +122,23 @@ type MockupFrameContextValue = {
   hydrateScreenshotStyle: (
     payload: PersistedScreenshotStyle | null | undefined
   ) => void;
+  frameShadowPreset: FrameShadowPresetId;
+  setFrameShadowPreset: (id: FrameShadowPresetId) => void;
+  frameShadowOffsetX: number;
+  setFrameShadowOffsetX: (value: number) => void;
+  frameShadowOffsetY: number;
+  setFrameShadowOffsetY: (value: number) => void;
+  frameShadowBlur: number;
+  setFrameShadowBlur: (value: number) => void;
+  frameShadowSpread: number;
+  setFrameShadowSpread: (value: number) => void;
+  frameShadowColor: string;
+  setFrameShadowColor: (hex: string) => void;
+  frameShadowColorOpacity: number;
+  setFrameShadowColorOpacity: (value: number) => void;
+  hydrateFrameShadow: (
+    payload: PersistedFrameShadow | null | undefined
+  ) => void;
 };
 
 const MockupFrameContext = createContext<MockupFrameContextValue | null>(null);
@@ -174,6 +199,26 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
     DEFAULT_SCREENSHOT_CORNER_RADIUS
   );
 
+  const initialShadow = defaultFrameShadowNumbers();
+  const [frameShadowPreset, setFrameShadowPresetState] =
+    useState<FrameShadowPresetId>(DEFAULT_FRAME_SHADOW_PRESET);
+  const [frameShadowOffsetX, setFrameShadowOffsetXState] = useState(
+    initialShadow.offsetX
+  );
+  const [frameShadowOffsetY, setFrameShadowOffsetYState] = useState(
+    initialShadow.offsetY
+  );
+  const [frameShadowBlur, setFrameShadowBlurState] = useState(initialShadow.blur);
+  const [frameShadowSpread, setFrameShadowSpreadState] = useState(
+    initialShadow.spread
+  );
+  const [frameShadowColor, setFrameShadowColorState] = useState(
+    initialShadow.color
+  );
+  const [frameShadowColorOpacity, setFrameShadowColorOpacityState] = useState(
+    initialShadow.colorOpacity
+  );
+
   const setScreenshotStyle = useCallback((id: ScreenshotStyleId) => {
     setScreenshotStyleState(parseScreenshotStyle(id));
   }, []);
@@ -216,6 +261,80 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
   const setScreenshotCornerRadius = useCallback((value: number) => {
     setScreenshotCornerRadiusState(clampScreenshotCornerRadius(value));
   }, []);
+
+  const setFrameShadowPreset = useCallback((id: FrameShadowPresetId) => {
+    setFrameShadowPresetState(id);
+    if (id !== "custom") {
+      const spec = FRAME_SHADOW_PRESET_SPECS[id];
+      setFrameShadowOffsetXState(spec.offsetX);
+      setFrameShadowOffsetYState(spec.offsetY);
+      setFrameShadowBlurState(spec.blur);
+      setFrameShadowSpreadState(spec.spread);
+      setFrameShadowColorState(spec.color);
+      setFrameShadowColorOpacityState(spec.colorOpacity);
+    }
+  }, []);
+
+  const setFrameShadowOffsetX = useCallback((value: number) => {
+    setFrameShadowPresetState("custom");
+    setFrameShadowOffsetXState(
+      Math.min(128, Math.max(-128, Math.round(value)))
+    );
+  }, []);
+  const setFrameShadowOffsetY = useCallback((value: number) => {
+    setFrameShadowPresetState("custom");
+    setFrameShadowOffsetYState(
+      Math.min(128, Math.max(-128, Math.round(value)))
+    );
+  }, []);
+  const setFrameShadowBlur = useCallback((value: number) => {
+    setFrameShadowPresetState("custom");
+    setFrameShadowBlurState(Math.min(128, Math.max(0, Math.round(value))));
+  }, []);
+  const setFrameShadowSpread = useCallback((value: number) => {
+    setFrameShadowPresetState("custom");
+    setFrameShadowSpreadState(
+      Math.min(64, Math.max(-64, Math.round(value)))
+    );
+  }, []);
+  const setFrameShadowColor = useCallback((hex: string) => {
+    setFrameShadowPresetState("custom");
+    const trimmed = hex.trim();
+    if (/^#[0-9A-Fa-f]{6}$/.test(trimmed)) {
+      setFrameShadowColorState(trimmed.toUpperCase());
+    } else {
+      setFrameShadowColorState("#000000");
+    }
+  }, []);
+  const setFrameShadowColorOpacity = useCallback((value: number) => {
+    setFrameShadowPresetState("custom");
+    setFrameShadowColorOpacityState(clampPercent(value));
+  }, []);
+
+  const hydrateFrameShadow = useCallback(
+    (payload: PersistedFrameShadow | null | undefined) => {
+      if (!payload) {
+        const d = defaultFrameShadowNumbers();
+        setFrameShadowPresetState(DEFAULT_FRAME_SHADOW_PRESET);
+        setFrameShadowOffsetXState(d.offsetX);
+        setFrameShadowOffsetYState(d.offsetY);
+        setFrameShadowBlurState(d.blur);
+        setFrameShadowSpreadState(d.spread);
+        setFrameShadowColorState(d.color);
+        setFrameShadowColorOpacityState(d.colorOpacity);
+        return;
+      }
+      const { preset, numbers } = normalizePersistedFrameShadow(payload);
+      setFrameShadowPresetState(preset);
+      setFrameShadowOffsetXState(numbers.offsetX);
+      setFrameShadowOffsetYState(numbers.offsetY);
+      setFrameShadowBlurState(numbers.blur);
+      setFrameShadowSpreadState(numbers.spread);
+      setFrameShadowColorState(numbers.color);
+      setFrameShadowColorOpacityState(numbers.colorOpacity);
+    },
+    []
+  );
 
   const hydrateScreenshotStyle = useCallback(
     (payload: PersistedScreenshotStyle | null | undefined) => {
@@ -402,6 +521,21 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       screenshotCornerRadius,
       setScreenshotCornerRadius,
       hydrateScreenshotStyle,
+      frameShadowPreset,
+      setFrameShadowPreset,
+      frameShadowOffsetX,
+      setFrameShadowOffsetX,
+      frameShadowOffsetY,
+      setFrameShadowOffsetY,
+      frameShadowBlur,
+      setFrameShadowBlur,
+      frameShadowSpread,
+      setFrameShadowSpread,
+      frameShadowColor,
+      setFrameShadowColor,
+      frameShadowColorOpacity,
+      setFrameShadowColorOpacity,
+      hydrateFrameShadow,
     }),
     [
       aspectPreset,
@@ -437,6 +571,21 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       screenshotCornerRadius,
       setScreenshotCornerRadius,
       hydrateScreenshotStyle,
+      frameShadowPreset,
+      setFrameShadowPreset,
+      frameShadowOffsetX,
+      setFrameShadowOffsetX,
+      frameShadowOffsetY,
+      setFrameShadowOffsetY,
+      frameShadowBlur,
+      setFrameShadowBlur,
+      frameShadowSpread,
+      setFrameShadowSpread,
+      frameShadowColor,
+      setFrameShadowColor,
+      frameShadowColorOpacity,
+      setFrameShadowColorOpacity,
+      hydrateFrameShadow,
     ]
   );
 
