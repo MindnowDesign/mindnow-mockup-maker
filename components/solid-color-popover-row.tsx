@@ -26,6 +26,9 @@ const triggerButtonClass =
 const fieldTriggerClass =
   "box-border flex h-10 min-h-10 w-full min-w-0 items-center gap-1.5 overflow-hidden rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-2 text-left outline-none transition-colors hover:bg-zinc-900 focus-visible:ring-2 focus-visible:ring-white/25";
 
+const swatchTriggerClass =
+  "box-border size-6 shrink-0 rounded border border-zinc-600 outline-none transition-colors hover:border-zinc-400 focus-visible:ring-2 focus-visible:ring-white/25";
+
 function OpacityPercentField({
   value,
   onChange,
@@ -109,9 +112,9 @@ function OpacityPercentField({
 export type SolidColorPopoverRowProps = {
   /**
    * `row` — divided sidebar bar (optional opacity). `field` — full-width trigger
-   * (canvas solid / noise color).
+   * (canvas solid / noise color). `swatch` — 24×24 swatch only (no hex row, no opacity).
    */
-  variant?: "row" | "field";
+  variant?: "row" | "field" | "swatch";
   /** Merged onto outer wrapper (`field`: width; `row`: chrome row). */
   className?: string;
   /** Normalized `#RRGGBB` for swatch, trigger text, and picker `color`. */
@@ -149,15 +152,26 @@ export function SolidColorPopoverRow({
           type="button"
           aria-label={triggerAriaLabel}
           aria-haspopup="dialog"
-          className={triggerClass}
+          className={
+            variant === "swatch"
+              ? cn(swatchTriggerClass, className)
+              : triggerClass
+          }
+          style={
+            variant === "swatch" ? { backgroundColor: displayHex } : undefined
+          }
         >
-          <span
-            className="block size-5 shrink-0 rounded border border-zinc-600"
-            style={{ backgroundColor: displayHex }}
-          />
-          <span className="min-w-0 truncate font-mono text-[11px] leading-none tabular-nums tracking-tight text-zinc-100">
-            {displayHex.slice(1)}
-          </span>
+          {variant === "swatch" ? null : (
+            <>
+              <span
+                className="block size-5 shrink-0 rounded border border-zinc-600"
+                style={{ backgroundColor: displayHex }}
+              />
+              <span className="min-w-0 truncate font-mono text-[11px] leading-none tabular-nums tracking-tight text-zinc-100">
+                {displayHex.slice(1)}
+              </span>
+            </>
+          )}
         </button>
       </PopoverTrigger>
       <PopoverContent
@@ -176,6 +190,10 @@ export function SolidColorPopoverRow({
 
   if (variant === "field") {
     return <div className={cn("w-full min-w-0", className)}>{popover}</div>;
+  }
+
+  if (variant === "swatch") {
+    return popover;
   }
 
   return (

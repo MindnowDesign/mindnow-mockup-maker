@@ -1,5 +1,9 @@
 import type { CSSProperties } from "react";
 
+import {
+  canvasGradientTemplateToCaptureStyle,
+  canvasGradientTemplateToPeekBackgroundStyle,
+} from "@/lib/canvas-background-gradient-templates";
 import type { CanvasNoiseBlendModeId } from "./mockup-noise-blend";
 import type { CanvasNoiseTypeId } from "./mockup-noise";
 
@@ -17,6 +21,10 @@ export const DEFAULT_CANVAS_NOISE_COLOR_OPACITY = 100;
 /** Persisted shape for localStorage / saved projects. */
 export type PersistedCanvasBackground = {
   mode: CanvasBackgroundMode;
+  /** When set, a template layer wins over `mode` fill on the main canvas (see `canvasGradientTemplateToCaptureStyle`). */
+  gradientTemplateId?: string | null;
+  /** Editable fills for `gradient-1` (keys without `--`, e.g. `cbg-base`). */
+  gradientFillHex?: Record<string, string> | null;
   solidColor?: string;
   imageDataUrl?: string;
   /** 0–100 — grain intensity on the canvas background layer. */
@@ -40,6 +48,13 @@ export function persistedCanvasBackgroundToPeekStyle(
 ): CSSProperties {
   if (bg == null || !bg.mode) {
     return { backgroundColor: DEFAULT_CANVAS_SOLID_COLOR };
+  }
+  const gradientPeek = canvasGradientTemplateToPeekBackgroundStyle(
+    bg.gradientTemplateId ?? null,
+    "100%"
+  );
+  if (gradientPeek) {
+    return gradientPeek;
   }
   if (bg.mode === "transparent") {
     return checkerboardBackgroundStyle();

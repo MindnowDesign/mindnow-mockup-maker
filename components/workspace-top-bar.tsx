@@ -70,6 +70,8 @@ export function WorkspaceTopBar({
     canvasBackgroundMode,
     canvasSolidColor,
     canvasBackgroundImageUrl,
+    canvasGradientTemplateId,
+    canvasGradientFillHex,
     canvasNoisePercent,
     canvasBlurPercent,
     canvasNoiseType,
@@ -201,6 +203,17 @@ export function WorkspaceTopBar({
         }),
       };
 
+      const trimmedGradient = canvasGradientTemplateId?.trim();
+      const gradientPayload =
+        trimmedGradient != null && trimmedGradient !== ""
+          ? {
+              gradientTemplateId: trimmedGradient,
+              ...(trimmedGradient === "gradient-1"
+                ? { gradientFillHex: { ...canvasGradientFillHex } }
+                : {}),
+            }
+          : {};
+
       const activeResolved =
         activeVisualId != null
           ? resolveVisualPrefsForSave(
@@ -213,11 +226,16 @@ export function WorkspaceTopBar({
 
       let canvasBackgroundFromFrame: PersistedCanvasBackground | undefined;
       if (canvasBackgroundMode === "transparent") {
-        canvasBackgroundFromFrame = { mode: "transparent", ...effectsPayload };
+        canvasBackgroundFromFrame = {
+          mode: "transparent",
+          ...gradientPayload,
+          ...effectsPayload,
+        };
       } else if (canvasBackgroundMode === "solid") {
         canvasBackgroundFromFrame = {
           mode: "solid",
           solidColor: canvasSolidColor,
+          ...gradientPayload,
           ...effectsPayload,
         };
       } else if (canvasBackgroundMode === "image") {
@@ -228,10 +246,15 @@ export function WorkspaceTopBar({
           canvasBackgroundFromFrame = {
             mode: "image",
             imageDataUrl,
+            ...gradientPayload,
             ...effectsPayload,
           };
         } else {
-          canvasBackgroundFromFrame = { mode: "image", ...effectsPayload };
+          canvasBackgroundFromFrame = {
+            mode: "image",
+            ...gradientPayload,
+            ...effectsPayload,
+          };
         }
       }
 

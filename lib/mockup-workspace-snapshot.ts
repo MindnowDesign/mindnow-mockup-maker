@@ -58,6 +58,10 @@ export type FrameLike = {
   canvasBackgroundMode: "transparent" | "solid" | "image";
   canvasSolidColor: string;
   canvasBackgroundImageUrl: string | null;
+  /** Active SVG/CSS gradient template id, or null for none. */
+  canvasGradientTemplateId: string | null;
+  /** Keys like `cbg-base` for `gradient-1` inline SVG fills. */
+  canvasGradientFillHex: Record<string, string>;
   canvasNoisePercent: number;
   canvasBlurPercent: number;
   canvasNoiseType: import("@/lib/mockup-noise").CanvasNoiseTypeId;
@@ -230,17 +234,35 @@ export function frameLikeToPersistedCanvasBackground(
     noiseColorOpacity: f.canvasNoiseColorOpacity,
     noiseBlendMode: f.canvasNoiseBlendMode,
   };
+  const gradientTemplateId = f.canvasGradientTemplateId?.trim() || null;
+  const gradientFillSpread =
+    gradientTemplateId === "gradient-1"
+      ? { gradientFillHex: { ...f.canvasGradientFillHex } }
+      : {};
   if (f.canvasBackgroundMode === "transparent") {
-    return { mode: "transparent", ...effects };
+    return {
+      mode: "transparent",
+      ...(gradientTemplateId ? { gradientTemplateId } : {}),
+      ...gradientFillSpread,
+      ...effects,
+    };
   }
   if (f.canvasBackgroundMode === "solid") {
-    return { mode: "solid", solidColor: f.canvasSolidColor, ...effects };
+    return {
+      mode: "solid",
+      solidColor: f.canvasSolidColor,
+      ...(gradientTemplateId ? { gradientTemplateId } : {}),
+      ...gradientFillSpread,
+      ...effects,
+    };
   }
   const trimmed = f.canvasBackgroundImageUrl?.trim();
   return {
     mode: "image",
     ...(trimmed ? { imageDataUrl: trimmed } : {}),
     solidColor: f.canvasSolidColor,
+    ...(gradientTemplateId ? { gradientTemplateId } : {}),
+    ...gradientFillSpread,
     ...effects,
   };
 }

@@ -5,9 +5,7 @@ import {
   Droplet,
   Grid3x3,
   Image as ImageIcon,
-  Minus,
   PaintBucket,
-  Plus,
   Sparkles,
   Trash2,
   Upload,
@@ -22,9 +20,10 @@ import {
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
-  type ReactNode,
 } from "react";
+import { CanvasBackgroundTemplatesSection } from "@/components/canvas-background-templates-section";
 import { CanvasSolidColorPicker } from "@/components/canvas-solid-color-picker";
+import { EffectAccordionSection } from "@/components/effect-accordion-section";
 import { SolidColorPopoverRow } from "@/components/solid-color-popover-row";
 import { useMockupFrame } from "@/components/mockup-frame-context";
 import {
@@ -327,78 +326,6 @@ function NoiseBlendModeDropdown({
 const EFFECT_EXPAND_DEFAULT_NOISE = 25;
 const EFFECT_EXPAND_DEFAULT_BLUR = 20;
 
-function EffectAccordionSection({
-  sectionId,
-  label,
-  Icon,
-  open,
-  onToggle,
-  children,
-  /** When open, show trash instead of minus — closing clears the effect (see toggle handlers). */
-  openTrailingIcon = "collapse",
-}: {
-  sectionId: string;
-  label: string;
-  Icon: LucideIcon;
-  open: boolean;
-  onToggle: () => void;
-  children: ReactNode;
-  openTrailingIcon?: "collapse" | "remove";
-}) {
-  const triggerId = `${sectionId}-trigger`;
-  const panelId = `${sectionId}-panel`;
-
-  const trailingOpenIcon =
-    openTrailingIcon === "remove" ? (
-      <Trash2 className="size-4 shrink-0 text-zinc-400" strokeWidth={2} aria-hidden />
-    ) : (
-      <Minus className="size-4 shrink-0 text-zinc-400" strokeWidth={2} aria-hidden />
-    );
-
-  return (
-    <div className="overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950">
-      <button
-        type="button"
-        id={triggerId}
-        aria-expanded={open}
-        aria-controls={panelId}
-        onClick={onToggle}
-        title={
-          openTrailingIcon === "remove"
-            ? open
-              ? "Remove effect"
-              : "Add effect"
-            : undefined
-        }
-        className={cn(
-          "flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left outline-none transition-colors",
-          "hover:bg-zinc-900/80 focus-visible:ring-2 focus-visible:ring-white/25"
-        )}
-      >
-        <span className="flex min-w-0 items-center gap-2 text-xs font-medium text-zinc-100">
-          <Icon className="size-3.5 shrink-0 text-zinc-400" strokeWidth={2} aria-hidden />
-          {label}
-        </span>
-        {open ? (
-          trailingOpenIcon
-        ) : (
-          <Plus className="size-4 shrink-0 text-zinc-400" strokeWidth={2} aria-hidden />
-        )}
-      </button>
-      {open ? (
-        <div
-          id={panelId}
-          role="region"
-          aria-labelledby={triggerId}
-          className="space-y-3 border-t border-zinc-800 px-3 pb-3 pt-3"
-        >
-          {children}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 function CanvasEffectSliderRow({
   id,
   label,
@@ -674,6 +601,8 @@ export function CanvasBackgroundControls() {
         </div>
       ) : null}
     </div>
+
+    <CanvasBackgroundTemplatesSection />
 
     <div className="space-y-2 pt-1">
       <span className="block text-xs font-medium text-zinc-400">Effects</span>
