@@ -24,32 +24,40 @@ export type PersistedFrameShadow = {
 const DEFAULT_COLOR = "#000000";
 
 export const FRAME_SHADOW_PRESET_SPECS: Record<
-  Exclude<FrameShadowPresetId, "custom">,
+  FrameShadowPresetId,
   FrameShadowNumbers
 > = {
-  sharp: {
+  custom: {
     offsetX: 0,
-    offsetY: 2,
-    blur: 6,
-    spread: -1,
+    offsetY: 0,
+    blur: 0,
+    spread: 0,
     color: DEFAULT_COLOR,
-    colorOpacity: 18,
+    colorOpacity: 100,
+  },
+  sharp: {
+    offsetX: 15,
+    offsetY: 15,
+    blur: 5,
+    spread: 0,
+    color: DEFAULT_COLOR,
+    colorOpacity: 60,
   },
   soft: {
     offsetX: 0,
-    offsetY: 16,
-    blur: 40,
-    spread: -12,
-    color: DEFAULT_COLOR,
-    colorOpacity: 35,
-  },
-  floating: {
-    offsetX: 0,
-    offsetY: 4,
-    blur: 4,
+    offsetY: 15,
+    blur: 35,
     spread: 0,
     color: DEFAULT_COLOR,
-    colorOpacity: 25,
+    colorOpacity: 40,
+  },
+  floating: {
+    offsetX: 30,
+    offsetY: 30,
+    blur: 30,
+    spread: 0,
+    color: DEFAULT_COLOR,
+    colorOpacity: 65,
   },
 };
 
@@ -81,10 +89,7 @@ export function normalizePersistedFrameShadow(
   partial: PersistedFrameShadow | null | undefined
 ): { preset: FrameShadowPresetId; numbers: FrameShadowNumbers } {
   const preset = parseFrameShadowPreset(partial?.preset);
-  const base =
-    preset === "custom"
-      ? defaultFrameShadowNumbers()
-      : { ...FRAME_SHADOW_PRESET_SPECS[preset] };
+  const base = { ...FRAME_SHADOW_PRESET_SPECS[preset] };
 
   return {
     preset,

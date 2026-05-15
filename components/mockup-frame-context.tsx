@@ -264,15 +264,13 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
 
   const setFrameShadowPreset = useCallback((id: FrameShadowPresetId) => {
     setFrameShadowPresetState(id);
-    if (id !== "custom") {
-      const spec = FRAME_SHADOW_PRESET_SPECS[id];
-      setFrameShadowOffsetXState(spec.offsetX);
-      setFrameShadowOffsetYState(spec.offsetY);
-      setFrameShadowBlurState(spec.blur);
-      setFrameShadowSpreadState(spec.spread);
-      setFrameShadowColorState(spec.color);
-      setFrameShadowColorOpacityState(spec.colorOpacity);
-    }
+    const spec = FRAME_SHADOW_PRESET_SPECS[id];
+    setFrameShadowOffsetXState(spec.offsetX);
+    setFrameShadowOffsetYState(spec.offsetY);
+    setFrameShadowBlurState(spec.blur);
+    setFrameShadowSpreadState(spec.spread);
+    setFrameShadowColorState(spec.color);
+    setFrameShadowColorOpacityState(spec.colorOpacity);
   }, []);
 
   const setFrameShadowOffsetX = useCallback((value: number) => {

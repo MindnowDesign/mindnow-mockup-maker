@@ -8,13 +8,8 @@ import {
   type ReactNode,
 } from "react";
 
-import { CanvasSolidColorPopoverPanel } from "@/components/canvas-solid-color-picker";
+import { SolidColorPopoverRow } from "@/components/solid-color-popover-row";
 import { useMockupFrame } from "@/components/mockup-frame-context";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Tooltip,
   TooltipContent,
@@ -239,118 +234,18 @@ function ShadowColorOpacityRow({
   opacity: number;
   onOpacityChange: (value: number) => void;
 }) {
-  const [open, setOpen] = useState(false);
   const hex = normalizeHex(color);
-  const [opacityText, setOpacityText] = useState(String(opacity));
-  const [opacityFocused, setOpacityFocused] = useState(false);
-
-  useEffect(() => {
-    if (!opacityFocused) setOpacityText(String(opacity));
-  }, [opacity, opacityFocused]);
-
-  function commitOpacity(raw: string) {
-    const digits = raw.replace(/\D/g, "").slice(0, 3);
-    if (digits === "") {
-      onOpacityChange(0);
-      setOpacityText("0");
-      return;
-    }
-    const n = Math.min(100, Math.max(0, parseInt(digits, 10)));
-    onOpacityChange(n);
-    setOpacityText(String(n));
-  }
-
-  function handleOpacityArrowKeys(e: ReactKeyboardEvent<HTMLInputElement>) {
-    if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
-    e.preventDefault();
-    const digits = opacityText.replace(/\D/g, "");
-    const base = digits === "" ? opacity : parseInt(digits, 10);
-    const step = e.shiftKey ? 10 : 1;
-    const delta = e.key === "ArrowUp" ? step : -step;
-    const next = Math.min(100, Math.max(0, base + delta));
-    onOpacityChange(next);
-    setOpacityText(String(next));
-  }
-
   return (
-    <div
-      className={cn(
-        "flex min-h-9 min-w-0 divide-x divide-zinc-700 overflow-hidden",
-        inputChrome
-      )}
-    >
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            aria-label="Shadow color"
-            aria-haspopup="dialog"
-            className={cn(
-              "flex min-h-9 min-w-0 flex-1 items-center gap-1.5 px-2 text-left outline-none transition-colors",
-              "hover:bg-zinc-900 focus-visible:bg-zinc-900"
-            )}
-          >
-            <span
-              className="block size-5 shrink-0 rounded border border-zinc-600"
-              style={{ backgroundColor: hex }}
-            />
-            <span className="min-w-0 truncate font-mono text-[11px] leading-none tabular-nums tracking-tight text-zinc-100">
-              {hex.slice(1)}
-            </span>
-          </button>
-        </PopoverTrigger>
-        <PopoverContent
-          align="start"
-          sideOffset={8}
-          className={cn(
-            "w-[min(100vw-2rem,280px)] border-zinc-700 bg-zinc-900 p-3 shadow-xl ring-1 ring-zinc-700",
-            "text-zinc-100"
-          )}
-        >
-          <CanvasSolidColorPopoverPanel
-            color={hex}
-            onChange={(next) => onColorChange(normalizeHex(next))}
-            popoverOpen={open}
-          />
-        </PopoverContent>
-      </Popover>
-      <div className="flex shrink-0 items-center">
-        <input
-          type="text"
-          inputMode="numeric"
-          autoComplete="off"
-          aria-label="Shadow opacity"
-          value={opacityText}
-          onFocus={() => setOpacityFocused(true)}
-          onBlur={() => {
-            setOpacityFocused(false);
-            commitOpacity(opacityText);
-          }}
-          onChange={(e) => {
-            const digits = e.target.value.replace(/\D/g, "").slice(0, 3);
-            setOpacityText(digits);
-            if (digits !== "") {
-              const n = Math.min(100, Math.max(0, parseInt(digits, 10)));
-              onOpacityChange(n);
-            }
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-              handleOpacityArrowKeys(e);
-              return;
-            }
-            if (e.key === "Enter") e.currentTarget.blur();
-          }}
-          className="min-w-0 max-w-[3rem] bg-transparent px-1.5 py-2 text-right font-mono text-[11px] leading-none tabular-nums text-zinc-100 outline-none focus-visible:bg-white/5"
-        />
-        <span
-          className="flex shrink-0 items-center justify-center pl-0.5 pr-2 font-mono text-[11px] text-zinc-400 tabular-nums"
-          aria-hidden
-        >
-          %
-        </span>
-      </div>
-    </div>
+    <SolidColorPopoverRow
+      displayHex={hex}
+      onColorChange={(next) => onColorChange(normalizeHex(next))}
+      triggerAriaLabel="Shadow color"
+      opacityPercent={{
+        value: opacity,
+        onChange: onOpacityChange,
+        inputAriaLabel: "Shadow opacity",
+      }}
+    />
   );
 }
 

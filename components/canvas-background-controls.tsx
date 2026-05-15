@@ -24,10 +24,8 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
-import {
-  CanvasSolidColorPicker,
-  CanvasSolidColorPopoverPanel,
-} from "@/components/canvas-solid-color-picker";
+import { CanvasSolidColorPicker } from "@/components/canvas-solid-color-picker";
+import { SolidColorPopoverRow } from "@/components/solid-color-popover-row";
 import { useMockupFrame } from "@/components/mockup-frame-context";
 import {
   DropdownMenu,
@@ -36,11 +34,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Tooltip,
   TooltipContent,
@@ -251,44 +244,14 @@ function NoiseColorCompactRow({
   onColorChange: (hex: string) => void;
 }) {
   const hex = normalizeNoiseHex(color);
-  const [open, setOpen] = useState(false);
-
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          aria-label="Open noise color picker"
-          aria-haspopup="dialog"
-          className={cn(
-            "box-border flex h-10 min-h-10 w-full min-w-0 items-center gap-1.5 overflow-hidden rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-2 text-left outline-none transition-colors",
-            "hover:bg-zinc-900 focus-visible:ring-2 focus-visible:ring-white/25"
-          )}
-        >
-          <span
-            className="block size-5 shrink-0 rounded border border-zinc-600"
-            style={{ backgroundColor: hex }}
-          />
-          <span className="min-w-0 truncate font-mono text-[11px] leading-none tabular-nums tracking-tight text-zinc-100">
-            {hex.slice(1)}
-          </span>
-        </button>
-      </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        sideOffset={8}
-        className={cn(
-          "w-[min(100vw-2rem,280px)] border-zinc-700 bg-zinc-900 p-3 shadow-xl ring-1 ring-zinc-700",
-          "text-zinc-100"
-        )}
-      >
-        <CanvasSolidColorPopoverPanel
-          color={color}
-          onChange={(next) => onColorChange(normalizeNoiseHex(next))}
-          popoverOpen={open}
-        />
-      </PopoverContent>
-    </Popover>
+    <SolidColorPopoverRow
+      variant="field"
+      className="w-full min-w-0"
+      displayHex={hex}
+      onColorChange={(next) => onColorChange(normalizeNoiseHex(next))}
+      triggerAriaLabel="Open noise color picker"
+    />
   );
 }
 

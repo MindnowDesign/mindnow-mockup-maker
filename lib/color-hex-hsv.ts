@@ -16,6 +16,14 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } | nul
   };
 }
 
+/** Same sRGB color (ignores # casing); useful to avoid HSV round-trip drift in UIs. */
+export function hexRgbEqual(a: string, b: string): boolean {
+  const ra = hexToRgb(a);
+  const rb = hexToRgb(b);
+  if (!ra || !rb) return false;
+  return ra.r === rb.r && ra.g === rb.g && ra.b === rb.b;
+}
+
 export function rgbToHex(r: number, g: number, b: number): string {
   const x = (n: number) => clamp255(n).toString(16).padStart(2, "0").toUpperCase();
   return `#${x(r)}${x(g)}${x(b)}`;

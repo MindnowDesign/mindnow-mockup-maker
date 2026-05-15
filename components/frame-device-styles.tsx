@@ -29,7 +29,7 @@ import {
   type ReactElement,
 } from "react";
 
-import { CanvasSolidColorPopoverPanel } from "@/components/canvas-solid-color-picker";
+import { SolidColorPopoverRow } from "@/components/solid-color-popover-row";
 import { useMockupFrame } from "@/components/mockup-frame-context";
 import {
   ScreenshotStyleGlassIcon,
@@ -37,11 +37,6 @@ import {
   ScreenshotStyleOutlinedIcon,
   type ScreenshotPickerIconProps,
 } from "@/components/screenshot-style-picker-icons";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Tooltip,
   TooltipContent,
@@ -118,118 +113,18 @@ function ScreenshotOutlineColorRow({
   opacity: number;
   onOpacityChange: (value: number) => void;
 }) {
-  const [open, setOpen] = useState(false);
   const hex = normalizeOutlineHex(color);
-  const [opacityText, setOpacityText] = useState(String(opacity));
-  const [opacityFocused, setOpacityFocused] = useState(false);
-
-  useEffect(() => {
-    if (!opacityFocused) setOpacityText(String(opacity));
-  }, [opacity, opacityFocused]);
-
-  function commitOpacity(raw: string) {
-    const digits = raw.replace(/\D/g, "").slice(0, 3);
-    if (digits === "") {
-      onOpacityChange(0);
-      setOpacityText("0");
-      return;
-    }
-    const n = Math.min(100, Math.max(0, parseInt(digits, 10)));
-    onOpacityChange(n);
-    setOpacityText(String(n));
-  }
-
-  function handleOpacityArrowKeys(e: ReactKeyboardEvent<HTMLInputElement>) {
-    if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
-    e.preventDefault();
-    const digits = opacityText.replace(/\D/g, "");
-    const base = digits === "" ? opacity : parseInt(digits, 10);
-    const step = e.shiftKey ? 10 : 1;
-    const delta = e.key === "ArrowUp" ? step : -step;
-    const next = Math.min(100, Math.max(0, base + delta));
-    onOpacityChange(next);
-    setOpacityText(String(next));
-  }
-
   return (
-    <div
-      className={cn(
-        "flex min-h-10 min-w-0 divide-x divide-zinc-700 overflow-hidden",
-        inputChrome
-      )}
-    >
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            aria-label="Outline color"
-            aria-haspopup="dialog"
-            className={cn(
-              "flex min-h-10 min-w-0 flex-1 items-center gap-1.5 px-2 text-left outline-none transition-colors",
-              "hover:bg-zinc-900 focus-visible:bg-zinc-900"
-            )}
-          >
-            <span
-              className="block size-5 shrink-0 rounded border border-zinc-600"
-              style={{ backgroundColor: hex }}
-            />
-            <span className="min-w-0 truncate font-mono text-[11px] leading-none tabular-nums tracking-tight text-zinc-100">
-              {hex.slice(1)}
-            </span>
-          </button>
-        </PopoverTrigger>
-        <PopoverContent
-          align="start"
-          sideOffset={8}
-          className={cn(
-            "w-[min(100vw-2rem,280px)] border-zinc-700 bg-zinc-900 p-3 shadow-xl ring-1 ring-zinc-700",
-            "text-zinc-100"
-          )}
-        >
-          <CanvasSolidColorPopoverPanel
-            color={hex}
-            onChange={(next) => onColorChange(normalizeOutlineHex(next))}
-            popoverOpen={open}
-          />
-        </PopoverContent>
-      </Popover>
-      <div className="flex shrink-0 items-center">
-        <input
-          type="text"
-          inputMode="numeric"
-          autoComplete="off"
-          aria-label="Outline opacity"
-          value={opacityText}
-          onFocus={() => setOpacityFocused(true)}
-          onBlur={() => {
-            setOpacityFocused(false);
-            commitOpacity(opacityText);
-          }}
-          onChange={(e) => {
-            const digits = e.target.value.replace(/\D/g, "").slice(0, 3);
-            setOpacityText(digits);
-            if (digits !== "") {
-              const n = Math.min(100, Math.max(0, parseInt(digits, 10)));
-              onOpacityChange(n);
-            }
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-              handleOpacityArrowKeys(e);
-              return;
-            }
-            if (e.key === "Enter") e.currentTarget.blur();
-          }}
-          className="min-w-0 max-w-[3rem] bg-transparent px-1.5 py-2 text-right font-mono text-[11px] leading-none tabular-nums text-zinc-100 outline-none focus-visible:bg-white/5"
-        />
-        <span
-          className="flex shrink-0 items-center justify-center pl-0.5 pr-2 font-mono text-[11px] text-zinc-400 tabular-nums"
-          aria-hidden
-        >
-          %
-        </span>
-      </div>
-    </div>
+    <SolidColorPopoverRow
+      displayHex={hex}
+      onColorChange={(next) => onColorChange(normalizeOutlineHex(next))}
+      triggerAriaLabel="Outline color"
+      opacityPercent={{
+        value: opacity,
+        onChange: onOpacityChange,
+        inputAriaLabel: "Outline opacity",
+      }}
+    />
   );
 }
 
@@ -244,118 +139,18 @@ function ScreenshotBorderColorRow({
   opacity: number;
   onOpacityChange: (value: number) => void;
 }) {
-  const [open, setOpen] = useState(false);
   const hex = normalizeHex(color);
-  const [opacityText, setOpacityText] = useState(String(opacity));
-  const [opacityFocused, setOpacityFocused] = useState(false);
-
-  useEffect(() => {
-    if (!opacityFocused) setOpacityText(String(opacity));
-  }, [opacity, opacityFocused]);
-
-  function commitOpacity(raw: string) {
-    const digits = raw.replace(/\D/g, "").slice(0, 3);
-    if (digits === "") {
-      onOpacityChange(0);
-      setOpacityText("0");
-      return;
-    }
-    const n = Math.min(100, Math.max(0, parseInt(digits, 10)));
-    onOpacityChange(n);
-    setOpacityText(String(n));
-  }
-
-  function handleOpacityArrowKeys(e: ReactKeyboardEvent<HTMLInputElement>) {
-    if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
-    e.preventDefault();
-    const digits = opacityText.replace(/\D/g, "");
-    const base = digits === "" ? opacity : parseInt(digits, 10);
-    const step = e.shiftKey ? 10 : 1;
-    const delta = e.key === "ArrowUp" ? step : -step;
-    const next = Math.min(100, Math.max(0, base + delta));
-    onOpacityChange(next);
-    setOpacityText(String(next));
-  }
-
   return (
-    <div
-      className={cn(
-        "flex min-h-10 min-w-0 divide-x divide-zinc-700 overflow-hidden",
-        inputChrome
-      )}
-    >
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            aria-label="Border color"
-            aria-haspopup="dialog"
-            className={cn(
-              "flex min-h-10 min-w-0 flex-1 items-center gap-1.5 px-2 text-left outline-none transition-colors",
-              "hover:bg-zinc-900 focus-visible:bg-zinc-900"
-            )}
-          >
-            <span
-              className="block size-5 shrink-0 rounded border border-zinc-600"
-              style={{ backgroundColor: hex }}
-            />
-            <span className="min-w-0 truncate font-mono text-[11px] leading-none tabular-nums tracking-tight text-zinc-100">
-              {hex.slice(1)}
-            </span>
-          </button>
-        </PopoverTrigger>
-        <PopoverContent
-          align="start"
-          sideOffset={8}
-          className={cn(
-            "w-[min(100vw-2rem,280px)] border-zinc-700 bg-zinc-900 p-3 shadow-xl ring-1 ring-zinc-700",
-            "text-zinc-100"
-          )}
-        >
-          <CanvasSolidColorPopoverPanel
-            color={hex}
-            onChange={(next) => onColorChange(normalizeHex(next))}
-            popoverOpen={open}
-          />
-        </PopoverContent>
-      </Popover>
-      <div className="flex shrink-0 items-center">
-        <input
-          type="text"
-          inputMode="numeric"
-          autoComplete="off"
-          aria-label="Border color opacity"
-          value={opacityText}
-          onFocus={() => setOpacityFocused(true)}
-          onBlur={() => {
-            setOpacityFocused(false);
-            commitOpacity(opacityText);
-          }}
-          onChange={(e) => {
-            const digits = e.target.value.replace(/\D/g, "").slice(0, 3);
-            setOpacityText(digits);
-            if (digits !== "") {
-              const n = Math.min(100, Math.max(0, parseInt(digits, 10)));
-              onOpacityChange(n);
-            }
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-              handleOpacityArrowKeys(e);
-              return;
-            }
-            if (e.key === "Enter") e.currentTarget.blur();
-          }}
-          className="min-w-0 max-w-[3rem] bg-transparent px-1.5 py-2 text-right font-mono text-[11px] leading-none tabular-nums text-zinc-100 outline-none focus-visible:bg-white/5"
-        />
-        <span
-          className="flex shrink-0 items-center justify-center pl-0.5 pr-2 font-mono text-[11px] text-zinc-400 tabular-nums"
-          aria-hidden
-        >
-          %
-        </span>
-      </div>
-    </div>
+    <SolidColorPopoverRow
+      displayHex={hex}
+      onColorChange={(next) => onColorChange(normalizeHex(next))}
+      triggerAriaLabel="Border color"
+      opacityPercent={{
+        value: opacity,
+        onChange: onOpacityChange,
+        inputAriaLabel: "Border color opacity",
+      }}
+    />
   );
 }
 
@@ -885,54 +680,53 @@ function IphoneProMaxStyleControls() {
         >
           Styles
         </span>
-        <div
-          role="radiogroup"
-          aria-labelledby="frame-styles-label"
-          className="grid grid-cols-4 gap-x-1 gap-y-2"
-        >
-        {IPHONE_17_PRO_MAX_STYLES.map(({ templateId, shortLabel, coverSrc }) => {
-          const selected = deviceTemplateId === templateId;
-          return (
-            <div
-              key={templateId}
-              className="flex min-w-0 flex-col items-center gap-0.5"
-            >
-              <button
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                aria-label={shortLabel}
-                title={shortLabel}
-                onClick={() => setDeviceTemplateId(templateId)}
-                className={cn(
-                  "flex aspect-square w-full min-w-0 overflow-hidden rounded-[8px] border p-2 transition-colors",
-                  selected
-                    ? "border-zinc-500 bg-zinc-800 shadow-sm ring-1 ring-white/10"
-                    : "border-zinc-800 bg-zinc-950 hover:border-zinc-600 hover:bg-zinc-900"
-                )}
-              >
-                <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden rounded-[6px] ring-2 ring-inset ring-zinc-600/40">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- style thumbnail */}
-                  <img
-                    src={coverSrc}
-                    alt=""
-                    className="absolute inset-0 size-full object-cover"
-                    draggable={false}
-                  />
-                </div>
-              </button>
-              <span
-                className={cn(
-                  "line-clamp-2 w-full text-center text-[8px] font-medium leading-snug",
-                  selected ? "text-white" : "text-zinc-400"
-                )}
-              >
-                {shortLabel}
-              </span>
-            </div>
-          );
-        })}
-        </div>
+        <TooltipProvider delayDuration={300}>
+          <div
+            role="radiogroup"
+            aria-labelledby="frame-styles-label"
+            className="grid min-w-0 grid-cols-5 gap-2"
+          >
+            {IPHONE_17_PRO_MAX_STYLES.map(
+              ({ templateId, shortLabel, coverSrc }) => {
+                const selected = deviceTemplateId === templateId;
+                return (
+                  <Tooltip key={templateId}>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        aria-label={shortLabel}
+                        onClick={() => setDeviceTemplateId(templateId)}
+                        className={cn(
+                          "flex aspect-square w-full min-w-0 shrink-0 items-center justify-center overflow-hidden rounded-xl border p-1.5 transition-colors",
+                          selected
+                            ? "border-zinc-500 bg-zinc-800 text-white shadow-sm"
+                            : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:bg-zinc-900 hover:text-zinc-200"
+                        )}
+                      >
+                        <div className="relative size-6 shrink-0 overflow-hidden rounded-xl ring-2 ring-inset ring-zinc-600/40">
+                          {/* eslint-disable-next-line @next/next/no-img-element -- style thumbnail */}
+                          <img
+                            src={coverSrc}
+                            alt=""
+                            width={24}
+                            height={24}
+                            className="absolute inset-0 size-full rounded-xl object-cover"
+                            draggable={false}
+                          />
+                        </div>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" sideOffset={6}>
+                      {shortLabel}
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              }
+            )}
+          </div>
+        </TooltipProvider>
       </div>
     </div>
   );
