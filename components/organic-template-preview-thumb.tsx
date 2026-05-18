@@ -3,7 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 
 import type { CanvasOrganicTemplateDefinition } from "@/lib/canvas-background-organic-templates";
-import { preloadOrganicImagePath } from "@/lib/organic-image-cache";
+import {
+  cancelOrganicDisplayPreloadSchedule,
+  scheduleOrganicDisplayPreload,
+} from "@/lib/organic-image-cache";
 import { cn } from "@/lib/utils";
 
 type OrganicTemplatePreviewThumbProps = {
@@ -53,10 +56,16 @@ export function OrganicTemplatePreviewThumb({
       aria-label={entry.label}
       onClick={onSelect}
       onPointerEnter={() => {
-        void preloadOrganicImagePath(entry.displayPublicPath).catch(() => {});
+        scheduleOrganicDisplayPreload(entry.id);
+      }}
+      onPointerLeave={() => {
+        cancelOrganicDisplayPreloadSchedule();
       }}
       onFocus={() => {
-        void preloadOrganicImagePath(entry.displayPublicPath).catch(() => {});
+        scheduleOrganicDisplayPreload(entry.id);
+      }}
+      onBlur={() => {
+        cancelOrganicDisplayPreloadSchedule();
       }}
       className={cn(
         "relative aspect-square w-full min-w-0 overflow-hidden rounded-lg border text-left outline-none transition-colors",

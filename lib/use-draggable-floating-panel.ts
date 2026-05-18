@@ -73,11 +73,19 @@ type DragSession = {
 /**
  * Fixed-position floating panel (portal). No Radix popper — safe to drag.
  */
+type PanelDimensions = { width: number; height: number };
+
 export function useDraggableFloatingPanel(
   open: boolean,
   initialPosition: { x: number; y: number } | null,
-  boundaryRef?: RefObject<HTMLElement | null>
+  boundaryRef?: RefObject<HTMLElement | null>,
+  panelDimensions: PanelDimensions = {
+    width: DEFAULT_PANEL_W,
+    height: DEFAULT_PANEL_H,
+  }
 ) {
+  const panelW = panelDimensions.width;
+  const panelH = panelDimensions.height;
   const [position, setPosition] = useState<{ x: number; y: number } | null>(
     null
   );
@@ -112,8 +120,8 @@ export function useDraggableFloatingPanel(
       const { x, y } = clampFloatingPanelPosition(
         e.clientX - session.offsetX,
         e.clientY - session.offsetY,
-        DEFAULT_PANEL_W,
-        DEFAULT_PANEL_H,
+        panelW,
+        panelH,
         boundary
       );
       setPosition((prev) => {
@@ -141,7 +149,7 @@ export function useDraggableFloatingPanel(
       document.removeEventListener("pointercancel", endDrag);
       document.body.style.userSelect = prevUserSelect;
     };
-  }, [isDragging, boundaryRef]);
+  }, [isDragging, boundaryRef, panelW, panelH]);
 
   const onDragHandlePointerDown = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {

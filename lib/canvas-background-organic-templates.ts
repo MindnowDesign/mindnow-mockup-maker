@@ -54,7 +54,7 @@ export type CanvasOrganicTemplateDefinition = {
   pngPublicPath: string;
   /** Sidebar grid — small WebP under `organic/previews/`. */
   previewPublicPath: string;
-  /** Canvas + peek — WebP under `organic/display/`. */
+  /** Canvas full view — WebP under `organic/display/`. */
   displayPublicPath: string;
 };
 
@@ -100,7 +100,7 @@ export function canvasOrganicTemplateToPeekBackgroundStyle(
   return {
     width: "100%",
     height,
-    backgroundImage: `url(${t.displayPublicPath})`,
+    backgroundImage: `url(${t.previewPublicPath})`,
     backgroundSize: "cover",
     backgroundPosition: "center",
     backgroundRepeat: "no-repeat",

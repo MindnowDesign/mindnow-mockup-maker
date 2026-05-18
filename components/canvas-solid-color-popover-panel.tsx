@@ -24,6 +24,7 @@ import {
   hsvToHex,
   type Hsv,
 } from "@/lib/color-hex-hsv";
+import { OpacityPercentField } from "@/components/opacity-percent-field";
 import { DEFAULT_CANVAS_SOLID_COLOR } from "@/lib/mockup-canvas-background";
 import { cn } from "@/lib/utils";
 
@@ -56,15 +57,24 @@ const pickerChrome =
  * Inner panel (HexColorPicker + eyedropper + HEX/HSB row) — used by
  * `SolidColorPopoverRow` and legacy imports from `canvas-solid-color-picker`.
  */
+type CanvasSolidColorPopoverPanelProps = {
+  color: string;
+  onChange: (hex: string) => void;
+  popoverOpen: boolean;
+  /** When set, opacity appears as the last segment in the HEX/HSB row (gradient fill picker). */
+  opacityPercent?: number;
+  onOpacityPercentChange?: (percent: number) => void;
+  opacityInputAriaLabel?: string;
+};
+
 export function CanvasSolidColorPopoverPanel({
   color,
   onChange,
   popoverOpen,
-}: {
-  color: string;
-  onChange: (hex: string) => void;
-  popoverOpen: boolean;
-}) {
+  opacityPercent,
+  onOpacityPercentChange,
+  opacityInputAriaLabel = "Opacity",
+}: CanvasSolidColorPopoverPanelProps) {
   const hex = safeHex(color);
   const [hexDraft, setHexDraft] = useState(hex);
   const [format, setFormat] = useState<ColorFormat>("hex");
@@ -317,6 +327,14 @@ export function CanvasSolidColorPopoverPanel({
         {eyedropperBtn}
         {formatSelect}
         {valueRow}
+        {onOpacityPercentChange ? (
+          <OpacityPercentField
+            value={opacityPercent ?? 100}
+            onChange={onOpacityPercentChange}
+            inputAriaLabel={opacityInputAriaLabel}
+            className="flex h-10 shrink-0 items-center"
+          />
+        ) : null}
       </div>
     </div>
   );

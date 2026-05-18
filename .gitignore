@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Organic background source PNGs (~17MB each). Keep display/ + previews/ WebPs.
+# Regenerate with: npm run generate:organic-assets
+/public/background-templates/organic/*.png

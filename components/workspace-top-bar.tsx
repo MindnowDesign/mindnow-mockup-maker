@@ -19,7 +19,6 @@ import {
   type WorkspaceHydratedDetail,
 } from "@/lib/project-workspace";
 import { captureMockupPreview } from "@/lib/capture-mockup-preview";
-import { waitForCaptureReady } from "@/lib/wait-for-capture-ready";
 import type { PersistedCanvasBackground } from "@/lib/mockup-canvas-background";
 import {
   DEFAULT_CANVAS_NOISE_COLOR,
@@ -53,6 +52,8 @@ type WorkspaceTopBarProps = {
 };
 
 const AUTOSAVE_DEBOUNCE_MS = 600;
+const THUMBNAIL_CAPTURE_DEBOUNCE_MS = 2500;
+const THUMBNAIL_CAPTURE_ON_VISUAL_SWITCH_MS = 800;
 
 /**
  * Top bar for project workspace routes: logo (home) + editable title + Export.
@@ -101,6 +102,7 @@ export function WorkspaceTopBar({
   const [hydrationReady, setHydrationReady] = useState(false);
   const persistInFlightRef = useRef(false);
   const persistQueuedRef = useRef(false);
+  const persistPendingCaptureRef = useRef(false);
 
   useEffect(() => {
     setHydrationReady(false);
@@ -119,13 +121,24 @@ export function WorkspaceTopBar({
       window.removeEventListener(WORKSPACE_HYDRATED_EVENT, onHydrated);
   }, [pathname]);
 
-  const runPersistRef = useRef(() => Promise.resolve());
+  const runPersistRef = useRef<(opts?: { capture?: boolean }) => Promise<void>>(
+    () => Promise.resolve()
+  );
+  const prevActiveVisualIdRef = useRef(activeVisualId);
 
-  const runPersist = useCallback(async () => {
+  const runPersist = useCallback(async (opts?: { capture?: boolean }) => {
+    if (opts?.capture) {
+      persistPendingCaptureRef.current = true;
+    }
+    const shouldCapture =
+      opts?.capture === true || persistPendingCaptureRef.current;
+
     if (persistInFlightRef.current) {
       persistQueuedRef.current = true;
       return;
     }
+
+    persistPendingCaptureRef.current = false;
 
     const segment = getProjectsWorkspaceSegment(pathname);
     if (!segment) return;
@@ -149,13 +162,14 @@ export function WorkspaceTopBar({
         return;
       }
 
-      const captureEl = document.querySelector<HTMLElement>(
-        "[data-mockup-capture-target]"
-      );
       let captured = "";
-      if (captureEl && serialized.activeVisualId) {
-        await waitForCaptureReady(captureEl);
-        captured = await captureMockupPreview(captureEl);
+      if (shouldCapture) {
+        const captureEl = document.querySelector<HTMLElement>(
+          "[data-mockup-capture-target]"
+        );
+        if (captureEl && serialized.activeVisualId) {
+          captured = await captureMockupPreview(captureEl);
+        }
       }
 
       const slotIds = new Set(serialized.visualSlots.map((s) => s.id));
@@ -387,7 +401,9 @@ export function WorkspaceTopBar({
       persistInFlightRef.current = false;
       if (persistQueuedRef.current) {
         persistQueuedRef.current = false;
-        void runPersistRef.current();
+        void runPersistRef.current({
+          capture: persistPendingCaptureRef.current,
+        });
       }
     }
   }, [
@@ -422,7 +438,7 @@ export function WorkspaceTopBar({
     if (!segment) return;
 
     const id = window.setTimeout(() => {
-      void runPersistRef.current();
+      void runPersistRef.current({ capture: false });
     }, AUTOSAVE_DEBOUNCE_MS);
 
     return () => window.clearTimeout(id);
@@ -444,6 +460,50 @@ export function WorkspaceTopBar({
     activeVisualId,
     visualWorkspacePrefs,
     title,
+    frame,
+  ]);
+
+  useEffect(() => {
+    if (!hydrationReady) return;
+    const segment = getProjectsWorkspaceSegment(pathname);
+    if (!segment) return;
+
+    const visualSwitched = prevActiveVisualIdRef.current !== activeVisualId;
+    prevActiveVisualIdRef.current = activeVisualId;
+
+    const debounceMs = visualSwitched
+      ? THUMBNAIL_CAPTURE_ON_VISUAL_SWITCH_MS
+      : THUMBNAIL_CAPTURE_DEBOUNCE_MS;
+
+    const id = window.setTimeout(() => {
+      void runPersistRef.current({ capture: true });
+    }, debounceMs);
+
+    return () => window.clearTimeout(id);
+  }, [
+    hydrationReady,
+    pathname,
+    aspectPreset,
+    canvasBackgroundMode,
+    canvasSolidColor,
+    canvasBackgroundImageUrl,
+    canvasGradientTemplateId,
+    canvasNoisePercent,
+    canvasBlurPercent,
+    deviceTemplateId,
+    screenshotStyle,
+    screenshotBorderColor,
+    screenshotBorderColorOpacity,
+    screenshotBorderPosition,
+    screenshotBorderWeight,
+    screenshotOutlineColor,
+    screenshotOutlineColorOpacity,
+    screenshotCornerType,
+    screenshotCornerRadius,
+    library,
+    visuals,
+    activeVisualId,
+    visualWorkspacePrefs,
     frame,
   ]);
 

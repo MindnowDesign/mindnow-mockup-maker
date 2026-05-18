@@ -81,3 +81,41 @@ export function getOrganicPreviewPathForTemplateId(
   const t = getCanvasOrganicTemplateById(templateId);
   return t?.previewPublicPath ?? null;
 }
+
+let hoverDisplayPreloadTimer: ReturnType<typeof setTimeout> | undefined;
+let hoverDisplayPreloadPath: string | null = null;
+
+/** Debounced warm-up of display WebP when hovering a sidebar thumb (one at a time). */
+export function scheduleOrganicDisplayPreload(
+  templateId: string | null | undefined,
+  debounceMs = 180
+): void {
+  const path = getOrganicDisplayPathForTemplateId(templateId);
+  if (!path) return;
+  if (decodedPaths.has(path)) return;
+
+  if (hoverDisplayPreloadPath === path && hoverDisplayPreloadTimer != null) {
+    return;
+  }
+
+  if (hoverDisplayPreloadTimer != null) {
+    clearTimeout(hoverDisplayPreloadTimer);
+  }
+
+  hoverDisplayPreloadTimer = setTimeout(() => {
+    hoverDisplayPreloadTimer = undefined;
+    hoverDisplayPreloadPath = path;
+    void preloadOrganicImagePath(path).catch(() => {
+      if (hoverDisplayPreloadPath === path) {
+        hoverDisplayPreloadPath = null;
+      }
+    });
+  }, debounceMs);
+}
+
+export function cancelOrganicDisplayPreloadSchedule(): void {
+  if (hoverDisplayPreloadTimer != null) {
+    clearTimeout(hoverDisplayPreloadTimer);
+    hoverDisplayPreloadTimer = undefined;
+  }
+}

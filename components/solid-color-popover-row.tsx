@@ -1,22 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
-import { DraggableWorkspaceColorPicker } from "@/components/draggable-workspace-color-picker";
-import { CanvasSolidColorPopoverPanel } from "@/components/canvas-solid-color-popover-panel";
+import { DraggableFloatingPopoverShell } from "@/components/draggable-floating-popover-shell";
+import {
+  SolidColorPopoverPanelContent,
+  solidColorPopoverContentClass,
+} from "@/components/solid-color-popover-panel-content";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { OpacityPercentField } from "@/components/opacity-percent-field";
+import { hexToRgbaCss } from "@/lib/canvas-gradient-fill-opacity";
 import { cn } from "@/lib/utils";
 
 const rowChrome =
   "rounded-lg border border-zinc-700 bg-zinc-950 outline-none transition-colors hover:bg-zinc-900 focus-within:ring-2 focus-within:ring-white/25";
-
-const popoverContentClass =
-  "w-[min(100vw-2rem,280px)] border-zinc-700 bg-zinc-900 p-3 shadow-xl ring-1 ring-zinc-700 text-zinc-100";
 
 const triggerButtonClass =
   "flex min-h-10 min-w-0 flex-1 items-center gap-1.5 px-2 text-left outline-none transition-colors hover:bg-zinc-900 focus-visible:bg-zinc-900";
@@ -44,7 +45,7 @@ export type SolidColorPopoverRowProps = {
     onChange: (n: number) => void;
     inputAriaLabel: string;
   };
-  /** Workspace canvas pickers: drag within the main stage bounds (Figma-style). */
+  /** Workspace gradient fill swatches only — draggable panel within canvas bounds. */
   popoverDraggable?: boolean;
   /** Template fill draggable picker only. */
   fillOpacityPercent?: number;
@@ -67,17 +68,47 @@ export function SolidColorPopoverRow({
   onFillOpacityPercentChange,
 }: SolidColorPopoverRowProps) {
   const [open, setOpen] = useState(false);
+  const draggableTriggerRef = useRef<HTMLButtonElement>(null);
+
+  const panelContent = (
+    <SolidColorPopoverPanelContent
+      displayHex={displayHex}
+      onColorChange={onColorChange}
+      popoverOpen={open}
+      triggerAriaLabel={triggerAriaLabel}
+      fillOpacityPercent={fillOpacityPercent}
+      onFillOpacityPercentChange={onFillOpacityPercentChange}
+    />
+  );
 
   if (popoverDraggable && variant === "swatch") {
     return (
-      <DraggableWorkspaceColorPicker
-        displayHex={displayHex}
-        onColorChange={onColorChange}
-        triggerAriaLabel={triggerAriaLabel}
-        className={className}
-        opacityPercent={fillOpacityPercent}
-        onOpacityPercentChange={onFillOpacityPercentChange}
-      />
+      <>
+        <button
+          ref={draggableTriggerRef}
+          type="button"
+          data-color-picker-trigger
+          aria-label={triggerAriaLabel}
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          onClick={() => setOpen((o) => !o)}
+          className={cn(swatchTriggerClass, className)}
+          style={{
+            backgroundColor: hexToRgbaCss(
+              displayHex,
+              fillOpacityPercent ?? 100
+            ),
+          }}
+        />
+        <DraggableFloatingPopoverShell
+          open={open}
+          onOpenChange={setOpen}
+          triggerRef={draggableTriggerRef}
+          ariaLabel={triggerAriaLabel}
+        >
+          {panelContent}
+        </DraggableFloatingPopoverShell>
+      </>
     );
   }
 
@@ -116,13 +147,9 @@ export function SolidColorPopoverRow({
       <PopoverContent
         align="start"
         sideOffset={8}
-        className={popoverContentClass}
+        className={solidColorPopoverContentClass}
       >
-        <CanvasSolidColorPopoverPanel
-          color={displayHex}
-          onChange={onColorChange}
-          popoverOpen={open}
-        />
+        {panelContent}
       </PopoverContent>
     </Popover>
   );

@@ -3,10 +3,13 @@
  * `public/background-templates/organic/`.
  *
  * - previews/ — sidebar grid (~96px)
- * - display/  — canvas + thumbnails (~2048px max)
+ * - display/  — canvas full view (~1280px max, WebP q78)
  *
  * Run after adding or replacing a source PNG:
  *   npm run generate:organic-assets
+ *
+ * Source PNGs are gitignored (~17MB each). To stop tracking existing PNGs:
+ *   git rm --cached 'public/background-templates/organic/*.png'
  */
 import { mkdir, readdir } from "node:fs/promises";
 import { basename, join } from "node:path";
@@ -20,7 +23,9 @@ const PREVIEW_DIR = join(ORGANIC_ROOT, "previews");
 const DISPLAY_DIR = join(ORGANIC_ROOT, "display");
 
 const PREVIEW_SIZE = 96;
-const DISPLAY_MAX = 2048;
+/** Matches max mockup frame (~920px) with headroom for export / retina. */
+const DISPLAY_MAX = 1280;
+const DISPLAY_WEBP_QUALITY = 78;
 
 async function main() {
   await mkdir(PREVIEW_DIR, { recursive: true });
@@ -55,7 +60,7 @@ async function main() {
         fit: "inside",
         withoutEnlargement: true,
       })
-      .webp({ quality: 85 })
+      .webp({ quality: DISPLAY_WEBP_QUALITY })
       .toFile(displayOut);
 
     console.log(`  ✓ ${slug}`);
