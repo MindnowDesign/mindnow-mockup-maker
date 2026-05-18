@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 
-import { GRADIENT_TEMPLATE_FILL_CONFIG } from "@/lib/canvas-gradient-1-fill";
+import { getGradientTemplatePreviewColor } from "@/lib/canvas-gradient-1-fill";
 
 /**
  * Catalog of gradient “templates” for the mockup canvas.
@@ -32,17 +32,6 @@ function previewForTemplate(
 ): string {
   const base = getGradientTemplatePreviewColor(id) ?? fallbackRgb;
   return `url("${svgPath}") center / cover no-repeat, ${base}`;
-}
-
-function getGradientTemplatePreviewColor(id: string): string | null {
-  const first = GRADIENT_TEMPLATE_FILL_CONFIG[id]?.defaults["cbg-0"];
-  if (!first) return null;
-  const hex = first.replace("#", "");
-  if (hex.length !== 6) return null;
-  const r = parseInt(hex.slice(0, 2), 16);
-  const g = parseInt(hex.slice(2, 4), 16);
-  const b = parseInt(hex.slice(4, 6), 16);
-  return `rgb(${r} ${g} ${b})`;
 }
 
 export const CANVAS_GRADIENT_TEMPLATES: CanvasGradientTemplateDefinition[] = [

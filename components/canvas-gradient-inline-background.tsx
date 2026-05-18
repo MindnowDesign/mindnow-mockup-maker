@@ -3,11 +3,14 @@
 import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 
 import { useGradientSvgHtml } from "@/components/use-gradient-svg-html";
-import { getCanvasGradientTemplateById } from "@/lib/canvas-background-gradient-templates";
+import { getCanvasInlineSvgTemplateById } from "@/lib/canvas-background-inline-svg-template";
 import { cn } from "@/lib/utils";
 
+const INLINE_SVG_INTERACTION_STYLE =
+  "svg,svg *{pointer-events:none!important}";
+
 const INLINE_SVG_CLASS =
-  "[&>svg]:pointer-events-none [&>svg]:block [&>svg]:h-full [&>svg]:w-full";
+  "pointer-events-none [&_svg]:pointer-events-none [&_svg_*]:pointer-events-none [&>svg]:block [&>svg]:h-full [&>svg]:w-full";
 
 type CanvasGradientInlineBackgroundProps = {
   templateId: string | null;
@@ -23,7 +26,7 @@ export function CanvasGradientInlineBackground({
   fallback,
 }: CanvasGradientInlineBackgroundProps) {
   const wantsInline = Boolean(
-    getCanvasGradientTemplateById(templateId)?.inlineSvgWithCssVars
+    getCanvasInlineSvgTemplateById(templateId)?.inlineSvgWithCssVars
   );
   const svgHtml = useGradientSvgHtml(templateId);
 
@@ -46,7 +49,13 @@ export function CanvasGradientInlineBackground({
   }
 
   return (
-    <div className="absolute inset-0" style={cssVarStyle}>
+    <div className="pointer-events-none absolute inset-0" style={cssVarStyle}>
+      <style
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{
+          __html: INLINE_SVG_INTERACTION_STYLE,
+        }}
+      />
       <div
         key={templateId}
         className={cn(

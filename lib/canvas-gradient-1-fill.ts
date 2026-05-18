@@ -118,6 +118,15 @@ export const GRADIENT_TEMPLATE_FILL_CONFIG: Record<string, GradientTemplateFillC
       "#FFFAFC",
       "#F585FF",
     ]),
+    "wave-1": buildConfig(["#0F0F0F", "#FFFFFF"]),
+    "wave-2": buildConfig(["#0F0F0F", "#F0F1F1"]),
+    "wave-3": buildConfig(["#0F0F0F", "#FFFFFF"]),
+    "wave-4": buildConfig(["#0F0F0F", "#F0F1F1"]),
+    "wave-5": buildConfig(["#0F0F0F", "#FFFFFF"]),
+    "wave-6": buildConfig(["#0F0F0F", "#F0F1F1"]),
+    "wave-7": buildConfig(["#0F0F0F", "#F0F1F1"]),
+    "wave-8": buildConfig(["#0F0F0F", "#FFFFFF"]),
+    "wave-9": buildConfig(["#0F0F0F", "#F0F1F1"]),
   };
 
 /** @deprecated Use per-template keys from `getGradientTemplateFillKeys()` */
@@ -129,6 +138,20 @@ export const GRADIENT_1_FILL_KEYS = GRADIENT_FILL_KEYS;
 
 /** @deprecated Use `GradientFillKey` */
 export type Gradient1FillKey = GradientFillKey;
+
+/** First fill stop as `rgb()` for sidebar / peek placeholders. */
+export function getGradientTemplatePreviewColor(
+  id: string
+): string | null {
+  const first = GRADIENT_TEMPLATE_FILL_CONFIG[id]?.defaults["cbg-0"];
+  if (!first) return null;
+  const hex = first.replace("#", "");
+  if (hex.length !== 6) return null;
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+  return `rgb(${r} ${g} ${b})`;
+}
 
 export function getGradientTemplateFillKeys(
   templateId: string | null | undefined

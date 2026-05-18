@@ -74,6 +74,8 @@ export function WorkspaceTopBar({
     canvasGradientTemplateId,
     canvasGradientFillHex,
     canvasGradientFillsByTemplate,
+    canvasGradientBlendModesByTemplate,
+    canvasGradientOpacitiesByTemplate,
     canvasNoisePercent,
     canvasBlurPercent,
     canvasNoiseType,
@@ -221,6 +223,16 @@ export function WorkspaceTopBar({
               ...(templateSupportsEditableGradientFills(trimmedGradient)
                 ? { gradientFillHex: { ...canvasGradientFillHex } }
                 : {}),
+              gradientBlendModesByTemplate: Object.fromEntries(
+                Object.entries(canvasGradientBlendModesByTemplate).map(
+                  ([id, modes]) => [id, { ...modes }]
+                )
+              ),
+              gradientOpacitiesByTemplate: Object.fromEntries(
+                Object.entries(canvasGradientOpacitiesByTemplate).map(
+                  ([id, opacities]) => [id, { ...opacities }]
+                )
+              ),
             }
           : {};
 

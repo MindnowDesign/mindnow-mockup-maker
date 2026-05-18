@@ -13,6 +13,17 @@ const EDGE_PAD = 8;
 const DEFAULT_PANEL_W = 280;
 const DEFAULT_PANEL_H = 262;
 
+type PanelPosition = { x: number; y: number };
+
+function positionsEqual(
+  a: PanelPosition | null,
+  b: PanelPosition | null
+): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return a.x === b.x && a.y === b.y;
+}
+
 export function clampFloatingPanelPosition(
   x: number,
   y: number,
@@ -76,7 +87,9 @@ export function useDraggableFloatingPanel(
 
   useEffect(() => {
     if (open && initialPosition) {
-      setPosition(initialPosition);
+      setPosition((prev) =>
+        positionsEqual(prev, initialPosition) ? prev : initialPosition
+      );
     } else if (!open) {
       setPosition(null);
       setIsDragging(false);
@@ -103,7 +116,10 @@ export function useDraggableFloatingPanel(
         DEFAULT_PANEL_H,
         boundary
       );
-      setPosition({ x, y });
+      setPosition((prev) => {
+        const next = { x, y };
+        return positionsEqual(prev, next) ? prev : next;
+      });
     }
 
     function endDrag(e: PointerEvent) {

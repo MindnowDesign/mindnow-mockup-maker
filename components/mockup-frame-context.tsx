@@ -16,7 +16,16 @@ import type {
   CanvasBackgroundMode,
   PersistedCanvasBackground,
 } from "@/lib/mockup-canvas-background";
-import { getCanvasGradientTemplateById } from "@/lib/canvas-background-gradient-templates";
+import { isValidCanvasBackgroundTemplateId } from "@/lib/canvas-background-template-id";
+import {
+  normalizeGradientBlendModesByTemplate,
+  normalizeTemplateFillBlendModes,
+} from "@/lib/canvas-gradient-fill-blend";
+import {
+  normalizeGradientOpacitiesByTemplate,
+  normalizeTemplateFillOpacities,
+  resolveActiveTemplateFillOpacities,
+} from "@/lib/canvas-gradient-fill-opacity";
 import {
   normalizeGradientFillHex,
   normalizeGradientFillsByTemplate,
@@ -91,6 +100,14 @@ type MockupFrameContextValue = {
   /** Per-template fill overrides for editable gradient presets. */
   canvasGradientFillsByTemplate: Record<string, Record<string, string>>;
   patchCanvasGradientFillKey: (key: string, hex: string) => void;
+  canvasGradientFillOpacity: Record<string, number>;
+  canvasGradientOpacitiesByTemplate: Record<string, Record<string, number>>;
+  /** @internal Legacy blend modes — kept for snapshot compatibility. */
+  canvasGradientBlendModesByTemplate: Record<
+    string,
+    Record<string, import("@/lib/canvas-gradient-fill-blend").TemplateFillBlendModeId>
+  >;
+  patchCanvasGradientFillOpacity: (key: string, percent: number) => void;
   resetCanvasGradientFillToDefaults: () => void;
   canvasNoisePercent: number;
   setCanvasNoisePercent: (value: number) => void;
@@ -181,6 +198,13 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
     useState<Record<string, Record<string, string>>>(() =>
       normalizeGradientFillsByTemplate(undefined)
     );
+  const [canvasGradientBlendModesByTemplate, setCanvasGradientBlendModesByTemplate] =
+    useState(() => normalizeGradientBlendModesByTemplate(undefined));
+
+  const [canvasGradientOpacitiesByTemplate, setCanvasGradientOpacitiesByTemplate] =
+    useState<Record<string, Record<string, number>>>(() =>
+      normalizeGradientOpacitiesByTemplate(undefined)
+    );
 
   const canvasGradientFillHex = useMemo(
     () =>
@@ -190,6 +214,16 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       ),
     [canvasGradientTemplateId, canvasGradientFillsByTemplate]
   );
+
+  const canvasGradientFillOpacity = useMemo(
+    () =>
+      resolveActiveTemplateFillOpacities(
+        canvasGradientTemplateId,
+        canvasGradientOpacitiesByTemplate
+      ),
+    [canvasGradientTemplateId, canvasGradientOpacitiesByTemplate]
+  );
+
   const [canvasNoisePercent, setCanvasNoisePercent] = useState(0);
   const [canvasBlurPercent, setCanvasBlurPercent] = useState(0);
   const [canvasNoiseType, setCanvasNoiseType] =
@@ -432,7 +466,7 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       return;
     }
     const next = id.trim();
-    if (!getCanvasGradientTemplateById(next)) {
+    if (!isValidCanvasBackgroundTemplateId(next)) {
       setCanvasGradientTemplateIdState(null);
       return;
     }
@@ -458,6 +492,24 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
     [canvasGradientTemplateId]
   );
 
+  const patchCanvasGradientFillOpacity = useCallback(
+    (key: string, percent: number) => {
+      const templateId = canvasGradientTemplateId;
+      if (!templateId || !templateSupportsEditableGradientFills(templateId)) {
+        return;
+      }
+      const clamped = Math.min(100, Math.max(0, Math.round(percent)));
+      setCanvasGradientOpacitiesByTemplate((prev) => ({
+        ...prev,
+        [templateId]: {
+          ...normalizeTemplateFillOpacities(templateId, prev[templateId]),
+          [key]: clamped,
+        },
+      }));
+    },
+    [canvasGradientTemplateId]
+  );
+
   const resetCanvasGradientFillToDefaults = useCallback(() => {
     const templateId = canvasGradientTemplateId;
     if (!templateId || !templateSupportsEditableGradientFills(templateId)) {
@@ -466,6 +518,14 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
     setCanvasGradientFillsByTemplate((prev) => ({
       ...prev,
       [templateId]: normalizeGradientFillHex(templateId, undefined),
+    }));
+    setCanvasGradientBlendModesByTemplate((prev) => ({
+      ...prev,
+      [templateId]: normalizeTemplateFillBlendModes(templateId, undefined),
+    }));
+    setCanvasGradientOpacitiesByTemplate((prev) => ({
+      ...prev,
+      [templateId]: normalizeTemplateFillOpacities(templateId, undefined),
     }));
   }, [canvasGradientTemplateId]);
 
@@ -504,6 +564,12 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
         setCanvasBgImageUrl(null);
         setCanvasGradientTemplateIdState(null);
         setCanvasGradientFillsByTemplate(normalizeGradientFillsByTemplate(undefined));
+        setCanvasGradientBlendModesByTemplate(
+          normalizeGradientBlendModesByTemplate(undefined)
+        );
+        setCanvasGradientOpacitiesByTemplate(
+          normalizeGradientOpacitiesByTemplate(undefined)
+        );
         setCanvasNoisePercent(0);
         setCanvasBlurPercent(0);
         setCanvasNoiseType(DEFAULT_CANVAS_NOISE_TYPE);
@@ -537,7 +603,7 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       {
         const rawG = payload.gradientTemplateId?.trim();
         setCanvasGradientTemplateIdState(
-          rawG && getCanvasGradientTemplateById(rawG) ? rawG : null
+          rawG && isValidCanvasBackgroundTemplateId(rawG) ? rawG : null
         );
       }
       {
@@ -547,6 +613,18 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
         }
         setCanvasGradientFillsByTemplate(
           normalizeGradientFillsByTemplate(byTemplate)
+        );
+      }
+      {
+        const blendByTemplate = { ...payload.gradientBlendModesByTemplate };
+        setCanvasGradientBlendModesByTemplate(
+          normalizeGradientBlendModesByTemplate(blendByTemplate)
+        );
+      }
+      {
+        const opacityByTemplate = { ...payload.gradientOpacitiesByTemplate };
+        setCanvasGradientOpacitiesByTemplate(
+          normalizeGradientOpacitiesByTemplate(opacityByTemplate)
         );
       }
       if (payload.mode === "image" && payload.imageDataUrl?.trim()) {
@@ -579,6 +657,10 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       canvasGradientFillHex,
       canvasGradientFillsByTemplate,
       patchCanvasGradientFillKey,
+      canvasGradientFillOpacity,
+      canvasGradientOpacitiesByTemplate,
+      canvasGradientBlendModesByTemplate,
+      patchCanvasGradientFillOpacity,
       resetCanvasGradientFillToDefaults,
       canvasNoisePercent,
       setCanvasNoisePercent,
@@ -640,6 +722,9 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       canvasGradientTemplateId,
       canvasGradientFillHex,
       canvasGradientFillsByTemplate,
+      canvasGradientFillOpacity,
+      canvasGradientOpacitiesByTemplate,
+      canvasGradientBlendModesByTemplate,
       canvasNoisePercent,
       canvasBlurPercent,
       canvasNoiseType,
@@ -651,6 +736,7 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       setCanvasBackgroundImageFromFile,
       setCanvasGradientTemplateId,
       patchCanvasGradientFillKey,
+      patchCanvasGradientFillOpacity,
       resetCanvasGradientFillToDefaults,
       hydrateCanvasBackground,
       screenshotStyle,

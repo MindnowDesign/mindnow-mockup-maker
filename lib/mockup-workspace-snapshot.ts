@@ -65,6 +65,11 @@ export type FrameLike = {
   canvasGradientFillHex: Record<string, string>;
   /** Per-template gradient fill overrides. */
   canvasGradientFillsByTemplate: Record<string, Record<string, string>>;
+  canvasGradientBlendModesByTemplate: Record<
+    string,
+    Record<string, import("@/lib/canvas-gradient-fill-blend").TemplateFillBlendModeId>
+  >;
+  canvasGradientOpacitiesByTemplate: Record<string, Record<string, number>>;
   canvasNoisePercent: number;
   canvasBlurPercent: number;
   canvasNoiseType: import("@/lib/mockup-noise").CanvasNoiseTypeId;
@@ -254,6 +259,16 @@ export function frameLikeToPersistedCanvasBackground(
           templateSupportsEditableGradientFills(gradientTemplateId)
             ? { gradientFillHex: { ...f.canvasGradientFillHex } }
             : {}),
+          gradientBlendModesByTemplate: Object.fromEntries(
+            Object.entries(f.canvasGradientBlendModesByTemplate).map(
+              ([id, modes]) => [id, { ...modes }]
+            )
+          ),
+          gradientOpacitiesByTemplate: Object.fromEntries(
+            Object.entries(f.canvasGradientOpacitiesByTemplate).map(
+              ([id, opacities]) => [id, { ...opacities }]
+            )
+          ),
         }
       : {};
   if (f.canvasBackgroundMode === "transparent") {

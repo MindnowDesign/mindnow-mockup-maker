@@ -1,9 +1,10 @@
 import type { CSSProperties } from "react";
 
 import {
-  canvasGradientTemplateToCaptureStyle,
   canvasGradientTemplateToPeekBackgroundStyle,
 } from "@/lib/canvas-background-gradient-templates";
+import { canvasOrganicTemplateToPeekBackgroundStyle } from "@/lib/canvas-background-organic-templates";
+import { canvasWaveTemplateToPeekBackgroundStyle } from "@/lib/canvas-background-wave-templates";
 import type { CanvasNoiseBlendModeId } from "./mockup-noise-blend";
 import type { CanvasNoiseTypeId } from "./mockup-noise";
 
@@ -32,6 +33,16 @@ export type PersistedCanvasBackground = {
    * Template ids map to fill records (`gradient-1`, `gradient-2`, …).
    */
   gradientFillsByTemplate?: Record<string, Record<string, string>> | null;
+  /** Per-template blend modes for editable fill stops (`cbg-0`, `cbg-1`, …). */
+  gradientBlendModesByTemplate?: Record<
+    string,
+    Record<string, string>
+  > | null;
+  /** Per-template fill opacities (0–100) for editable stops. */
+  gradientOpacitiesByTemplate?: Record<
+    string,
+    Record<string, number>
+  > | null;
   /** @deprecated Legacy single-template fills — merged into `gradientFillsByTemplate` on load. */
   gradientFillHex?: Record<string, string> | null;
   solidColor?: string;
@@ -59,12 +70,27 @@ export function persistedCanvasBackgroundToPeekStyle(
     return { backgroundColor: DEFAULT_CANVAS_SOLID_COLOR };
   }
   if (bg.mode === "template") {
+    const templateId = bg.gradientTemplateId ?? null;
     const gradientPeek = canvasGradientTemplateToPeekBackgroundStyle(
-      bg.gradientTemplateId ?? null,
+      templateId,
       "100%"
     );
     if (gradientPeek) {
       return gradientPeek;
+    }
+    const wavePeek = canvasWaveTemplateToPeekBackgroundStyle(
+      templateId,
+      "100%"
+    );
+    if (wavePeek) {
+      return wavePeek;
+    }
+    const organicPeek = canvasOrganicTemplateToPeekBackgroundStyle(
+      templateId,
+      "100%"
+    );
+    if (organicPeek) {
+      return organicPeek;
     }
     return checkerboardBackgroundStyle();
   }

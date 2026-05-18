@@ -17,15 +17,25 @@ import { CanvasGradientFillPaletteBar } from "@/components/canvas-gradient-fill-
 import { useMockupMedia } from "@/components/mockup-media-context";
 import { CanvasBackgroundNoiseOverlay } from "@/components/canvas-background-noise-overlay";
 import { CanvasGradientInlineBackground } from "@/components/canvas-gradient-inline-background";
+import { CanvasOrganicBackground } from "@/components/canvas-organic-background";
 import { hexToRgb } from "@/lib/color-hex-hsv";
 import { scaledFramePixelSize } from "@/lib/mockup-aspect";
 import { buildFrameShadowBoxShadow } from "@/lib/mockup-frame-shadow";
 import {
   canvasGradientTemplateToCaptureStyle,
   canvasGradientTemplateToPeekBackgroundStyle,
-  getCanvasGradientTemplateById,
 } from "@/lib/canvas-background-gradient-templates";
-import { preloadAllCanvasGradientSvgs } from "@/lib/gradient-svg-cache";
+import {
+  canvasOrganicTemplateToPeekBackgroundStyle,
+  isCanvasOrganicTemplateId,
+} from "@/lib/canvas-background-organic-templates";
+import {
+  canvasWaveTemplateToCaptureStyle,
+  canvasWaveTemplateToPeekBackgroundStyle,
+} from "@/lib/canvas-background-wave-templates";
+import { ensureGradientSvgCached } from "@/lib/gradient-svg-cache";
+import { getCanvasInlineSvgTemplateById } from "@/lib/canvas-background-inline-svg-template";
+import { preloadOrganicTemplateId } from "@/lib/organic-image-cache";
 import { checkerboardBackgroundStyle } from "@/lib/mockup-canvas-background";
 import { getGradientTemplateFillKeys } from "@/lib/canvas-gradient-1-fill";
 import {
@@ -385,6 +395,7 @@ export function MockupWorkspaceStage() {
     canvasBackgroundImageUrl,
     canvasGradientTemplateId,
     canvasGradientFillHex,
+    canvasGradientFillOpacity,
     canvasNoisePercent,
     canvasBlurPercent,
     canvasNoiseType,
@@ -429,10 +440,26 @@ export function MockupWorkspaceStage() {
 
   const activeGradientTemplateId =
     canvasBackgroundMode === "template" ? canvasGradientTemplateId : null;
+  const activeOrganicTemplateId = isCanvasOrganicTemplateId(
+    activeGradientTemplateId
+  )
+    ? activeGradientTemplateId
+    : null;
 
   useEffect(() => {
-    preloadAllCanvasGradientSvgs();
-  }, []);
+    const template = getCanvasInlineSvgTemplateById(activeGradientTemplateId);
+    const path = template?.inlineSvgWithCssVars
+      ? template.svgPublicPath
+      : null;
+    if (!path) return;
+    void ensureGradientSvgCached(path).catch(() => {
+      /* canvas keeps CSS fallback until retry */
+    });
+  }, [activeGradientTemplateId]);
+
+  useEffect(() => {
+    preloadOrganicTemplateId(activeOrganicTemplateId);
+  }, [activeOrganicTemplateId]);
 
   const captureSurfaceStyle: CSSProperties = useMemo(() => {
     const base: CSSProperties = { width: "100%", height };
@@ -442,6 +469,16 @@ export function MockupWorkspaceStage() {
     );
     if (gradientLayer) {
       return { ...base, ...gradientLayer };
+    }
+    const waveLayer = canvasWaveTemplateToCaptureStyle(
+      activeGradientTemplateId,
+      height
+    );
+    if (waveLayer) {
+      return { ...base, ...waveLayer };
+    }
+    if (isCanvasOrganicTemplateId(activeGradientTemplateId)) {
+      return { ...base, backgroundColor: "#18181b" };
     }
     switch (canvasBackgroundMode) {
       case "transparent":
@@ -480,11 +517,16 @@ export function MockupWorkspaceStage() {
     for (const key of getGradientTemplateFillKeys(activeGradientTemplateId)) {
       const hex = canvasGradientFillHex[key];
       if (hex) {
-        (o as Record<string, string>)[`--${key}`] = hex;
+        const opacity = canvasGradientFillOpacity[key] ?? 100;
+        (o as Record<string, string>)[`--${key}`] = rgbaFromHex(hex, opacity);
       }
     }
     return o;
-  }, [activeGradientTemplateId, canvasGradientFillHex]);
+  }, [
+    activeGradientTemplateId,
+    canvasGradientFillHex,
+    canvasGradientFillOpacity,
+  ]);
 
   const gradientInlineBlurLayerStyle: CSSProperties = useMemo(() => {
     const blurPx = backgroundBlurPx;
@@ -558,10 +600,19 @@ export function MockupWorkspaceStage() {
    * (darker/soft edge). Extra bleed lets the gaussian falloff sit outside the clip.
    */
   const gradientInlineLoadingFallbackStyle: CSSProperties = useMemo(() => {
-    const peek = canvasGradientTemplateToPeekBackgroundStyle(
-      activeGradientTemplateId,
-      height
-    );
+    const peek =
+      canvasGradientTemplateToPeekBackgroundStyle(
+        activeGradientTemplateId,
+        height
+      ) ??
+      canvasWaveTemplateToPeekBackgroundStyle(
+        activeGradientTemplateId,
+        height
+      ) ??
+      canvasOrganicTemplateToPeekBackgroundStyle(
+        activeGradientTemplateId,
+        height
+      );
     const base = peek ?? captureSurfaceStyle;
     const blurPx = backgroundBlurPx;
     const blurFilter = blurPx > 0 ? `blur(${blurPx}px)` : undefined;
@@ -641,13 +692,17 @@ export function MockupWorkspaceStage() {
       >
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[16px]"
+          className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[16px] [&_*]:pointer-events-none"
         >
           <CanvasGradientInlineBackground
             templateId={activeGradientTemplateId}
             cssVarStyle={gradientCssVarStyle}
             blurLayerStyle={gradientInlineBlurLayerStyle}
             fallback={<div style={gradientInlineLoadingFallbackStyle} />}
+          />
+          <CanvasOrganicBackground
+            templateId={activeOrganicTemplateId}
+            layerStyle={gradientInlineBlurLayerStyle}
           />
         </div>
         <CanvasBackgroundNoiseOverlay
@@ -744,7 +799,10 @@ export function MockupWorkspaceStage() {
           </MockupDeviceFrame>
         </div>
       </div>
-      <CanvasGradientFillPaletteBar displayFills={canvasGradientFillHex} />
+      <CanvasGradientFillPaletteBar
+        displayFills={canvasGradientFillHex}
+        displayOpacities={canvasGradientFillOpacity}
+      />
     </div>
   );
 }

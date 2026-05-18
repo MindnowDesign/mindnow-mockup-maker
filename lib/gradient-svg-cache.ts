@@ -1,13 +1,24 @@
 import { CANVAS_GRADIENT_TEMPLATES } from "@/lib/canvas-background-gradient-templates";
+import { CANVAS_WAVE_TEMPLATES } from "@/lib/canvas-background-wave-templates";
+
+const SVG_POINTER_EVENTS_STYLE =
+  "<style>svg,svg *{pointer-events:none!important}</style>";
+
+function patchSvgHtmlForInteraction(html: string): string {
+  if (html.includes("pointer-events:none!important")) return html;
+  return `${SVG_POINTER_EVENTS_STYLE}${html}`;
+}
 
 const htmlByPath = new Map<string, string>();
 const inflightByPath = new Map<string, Promise<string>>();
 const listeners = new Set<() => void>();
 
 function notify(): void {
-  for (const listener of listeners) {
-    listener();
-  }
+  queueMicrotask(() => {
+    for (const listener of listeners) {
+      listener();
+    }
+  });
 }
 
 export function subscribeGradientSvgCache(listener: () => void): () => void {
@@ -36,7 +47,7 @@ export async function ensureGradientSvgCached(path: string): Promise<string> {
         return response.text();
       })
       .then((html) => {
-        htmlByPath.set(path, html);
+        htmlByPath.set(path, patchSvgHtmlForInteraction(html));
         inflightByPath.delete(path);
         notify();
         return html;
@@ -67,6 +78,18 @@ export function getCanvasGradientSvgPaths(): string[] {
   );
 }
 
+export function getCanvasWaveSvgPaths(): string[] {
+  return CANVAS_WAVE_TEMPLATES.map((t) => t.svgPublicPath);
+}
+
+export function getCanvasInlineSvgPaths(): string[] {
+  return [...getCanvasGradientSvgPaths(), ...getCanvasWaveSvgPaths()];
+}
+
 export function preloadAllCanvasGradientSvgs(): void {
   preloadGradientSvgPaths(getCanvasGradientSvgPaths());
+}
+
+export function preloadAllCanvasWaveSvgs(): void {
+  preloadGradientSvgPaths(getCanvasWaveSvgPaths());
 }

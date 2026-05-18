@@ -13,15 +13,18 @@ import { cn } from "@/lib/utils";
 
 type CanvasGradientFillPaletteBarProps = {
   displayFills: Record<string, string>;
+  displayOpacities: Record<string, number>;
 };
 
 export function CanvasGradientFillPaletteBar({
   displayFills,
+  displayOpacities,
 }: CanvasGradientFillPaletteBarProps) {
   const {
     canvasBackgroundMode,
     canvasGradientTemplateId,
     patchCanvasGradientFillKey,
+    patchCanvasGradientFillOpacity,
     resetCanvasGradientFillToDefaults,
   } = useMockupFrame();
 
@@ -39,7 +42,7 @@ export function CanvasGradientFillPaletteBar({
       <div
         className="flex flex-wrap items-center justify-start gap-1.5"
         role="group"
-        aria-label="Gradient color stops"
+        aria-label="Template color stops"
       >
         {fillKeys.map((key) => (
           <SolidColorPopoverRow
@@ -48,6 +51,10 @@ export function CanvasGradientFillPaletteBar({
             popoverDraggable
             displayHex={displayFills[key]}
             onColorChange={(hex) => patchCanvasGradientFillKey(key, hex)}
+            fillOpacityPercent={displayOpacities[key]}
+            onFillOpacityPercentChange={(percent) =>
+              patchCanvasGradientFillOpacity(key, percent)
+            }
             triggerAriaLabel={getGradientFillLabel(
               canvasGradientTemplateId!,
               key
@@ -63,8 +70,8 @@ export function CanvasGradientFillPaletteBar({
           "hover:border-zinc-500 hover:bg-zinc-800 hover:text-zinc-100",
           "focus-visible:ring-2 focus-visible:ring-white/25"
         )}
-        title="Reset gradient colors"
-        aria-label="Reset gradient colors to defaults"
+        title="Reset template colors"
+        aria-label="Reset template colors to defaults"
       >
         <RotateCcw className="size-3.5" strokeWidth={2} aria-hidden />
       </button>

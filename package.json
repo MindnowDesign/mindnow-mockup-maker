@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "generate:organic-assets": "node scripts/generate-organic-assets.mjs",
+    "prepare:wave-svgs": "node scripts/prepare-wave-svgs.mjs"
   },
   "dependencies": {
     "@radix-ui/react-tabs": "^1.1.13",
@@ -30,6 +32,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

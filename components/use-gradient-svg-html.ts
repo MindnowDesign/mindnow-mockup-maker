@@ -2,7 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 
-import { getCanvasGradientTemplateById } from "@/lib/canvas-background-gradient-templates";
+import { getCanvasInlineSvgTemplateById } from "@/lib/canvas-background-inline-svg-template";
 import {
   ensureGradientSvgCached,
   getCachedGradientSvgHtml,
@@ -17,7 +17,7 @@ import {
 export function useGradientSvgHtml(
   templateId: string | null | undefined
 ): string | null {
-  const template = getCanvasGradientTemplateById(templateId);
+  const template = getCanvasInlineSvgTemplateById(templateId);
   const src =
     template?.inlineSvgWithCssVars && template.svgPublicPath
       ? template.svgPublicPath
