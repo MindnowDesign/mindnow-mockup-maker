@@ -1,4 +1,5 @@
 import type { FrameAspectPresetId } from "@/lib/mockup-aspect";
+import { templateSupportsEditableGradientFills } from "@/lib/canvas-gradient-1-fill";
 import type { PersistedCanvasBackground } from "@/lib/mockup-canvas-background";
 import type {
   PersistedScreenshotStyle,
@@ -60,8 +61,10 @@ export type FrameLike = {
   canvasBackgroundImageUrl: string | null;
   /** Active SVG/CSS gradient template id, or null for none. */
   canvasGradientTemplateId: string | null;
-  /** Keys like `cbg-base` for `gradient-1` inline SVG fills. */
+  /** Active template inline SVG fills (derived from `canvasGradientFillsByTemplate`). */
   canvasGradientFillHex: Record<string, string>;
+  /** Per-template gradient fill overrides. */
+  canvasGradientFillsByTemplate: Record<string, Record<string, string>>;
   canvasNoisePercent: number;
   canvasBlurPercent: number;
   canvasNoiseType: import("@/lib/mockup-noise").CanvasNoiseTypeId;
@@ -239,8 +242,19 @@ export function frameLikeToPersistedCanvasBackground(
       ? f.canvasGradientTemplateId?.trim() || null
       : null;
   const gradientFillSpread =
-    gradientTemplateId === "gradient-1"
-      ? { gradientFillHex: { ...f.canvasGradientFillHex } }
+    f.canvasBackgroundMode === "template"
+      ? {
+          gradientFillsByTemplate: Object.fromEntries(
+            Object.entries(f.canvasGradientFillsByTemplate).map(([id, fills]) => [
+              id,
+              { ...fills },
+            ])
+          ),
+          ...(gradientTemplateId &&
+          templateSupportsEditableGradientFills(gradientTemplateId)
+            ? { gradientFillHex: { ...f.canvasGradientFillHex } }
+            : {}),
+        }
       : {};
   if (f.canvasBackgroundMode === "transparent") {
     return {

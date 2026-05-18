@@ -1,5 +1,7 @@
 import type { CSSProperties } from "react";
 
+import { GRADIENT_TEMPLATE_FILL_CONFIG } from "@/lib/canvas-gradient-1-fill";
+
 /**
  * Catalog of gradient “templates” for the mockup canvas.
  *
@@ -17,42 +19,109 @@ export type CanvasGradientTemplateDefinition = {
   svgPublicPath: string | null;
   /**
    * When true, main canvas paints this template as inline SVG so parent CSS
-   * variables can drive fills (`gradient-1`). Peek thumbnails still use `svgPublicPath`.
+   * variables can drive fills. Peek thumbnails still use `svgPublicPath`.
    */
   inlineSvgWithCssVars?: boolean;
   fallbackCanvasStyle?: CSSProperties;
 };
 
+function previewForTemplate(
+  id: string,
+  svgPath: string,
+  fallbackRgb: string
+): string {
+  const base = getGradientTemplatePreviewColor(id) ?? fallbackRgb;
+  return `url("${svgPath}") center / cover no-repeat, ${base}`;
+}
+
+function getGradientTemplatePreviewColor(id: string): string | null {
+  const first = GRADIENT_TEMPLATE_FILL_CONFIG[id]?.defaults["cbg-0"];
+  if (!first) return null;
+  const hex = first.replace("#", "");
+  if (hex.length !== 6) return null;
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+  return `rgb(${r} ${g} ${b})`;
+}
+
 export const CANVAS_GRADIENT_TEMPLATES: CanvasGradientTemplateDefinition[] = [
   {
     id: "gradient-1",
     label: "Gradient template 1",
-    previewBackground:
-      'url("/background-templates/gradients/gradient-1.svg") center / cover no-repeat, rgb(24 24 27)',
+    previewBackground: previewForTemplate(
+      "gradient-1",
+      "/background-templates/gradients/gradient-1.svg",
+      "rgb(253 255 133)"
+    ),
     svgPublicPath: "/background-templates/gradients/gradient-1.svg",
     inlineSvgWithCssVars: true,
   },
   {
-    id: "placeholder-b",
+    id: "gradient-2",
     label: "Gradient template 2",
-    previewBackground:
-      "linear-gradient(180deg, rgb(82 82 91) 0%, rgb(63 63 70) 45%, rgb(39 39 42) 100%)",
-    svgPublicPath: null,
-    fallbackCanvasStyle: {
-      backgroundImage:
-        "linear-gradient(180deg, rgb(82 82 91) 0%, rgb(63 63 70) 45%, rgb(39 39 42) 100%)",
-    },
+    previewBackground: previewForTemplate(
+      "gradient-2",
+      "/background-templates/gradients/gradient-2.svg",
+      "rgb(2 16 16)"
+    ),
+    svgPublicPath: "/background-templates/gradients/gradient-2.svg",
+    inlineSvgWithCssVars: true,
   },
   {
-    id: "placeholder-c",
+    id: "gradient-3",
     label: "Gradient template 3",
-    previewBackground:
-      "linear-gradient(90deg, rgb(63 63 70) 0%, rgb(82 82 91) 50%, rgb(63 63 70) 100%)",
-    svgPublicPath: null,
-    fallbackCanvasStyle: {
-      backgroundImage:
-        "linear-gradient(90deg, rgb(63 63 70) 0%, rgb(82 82 91) 50%, rgb(63 63 70) 100%)",
-    },
+    previewBackground: previewForTemplate(
+      "gradient-3",
+      "/background-templates/gradients/gradient-3.svg",
+      "rgb(254 170 230)"
+    ),
+    svgPublicPath: "/background-templates/gradients/gradient-3.svg",
+    inlineSvgWithCssVars: true,
+  },
+  {
+    id: "gradient-4",
+    label: "Gradient template 4",
+    previewBackground: previewForTemplate(
+      "gradient-4",
+      "/background-templates/gradients/gradient-4.svg",
+      "rgb(253 255 175)"
+    ),
+    svgPublicPath: "/background-templates/gradients/gradient-4.svg",
+    inlineSvgWithCssVars: true,
+  },
+  {
+    id: "gradient-5",
+    label: "Gradient template 5",
+    previewBackground: previewForTemplate(
+      "gradient-5",
+      "/background-templates/gradients/gradient-5.svg",
+      "rgb(254 255 199)"
+    ),
+    svgPublicPath: "/background-templates/gradients/gradient-5.svg",
+    inlineSvgWithCssVars: true,
+  },
+  {
+    id: "gradient-6",
+    label: "Gradient template 6",
+    previewBackground: previewForTemplate(
+      "gradient-6",
+      "/background-templates/gradients/gradient-6.svg",
+      "rgb(92 40 223)"
+    ),
+    svgPublicPath: "/background-templates/gradients/gradient-6.svg",
+    inlineSvgWithCssVars: true,
+  },
+  {
+    id: "gradient-7",
+    label: "Gradient template 7",
+    previewBackground: previewForTemplate(
+      "gradient-7",
+      "/background-templates/gradients/gradient-7.svg",
+      "rgb(255 255 255)"
+    ),
+    svgPublicPath: "/background-templates/gradients/gradient-7.svg",
+    inlineSvgWithCssVars: true,
   },
 ];
 

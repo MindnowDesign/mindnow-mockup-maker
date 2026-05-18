@@ -16,7 +16,7 @@ import { MockupDeviceFrame } from "@/components/mockup-device-frame";
 import { CanvasGradientFillPaletteBar } from "@/components/canvas-gradient-fill-palette-bar";
 import { useMockupMedia } from "@/components/mockup-media-context";
 import { CanvasBackgroundNoiseOverlay } from "@/components/canvas-background-noise-overlay";
-import { useGradient1SvgHtml } from "@/components/use-gradient-1-svg-html";
+import { useGradientSvgHtml } from "@/components/use-gradient-svg-html";
 import { hexToRgb } from "@/lib/color-hex-hsv";
 import { scaledFramePixelSize } from "@/lib/mockup-aspect";
 import { buildFrameShadowBoxShadow } from "@/lib/mockup-frame-shadow";
@@ -25,10 +25,7 @@ import {
   getCanvasGradientTemplateById,
 } from "@/lib/canvas-background-gradient-templates";
 import { checkerboardBackgroundStyle } from "@/lib/mockup-canvas-background";
-import {
-  GRADIENT_1_FILL_KEYS,
-  normalizeGradient1FillHex,
-} from "@/lib/canvas-gradient-1-fill";
+import { getGradientTemplateFillKeys } from "@/lib/canvas-gradient-1-fill";
 import {
   SCREENSHOT_GLASS_LIGHT,
   SCREENSHOT_LIQUID_GLASS,
@@ -411,7 +408,6 @@ export function MockupWorkspaceStage() {
     frameShadowColor,
     frameShadowColorOpacity,
   } = useMockupFrame();
-  const gradient1SvgHtml = useGradient1SvgHtml();
   const canvasNoiseFilterId = `canvas-noise-${useId().replace(/:/g, "")}`;
   const noiseBlendModeEffective =
     canvasNoiseBlendModePreview ?? canvasNoiseBlendMode;
@@ -433,6 +429,8 @@ export function MockupWorkspaceStage() {
 
   const activeGradientTemplateId =
     canvasBackgroundMode === "template" ? canvasGradientTemplateId : null;
+
+  const gradientSvgHtml = useGradientSvgHtml(activeGradientTemplateId);
 
   const captureSurfaceStyle: CSSProperties = useMemo(() => {
     const base: CSSProperties = { width: "100%", height };
@@ -475,26 +473,24 @@ export function MockupWorkspaceStage() {
     [canvasBlurPercent]
   );
 
-  const gradient1Inline =
-    activeGradientTemplateId === "gradient-1" &&
-    Boolean(getCanvasGradientTemplateById("gradient-1")?.inlineSvgWithCssVars) &&
-    Boolean(gradient1SvgHtml);
+  const gradientInline =
+    Boolean(
+      getCanvasGradientTemplateById(activeGradientTemplateId)
+        ?.inlineSvgWithCssVars
+    ) && Boolean(gradientSvgHtml);
 
-  /** Same hex map applied to SVG `--cbg-*` and to palette swatches (single source). */
-  const gradient1FillResolved = useMemo(
-    () => normalizeGradient1FillHex(canvasGradientFillHex),
-    [canvasGradientFillHex]
-  );
-
-  const gradient1CssVarStyle = useMemo((): CSSProperties => {
+  const gradientCssVarStyle = useMemo((): CSSProperties => {
     const o: CSSProperties = {};
-    for (const key of GRADIENT_1_FILL_KEYS) {
-      (o as Record<string, string>)[`--${key}`] = gradient1FillResolved[key];
+    for (const key of getGradientTemplateFillKeys(activeGradientTemplateId)) {
+      const hex = canvasGradientFillHex[key];
+      if (hex) {
+        (o as Record<string, string>)[`--${key}`] = hex;
+      }
     }
     return o;
-  }, [gradient1FillResolved]);
+  }, [activeGradientTemplateId, canvasGradientFillHex]);
 
-  const gradient1BlurLayerStyle: CSSProperties = useMemo(() => {
+  const gradientInlineBlurLayerStyle: CSSProperties = useMemo(() => {
     const blurPx = backgroundBlurPx;
     const blurFilter = blurPx > 0 ? `blur(${blurPx}px)` : undefined;
     const bleed =
@@ -642,13 +638,13 @@ export function MockupWorkspaceStage() {
           aria-hidden
           className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[16px]"
         >
-          {gradient1Inline ? (
-            <div className="absolute inset-0" style={gradient1CssVarStyle}>
+          {gradientInline ? (
+            <div className="absolute inset-0" style={gradientCssVarStyle}>
               <div
-                className="[&>svg]:pointer-events-none [&>svg]:block [&>svg]:h-full [&>svg]:w-full [&>svg]:min-h-full [&>svg]:min-w-full [&>svg]:object-cover"
-                style={gradient1BlurLayerStyle}
+                className="[&>svg]:pointer-events-none [&>svg]:block [&>svg]:h-full [&>svg]:w-full"
+                style={gradientInlineBlurLayerStyle}
                 // eslint-disable-next-line react/no-danger
-                dangerouslySetInnerHTML={{ __html: gradient1SvgHtml! }}
+                dangerouslySetInnerHTML={{ __html: gradientSvgHtml! }}
               />
             </div>
           ) : (
@@ -749,7 +745,7 @@ export function MockupWorkspaceStage() {
           </MockupDeviceFrame>
         </div>
       </div>
-      <CanvasGradientFillPaletteBar displayFills={gradient1FillResolved} />
+      <CanvasGradientFillPaletteBar displayFills={canvasGradientFillHex} />
     </div>
   );
 }

@@ -5,15 +5,14 @@ import { RotateCcw } from "lucide-react";
 import { SolidColorPopoverRow } from "@/components/solid-color-popover-row";
 import { useMockupFrame } from "@/components/mockup-frame-context";
 import {
-  GRADIENT_1_FILL_KEYS,
-  GRADIENT_1_FILL_LABELS,
-  type Gradient1FillKey,
+  getGradientFillLabel,
+  getGradientTemplateFillKeys,
+  templateSupportsEditableGradientFills,
 } from "@/lib/canvas-gradient-1-fill";
 import { cn } from "@/lib/utils";
 
 type CanvasGradientFillPaletteBarProps = {
-  /** Must match the `--cbg-*` values on the inline gradient SVG (normalized hex). */
-  displayFills: Record<Gradient1FillKey, string>;
+  displayFills: Record<string, string>;
 };
 
 export function CanvasGradientFillPaletteBar({
@@ -28,21 +27,31 @@ export function CanvasGradientFillPaletteBar({
 
   if (
     canvasBackgroundMode !== "template" ||
-    canvasGradientTemplateId !== "gradient-1"
+    !templateSupportsEditableGradientFills(canvasGradientTemplateId)
   ) {
     return null;
   }
 
+  const fillKeys = getGradientTemplateFillKeys(canvasGradientTemplateId);
+
   return (
     <div className="flex w-full max-w-full min-w-0 flex-wrap items-center justify-start gap-2 px-1 py-2">
-      <div className="flex flex-wrap items-center justify-start gap-1.5">
-        {GRADIENT_1_FILL_KEYS.map((key) => (
+      <div
+        className="flex flex-wrap items-center justify-start gap-1.5"
+        role="group"
+        aria-label="Gradient color stops"
+      >
+        {fillKeys.map((key) => (
           <SolidColorPopoverRow
             key={key}
             variant="swatch"
+            popoverDraggable
             displayHex={displayFills[key]}
             onColorChange={(hex) => patchCanvasGradientFillKey(key, hex)}
-            triggerAriaLabel={GRADIENT_1_FILL_LABELS[key]}
+            triggerAriaLabel={getGradientFillLabel(
+              canvasGradientTemplateId!,
+              key
+            )}
           />
         ))}
       </div>

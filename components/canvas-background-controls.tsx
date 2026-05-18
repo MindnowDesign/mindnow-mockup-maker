@@ -7,7 +7,6 @@ import {
   Image as ImageIcon,
   LayoutPanelTop,
   PaintBucket,
-  Sparkles,
   Trash2,
   Upload,
 } from "lucide-react";
@@ -23,6 +22,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { CanvasBackgroundTemplatesSection } from "@/components/canvas-background-templates-section";
+import { StyleBlurIcon, StyleNoiseIcon } from "@/components/canvas-style-icons";
 import { CanvasSolidColorPicker } from "@/components/canvas-solid-color-picker";
 import { EffectAccordionSection } from "@/components/effect-accordion-section";
 import { SolidColorPopoverRow } from "@/components/solid-color-popover-row";
@@ -452,14 +452,6 @@ export function CanvasBackgroundControls() {
   const [noiseSectionOpen, setNoiseSectionOpen] = useState(false);
   const [blurSectionOpen, setBlurSectionOpen] = useState(false);
 
-  useEffect(() => {
-    if (canvasNoisePercent > 0) setNoiseSectionOpen(true);
-  }, [canvasNoisePercent]);
-
-  useEffect(() => {
-    if (canvasBlurPercent > 0) setBlurSectionOpen(true);
-  }, [canvasBlurPercent]);
-
   function toggleNoiseSection() {
     setNoiseSectionOpen((open) => !open);
   }
@@ -619,14 +611,14 @@ export function CanvasBackgroundControls() {
         <EffectAccordionSection
           sectionId="canvas-effect-noise"
           label="Noise"
-          Icon={Sparkles}
+          Icon={StyleNoiseIcon}
           open={noiseSectionOpen}
           onToggle={toggleNoiseSection}
         >
           <CanvasEffectSliderRow
             id="canvas-effect-noise"
             label="Noise"
-            Icon={Sparkles}
+            Icon={Droplet}
             value={canvasNoisePercent}
             onChange={setCanvasNoisePercent}
             hideLabel
@@ -660,7 +652,7 @@ export function CanvasBackgroundControls() {
         <EffectAccordionSection
           sectionId="canvas-effect-blur"
           label="Blur"
-          Icon={Droplet}
+          Icon={StyleBlurIcon}
           open={blurSectionOpen}
           onToggle={toggleBlurSection}
         >

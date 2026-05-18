@@ -209,6 +209,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
     frame.canvasBackgroundImageUrl,
     frame.canvasGradientTemplateId,
     frame.canvasGradientFillHex,
+    frame.canvasGradientFillsByTemplate,
     frame.canvasNoisePercent,
     frame.canvasBlurPercent,
     frame.canvasNoiseType,

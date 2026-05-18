@@ -6,6 +6,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 
+import { DraggableWorkspaceColorPicker } from "@/components/draggable-workspace-color-picker";
 import { CanvasSolidColorPopoverPanel } from "@/components/canvas-solid-color-popover-panel";
 import {
   Popover,
@@ -126,6 +127,8 @@ export type SolidColorPopoverRowProps = {
     onChange: (n: number) => void;
     inputAriaLabel: string;
   };
+  /** Workspace canvas pickers: drag within the main stage bounds (Figma-style). */
+  popoverDraggable?: boolean;
 };
 
 /**
@@ -139,8 +142,20 @@ export function SolidColorPopoverRow({
   onColorChange,
   triggerAriaLabel,
   opacityPercent,
+  popoverDraggable = false,
 }: SolidColorPopoverRowProps) {
   const [open, setOpen] = useState(false);
+
+  if (popoverDraggable && variant === "swatch") {
+    return (
+      <DraggableWorkspaceColorPicker
+        displayHex={displayHex}
+        onColorChange={onColorChange}
+        triggerAriaLabel={triggerAriaLabel}
+        className={className}
+      />
+    );
+  }
 
   const triggerClass =
     variant === "field" ? fieldTriggerClass : triggerButtonClass;
@@ -177,7 +192,7 @@ export function SolidColorPopoverRow({
       <PopoverContent
         align="start"
         sideOffset={8}
-        className={cn(popoverContentClass)}
+        className={popoverContentClass}
       >
         <CanvasSolidColorPopoverPanel
           color={displayHex}

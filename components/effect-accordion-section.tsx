@@ -1,8 +1,9 @@
 "use client";
 
 import { Minus, Plus, Trash2 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
+
+import type { CanvasStyleIconProps } from "@/components/canvas-style-icons";
 import { cn } from "@/lib/utils";
 
 export function EffectAccordionSection({
@@ -17,7 +18,7 @@ export function EffectAccordionSection({
 }: {
   sectionId: string;
   label: string;
-  Icon: LucideIcon;
+  Icon: React.ComponentType<CanvasStyleIconProps>;
   open: boolean;
   onToggle: () => void;
   children: ReactNode;

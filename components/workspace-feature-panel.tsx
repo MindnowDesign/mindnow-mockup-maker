@@ -18,7 +18,7 @@ const DESCRIPTIONS: Record<WorkspaceFeatureId, string> = {
   frame:
     "Adjust frame size, device presets, and viewport settings for your mockup.",
   background:
-    "Set aspect ratio and choose how the canvas frame is filled (transparency preview, solid color, or image).",
+    "Set aspect ratio and choose how the canvas frame is filled.",
   media:
     "Add images, uploads, and asset placeholders for this project.",
 };

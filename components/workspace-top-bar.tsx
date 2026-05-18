@@ -38,6 +38,7 @@ import {
   notifySavedProjectsChanged,
   upsertSavedProject,
 } from "@/lib/saved-projects";
+import { templateSupportsEditableGradientFills } from "@/lib/canvas-gradient-1-fill";
 import { resolveVisualPrefsForSave } from "@/lib/mockup-workspace-snapshot";
 import { cn } from "@/lib/utils";
 
@@ -72,6 +73,7 @@ export function WorkspaceTopBar({
     canvasBackgroundImageUrl,
     canvasGradientTemplateId,
     canvasGradientFillHex,
+    canvasGradientFillsByTemplate,
     canvasNoisePercent,
     canvasBlurPercent,
     canvasNoiseType,
@@ -211,7 +213,12 @@ export function WorkspaceTopBar({
         trimmedGradient != null && trimmedGradient !== ""
           ? {
               gradientTemplateId: trimmedGradient,
-              ...(trimmedGradient === "gradient-1"
+              gradientFillsByTemplate: Object.fromEntries(
+                Object.entries(canvasGradientFillsByTemplate).map(
+                  ([id, fills]) => [id, { ...fills }]
+                )
+              ),
+              ...(templateSupportsEditableGradientFills(trimmedGradient)
                 ? { gradientFillHex: { ...canvasGradientFillHex } }
                 : {}),
             }

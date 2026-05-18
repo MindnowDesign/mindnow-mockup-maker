@@ -27,7 +27,12 @@ export type PersistedCanvasBackground = {
   mode: CanvasBackgroundMode;
   /** When `mode` is `template`, optional gradient preset id for the canvas fill. */
   gradientTemplateId?: string | null;
-  /** Editable fills for `gradient-1` (keys without `--`, e.g. `cbg-base`). */
+  /**
+   * Editable fills per gradient template (keys without `--`, e.g. `cbg-base`).
+   * Template ids map to fill records (`gradient-1`, `gradient-2`, …).
+   */
+  gradientFillsByTemplate?: Record<string, Record<string, string>> | null;
+  /** @deprecated Legacy single-template fills — merged into `gradientFillsByTemplate` on load. */
   gradientFillHex?: Record<string, string> | null;
   solidColor?: string;
   imageDataUrl?: string;

@@ -1,7 +1,7 @@
 "use client";
 
-import { LayoutPanelTop } from "lucide-react";
 import { useState } from "react";
+import { StyleGradientIcon } from "@/components/canvas-style-icons";
 import { EffectAccordionSection } from "@/components/effect-accordion-section";
 import { useMockupFrame } from "@/components/mockup-frame-context";
 import { CANVAS_GRADIENT_TEMPLATES } from "@/lib/canvas-background-gradient-templates";
@@ -15,7 +15,7 @@ const previewButtonBase = cn(
 export function CanvasBackgroundTemplatesSection() {
   const { canvasGradientTemplateId, setCanvasGradientTemplateId } =
     useMockupFrame();
-  const [gradientOpen, setGradientOpen] = useState(true);
+  const [gradientOpen, setGradientOpen] = useState(false);
 
   return (
     <div className="space-y-2 pt-1">
@@ -23,7 +23,7 @@ export function CanvasBackgroundTemplatesSection() {
         <EffectAccordionSection
           sectionId="canvas-template-gradient"
           label="Gradient"
-          Icon={LayoutPanelTop}
+          Icon={StyleGradientIcon}
           open={gradientOpen}
           onToggle={() => setGradientOpen((o) => !o)}
           openTrailingIcon="collapse"
@@ -32,7 +32,7 @@ export function CanvasBackgroundTemplatesSection() {
             <div
               role="radiogroup"
               aria-label="Gradient templates"
-              className="flex min-w-0 items-center gap-2"
+              className="flex min-w-0 flex-wrap items-center gap-2"
             >
               {CANVAS_GRADIENT_TEMPLATES.map((entry) => {
                 const selected = canvasGradientTemplateId === entry.id;
