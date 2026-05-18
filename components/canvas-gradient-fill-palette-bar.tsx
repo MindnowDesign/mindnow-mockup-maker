@@ -20,12 +20,16 @@ export function CanvasGradientFillPaletteBar({
   displayFills,
 }: CanvasGradientFillPaletteBarProps) {
   const {
+    canvasBackgroundMode,
     canvasGradientTemplateId,
     patchCanvasGradientFillKey,
     resetCanvasGradientFillToDefaults,
   } = useMockupFrame();
 
-  if (canvasGradientTemplateId !== "gradient-1") {
+  if (
+    canvasBackgroundMode !== "template" ||
+    canvasGradientTemplateId !== "gradient-1"
+  ) {
     return null;
   }
 

@@ -55,7 +55,7 @@ export type WorkspaceSnapshot = {
 
 export type FrameLike = {
   aspectPreset: FrameAspectPresetId;
-  canvasBackgroundMode: "transparent" | "solid" | "image";
+  canvasBackgroundMode: "transparent" | "solid" | "image" | "template";
   canvasSolidColor: string;
   canvasBackgroundImageUrl: string | null;
   /** Active SVG/CSS gradient template id, or null for none. */
@@ -234,7 +234,10 @@ export function frameLikeToPersistedCanvasBackground(
     noiseColorOpacity: f.canvasNoiseColorOpacity,
     noiseBlendMode: f.canvasNoiseBlendMode,
   };
-  const gradientTemplateId = f.canvasGradientTemplateId?.trim() || null;
+  const gradientTemplateId =
+    f.canvasBackgroundMode === "template"
+      ? f.canvasGradientTemplateId?.trim() || null
+      : null;
   const gradientFillSpread =
     gradientTemplateId === "gradient-1"
       ? { gradientFillHex: { ...f.canvasGradientFillHex } }
@@ -242,8 +245,6 @@ export function frameLikeToPersistedCanvasBackground(
   if (f.canvasBackgroundMode === "transparent") {
     return {
       mode: "transparent",
-      ...(gradientTemplateId ? { gradientTemplateId } : {}),
-      ...gradientFillSpread,
       ...effects,
     };
   }
@@ -251,6 +252,12 @@ export function frameLikeToPersistedCanvasBackground(
     return {
       mode: "solid",
       solidColor: f.canvasSolidColor,
+      ...effects,
+    };
+  }
+  if (f.canvasBackgroundMode === "template") {
+    return {
+      mode: "template",
       ...(gradientTemplateId ? { gradientTemplateId } : {}),
       ...gradientFillSpread,
       ...effects,
@@ -261,8 +268,6 @@ export function frameLikeToPersistedCanvasBackground(
     mode: "image",
     ...(trimmed ? { imageDataUrl: trimmed } : {}),
     solidColor: f.canvasSolidColor,
-    ...(gradientTemplateId ? { gradientTemplateId } : {}),
-    ...gradientFillSpread,
     ...effects,
   };
 }

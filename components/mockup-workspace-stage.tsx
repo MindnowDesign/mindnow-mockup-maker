@@ -431,10 +431,13 @@ export function MockupWorkspaceStage() {
     [aspectPreset, maxW, maxH]
   );
 
+  const activeGradientTemplateId =
+    canvasBackgroundMode === "template" ? canvasGradientTemplateId : null;
+
   const captureSurfaceStyle: CSSProperties = useMemo(() => {
     const base: CSSProperties = { width: "100%", height };
     const gradientLayer = canvasGradientTemplateToCaptureStyle(
-      canvasGradientTemplateId,
+      activeGradientTemplateId,
       height
     );
     if (gradientLayer) {
@@ -442,6 +445,7 @@ export function MockupWorkspaceStage() {
     }
     switch (canvasBackgroundMode) {
       case "transparent":
+      case "template":
         return { ...base, ...checkerboardBackgroundStyle() };
       case "solid":
         return { ...base, backgroundColor: canvasSolidColor };
@@ -462,7 +466,7 @@ export function MockupWorkspaceStage() {
     canvasBackgroundMode,
     canvasSolidColor,
     canvasBackgroundImageUrl,
-    canvasGradientTemplateId,
+    activeGradientTemplateId,
     height,
   ]);
 
@@ -472,7 +476,7 @@ export function MockupWorkspaceStage() {
   );
 
   const gradient1Inline =
-    canvasGradientTemplateId === "gradient-1" &&
+    activeGradientTemplateId === "gradient-1" &&
     Boolean(getCanvasGradientTemplateById("gradient-1")?.inlineSvgWithCssVars) &&
     Boolean(gradient1SvgHtml);
 

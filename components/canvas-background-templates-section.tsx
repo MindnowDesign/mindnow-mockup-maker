@@ -15,17 +15,11 @@ const previewButtonBase = cn(
 export function CanvasBackgroundTemplatesSection() {
   const { canvasGradientTemplateId, setCanvasGradientTemplateId } =
     useMockupFrame();
-  const [gradientOpen, setGradientOpen] = useState(false);
+  const [gradientOpen, setGradientOpen] = useState(true);
 
   return (
     <div className="space-y-2 pt-1">
-      <span
-        className="block text-xs font-medium text-zinc-400"
-        id="canvas-bg-templates-label"
-      >
-        Templates
-      </span>
-      <div className="space-y-2" aria-labelledby="canvas-bg-templates-label">
+      <div className="space-y-2" aria-label="Templates">
         <EffectAccordionSection
           sectionId="canvas-template-gradient"
           label="Gradient"

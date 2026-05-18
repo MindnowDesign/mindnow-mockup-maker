@@ -5,6 +5,7 @@ import {
   Droplet,
   Grid3x3,
   Image as ImageIcon,
+  LayoutPanelTop,
   PaintBucket,
   Sparkles,
   Trash2,
@@ -192,35 +193,62 @@ function EffectPercentField({
   );
 }
 
+/** Applied when picking a noise type while intensity is 0 (None). */
+const NOISE_TYPE_ACTIVATE_PERCENT = 25;
+
 function CanvasNoiseTypePicker({
   value,
   onChange,
+  noneSelected,
+  onSelectNone,
 }: {
   value: CanvasNoiseTypeId;
   onChange: (id: CanvasNoiseTypeId) => void;
+  noneSelected: boolean;
+  onSelectNone: () => void;
 }) {
+  const optionClass = (selected: boolean) =>
+    cn(
+      "min-h-8 rounded-lg border px-0.5 py-1.5 text-center text-[11px] font-medium leading-tight transition-colors",
+      selected
+        ? "border-zinc-500 bg-zinc-800 text-white shadow-sm"
+        : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:bg-zinc-900 hover:text-zinc-200"
+    );
+
   return (
     <TooltipProvider delayDuration={300}>
       <div
         role="radiogroup"
         aria-label="Noise type"
-        className="grid grid-cols-4 gap-1.5"
+        className="grid grid-cols-5 gap-1.5"
       >
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={noneSelected}
+              aria-label="None: turn off noise"
+              onClick={onSelectNone}
+              className={optionClass(noneSelected)}
+            >
+              None
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top" sideOffset={6}>
+            Turn off noise
+          </TooltipContent>
+        </Tooltip>
         {CANVAS_NOISE_TYPE_OPTIONS.map(({ id, label, description }) => (
           <Tooltip key={id}>
             <TooltipTrigger asChild>
               <button
                 type="button"
                 role="radio"
-                aria-checked={value === id}
+                aria-checked={!noneSelected && value === id}
                 aria-label={`${label}: ${description}`}
                 onClick={() => onChange(id)}
-                className={cn(
-                  "min-h-8 rounded-lg border px-0.5 py-1.5 text-center text-[11px] font-medium leading-tight transition-colors",
-                  value === id
-                    ? "border-zinc-500 bg-zinc-800 text-white shadow-sm"
-                    : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:bg-zinc-900 hover:text-zinc-200"
-                )}
+                className={optionClass(!noneSelected && value === id)}
               >
                 {label}
               </button>
@@ -322,10 +350,6 @@ function NoiseBlendModeDropdown({
   );
 }
 
-/** When opening an accordion with intensity 0, apply this so the effect is visible. */
-const EFFECT_EXPAND_DEFAULT_NOISE = 25;
-const EFFECT_EXPAND_DEFAULT_BLUR = 20;
-
 function CanvasEffectSliderRow({
   id,
   label,
@@ -401,6 +425,7 @@ const MODES: {
   { id: "transparent", label: "Transparency", Icon: Grid3x3 },
   { id: "solid", label: "Solid", Icon: PaintBucket },
   { id: "image", label: "Image", Icon: ImageIcon },
+  { id: "template", label: "Template", Icon: LayoutPanelTop },
 ];
 
 export function CanvasBackgroundControls() {
@@ -436,27 +461,11 @@ export function CanvasBackgroundControls() {
   }, [canvasBlurPercent]);
 
   function toggleNoiseSection() {
-    if (noiseSectionOpen) {
-      setNoiseSectionOpen(false);
-      setCanvasNoisePercent(0);
-    } else {
-      if (canvasNoisePercent === 0) {
-        setCanvasNoisePercent(EFFECT_EXPAND_DEFAULT_NOISE);
-      }
-      setNoiseSectionOpen(true);
-    }
+    setNoiseSectionOpen((open) => !open);
   }
 
   function toggleBlurSection() {
-    if (blurSectionOpen) {
-      setBlurSectionOpen(false);
-      setCanvasBlurPercent(0);
-    } else {
-      if (canvasBlurPercent === 0) {
-        setCanvasBlurPercent(EFFECT_EXPAND_DEFAULT_BLUR);
-      }
-      setBlurSectionOpen(true);
-    }
+    setBlurSectionOpen((open) => !open);
   }
 
   return (
@@ -600,9 +609,9 @@ export function CanvasBackgroundControls() {
           )}
         </div>
       ) : null}
-    </div>
 
-    <CanvasBackgroundTemplatesSection />
+      {mode === "template" ? <CanvasBackgroundTemplatesSection /> : null}
+    </div>
 
     <div className="space-y-2 pt-1">
       <span className="block text-xs font-medium text-zinc-400">Effects</span>
@@ -613,7 +622,6 @@ export function CanvasBackgroundControls() {
           Icon={Sparkles}
           open={noiseSectionOpen}
           onToggle={toggleNoiseSection}
-          openTrailingIcon="remove"
         >
           <CanvasEffectSliderRow
             id="canvas-effect-noise"
@@ -625,20 +633,29 @@ export function CanvasBackgroundControls() {
           />
           <CanvasNoiseTypePicker
             value={canvasNoiseType}
-            onChange={setCanvasNoiseType}
+            onChange={(id) => {
+              setCanvasNoiseType(id);
+              if (canvasNoisePercent === 0) {
+                setCanvasNoisePercent(NOISE_TYPE_ACTIVATE_PERCENT);
+              }
+            }}
+            noneSelected={canvasNoisePercent === 0}
+            onSelectNone={() => setCanvasNoisePercent(0)}
           />
-          <div className="flex min-h-0 items-center gap-2">
-            <div className="min-w-0 flex-1">
-              <NoiseColorCompactRow
-                color={canvasNoiseColor}
-                onColorChange={setCanvasNoiseColor}
+          {canvasNoisePercent > 0 ? (
+            <div className="flex min-h-0 items-center gap-2">
+              <div className="min-w-0 flex-1">
+                <NoiseColorCompactRow
+                  color={canvasNoiseColor}
+                  onColorChange={setCanvasNoiseColor}
+                />
+              </div>
+              <NoiseBlendModeDropdown
+                value={canvasNoiseBlendMode}
+                onChange={setCanvasNoiseBlendMode}
               />
             </div>
-            <NoiseBlendModeDropdown
-              value={canvasNoiseBlendMode}
-              onChange={setCanvasNoiseBlendMode}
-            />
-          </div>
+          ) : null}
         </EffectAccordionSection>
         <EffectAccordionSection
           sectionId="canvas-effect-blur"
@@ -646,7 +663,6 @@ export function CanvasBackgroundControls() {
           Icon={Droplet}
           open={blurSectionOpen}
           onToggle={toggleBlurSection}
-          openTrailingIcon="remove"
         >
           <CanvasEffectSliderRow
             id="canvas-effect-blur"

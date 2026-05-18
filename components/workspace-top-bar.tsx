@@ -203,7 +203,10 @@ export function WorkspaceTopBar({
         }),
       };
 
-      const trimmedGradient = canvasGradientTemplateId?.trim();
+      const trimmedGradient =
+        canvasBackgroundMode === "template"
+          ? canvasGradientTemplateId?.trim()
+          : null;
       const gradientPayload =
         trimmedGradient != null && trimmedGradient !== ""
           ? {
@@ -256,6 +259,12 @@ export function WorkspaceTopBar({
             ...effectsPayload,
           };
         }
+      } else if (canvasBackgroundMode === "template") {
+        canvasBackgroundFromFrame = {
+          mode: "template",
+          ...gradientPayload,
+          ...effectsPayload,
+        };
       }
 
       const aspectPresetRoot =

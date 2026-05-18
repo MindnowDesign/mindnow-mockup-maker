@@ -7,7 +7,11 @@ import {
 import type { CanvasNoiseBlendModeId } from "./mockup-noise-blend";
 import type { CanvasNoiseTypeId } from "./mockup-noise";
 
-export type CanvasBackgroundMode = "transparent" | "solid" | "image";
+export type CanvasBackgroundMode =
+  | "transparent"
+  | "solid"
+  | "image"
+  | "template";
 
 /** Default canvas fill — matches previous fixed orange frame. */
 export const DEFAULT_CANVAS_SOLID_COLOR = "#F28345";
@@ -21,7 +25,7 @@ export const DEFAULT_CANVAS_NOISE_COLOR_OPACITY = 100;
 /** Persisted shape for localStorage / saved projects. */
 export type PersistedCanvasBackground = {
   mode: CanvasBackgroundMode;
-  /** When set, a template layer wins over `mode` fill on the main canvas (see `canvasGradientTemplateToCaptureStyle`). */
+  /** When `mode` is `template`, optional gradient preset id for the canvas fill. */
   gradientTemplateId?: string | null;
   /** Editable fills for `gradient-1` (keys without `--`, e.g. `cbg-base`). */
   gradientFillHex?: Record<string, string> | null;
@@ -49,12 +53,15 @@ export function persistedCanvasBackgroundToPeekStyle(
   if (bg == null || !bg.mode) {
     return { backgroundColor: DEFAULT_CANVAS_SOLID_COLOR };
   }
-  const gradientPeek = canvasGradientTemplateToPeekBackgroundStyle(
-    bg.gradientTemplateId ?? null,
-    "100%"
-  );
-  if (gradientPeek) {
-    return gradientPeek;
+  if (bg.mode === "template") {
+    const gradientPeek = canvasGradientTemplateToPeekBackgroundStyle(
+      bg.gradientTemplateId ?? null,
+      "100%"
+    );
+    if (gradientPeek) {
+      return gradientPeek;
+    }
+    return checkerboardBackgroundStyle();
   }
   if (bg.mode === "transparent") {
     return checkerboardBackgroundStyle();
