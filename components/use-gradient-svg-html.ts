@@ -1,12 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 
 import { getCanvasGradientTemplateById } from "@/lib/canvas-background-gradient-templates";
+import {
+  ensureGradientSvgCached,
+  getCachedGradientSvgHtml,
+  subscribeGradientSvgCache,
+} from "@/lib/gradient-svg-cache";
 
 /**
- * Fetches gradient template SVG markup for inline rendering so parent CSS
- * variables (`--cbg-*`) can drive fills.
+ * Returns cached gradient SVG markup for inline rendering so parent CSS
+ * variables (`--cbg-*`) can drive fills. Shares a module-level cache across
+ * sidebar, canvas, and preloads.
  */
 export function useGradientSvgHtml(
   templateId: string | null | undefined
@@ -17,29 +23,16 @@ export function useGradientSvgHtml(
       ? template.svgPublicPath
       : null;
 
-  const [cache, setCache] = useState<Record<string, string>>({});
+  const html = useSyncExternalStore(
+    subscribeGradientSvgCache,
+    () => getCachedGradientSvgHtml(src),
+    () => null
+  );
 
   useEffect(() => {
     if (!src) return;
-
-    let cancelled = false;
-    fetch(src)
-      .then((r) =>
-        r.ok ? r.text() : Promise.reject(new Error(String(r.status)))
-      )
-      .then((html) => {
-        if (!cancelled) {
-          setCache((prev) => (prev[src] ? prev : { ...prev, [src]: html }));
-        }
-      })
-      .catch(() => {
-        /* keep null until loaded */
-      });
-
-    return () => {
-      cancelled = true;
-    };
+    void ensureGradientSvgCached(src);
   }, [src]);
 
-  return src ? (cache[src] ?? null) : null;
+  return src ? html : null;
 }

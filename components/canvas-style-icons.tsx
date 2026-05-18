@@ -76,6 +76,29 @@ export function StyleNoiseIcon({
 }
 
 /**
+ * Synced from `public/icons/style-organic.svg` (update both when you change the file).
+ */
+export function StyleOrganicIcon({
+  className,
+  ...rest
+}: CanvasStyleIconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={cn("shrink-0", className)}
+      {...rest}
+    >
+      <path
+        d="M12 3C8.5 3 6 5.8 6 9.2C6 10.9 6.7 12.4 7.8 13.5C6.2 14.4 5 16.1 5 18.1C5 20.9 7.5 22.5 10.2 21.8C10.8 22.6 11.8 23 12.9 23C14.8 23 16.4 21.5 16.7 19.6C18.8 19.2 20.5 17.3 20.5 15C20.5 13.1 19.3 11.5 17.6 10.7C18.8 9.5 19.5 7.9 19.5 6.1C19.5 4.2 17.9 3 16.2 3C14.8 3 13.5 3.8 12.8 5.1C12.5 3.9 11.3 3 12 3Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+/**
  * Synced from `public/icons/style-blur.svg` (update both when you change the file).
  */
 export function StyleBlurIcon({

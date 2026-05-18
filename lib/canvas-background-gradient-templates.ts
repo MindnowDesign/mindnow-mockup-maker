@@ -123,6 +123,160 @@ export const CANVAS_GRADIENT_TEMPLATES: CanvasGradientTemplateDefinition[] = [
     svgPublicPath: "/background-templates/gradients/gradient-7.svg",
     inlineSvgWithCssVars: true,
   },
+  {
+    id: "gradient-8",
+    label: "Gradient template 8",
+    previewBackground: previewForTemplate(
+      "gradient-8",
+      "/background-templates/gradients/gradient-8.svg",
+      "rgb(248 248 248)"
+    ),
+    svgPublicPath: "/background-templates/gradients/gradient-8.svg",
+    inlineSvgWithCssVars: true,
+  },
+  {
+    id: "gradient-9",
+    label: "Gradient template 9",
+    previewBackground: previewForTemplate(
+      "gradient-9",
+      "/background-templates/gradients/gradient-9.svg",
+      "rgb(255 255 255)"
+    ),
+    svgPublicPath: "/background-templates/gradients/gradient-9.svg",
+    inlineSvgWithCssVars: true,
+  },
+  {
+    id: "gradient-10",
+    label: "Gradient template 10",
+    previewBackground: previewForTemplate(
+      "gradient-10",
+      "/background-templates/gradients/gradient-10.svg",
+      "rgb(248 248 248)"
+    ),
+    svgPublicPath: "/background-templates/gradients/gradient-10.svg",
+    inlineSvgWithCssVars: true,
+  },
+  {
+    id: "gradient-11",
+    label: "Gradient template 11",
+    previewBackground: previewForTemplate(
+      "gradient-11",
+      "/background-templates/gradients/gradient-11.svg",
+      "rgb(248 248 248)"
+    ),
+    svgPublicPath: "/background-templates/gradients/gradient-11.svg",
+    inlineSvgWithCssVars: true,
+  },
+  {
+    id: "gradient-12",
+    label: "Gradient template 12",
+    previewBackground: previewForTemplate(
+      "gradient-12",
+      "/background-templates/gradients/gradient-12.svg",
+      "rgb(255 255 255)"
+    ),
+    svgPublicPath: "/background-templates/gradients/gradient-12.svg",
+    inlineSvgWithCssVars: true,
+  },
+  {
+    id: "gradient-13",
+    label: "Gradient template 13",
+    previewBackground: previewForTemplate(
+      "gradient-13",
+      "/background-templates/gradients/gradient-13.svg",
+      "rgb(255 255 255)"
+    ),
+    svgPublicPath: "/background-templates/gradients/gradient-13.svg",
+    inlineSvgWithCssVars: true,
+  },
+  {
+    id: "gradient-14",
+    label: "Gradient template 14",
+    previewBackground: previewForTemplate(
+      "gradient-14",
+      "/background-templates/gradients/gradient-14.svg",
+      "rgb(248 248 248)"
+    ),
+    svgPublicPath: "/background-templates/gradients/gradient-14.svg",
+    inlineSvgWithCssVars: true,
+  },
+  {
+    id: "gradient-15",
+    label: "Gradient template 15",
+    previewBackground: previewForTemplate(
+      "gradient-15",
+      "/background-templates/gradients/gradient-15.svg",
+      "rgb(25 8 112)"
+    ),
+    svgPublicPath: "/background-templates/gradients/gradient-15.svg",
+    inlineSvgWithCssVars: true,
+  },
+  {
+    id: "gradient-16",
+    label: "Gradient template 16",
+    previewBackground: previewForTemplate(
+      "gradient-16",
+      "/background-templates/gradients/gradient-16.svg",
+      "rgb(0 25 114)"
+    ),
+    svgPublicPath: "/background-templates/gradients/gradient-16.svg",
+    inlineSvgWithCssVars: true,
+  },
+  {
+    id: "gradient-17",
+    label: "Gradient template 17",
+    previewBackground: previewForTemplate(
+      "gradient-17",
+      "/background-templates/gradients/gradient-17.svg",
+      "rgb(0 201 210)"
+    ),
+    svgPublicPath: "/background-templates/gradients/gradient-17.svg",
+    inlineSvgWithCssVars: true,
+  },
+  {
+    id: "gradient-18",
+    label: "Gradient template 18",
+    previewBackground: previewForTemplate(
+      "gradient-18",
+      "/background-templates/gradients/gradient-18.svg",
+      "rgb(250 193 255)"
+    ),
+    svgPublicPath: "/background-templates/gradients/gradient-18.svg",
+    inlineSvgWithCssVars: true,
+  },
+  {
+    id: "gradient-19",
+    label: "Gradient template 19",
+    previewBackground: previewForTemplate(
+      "gradient-19",
+      "/background-templates/gradients/gradient-19.svg",
+      "rgb(223 12 12)"
+    ),
+    svgPublicPath: "/background-templates/gradients/gradient-19.svg",
+    inlineSvgWithCssVars: true,
+  },
+  {
+    id: "gradient-20",
+    label: "Gradient template 20",
+    previewBackground: previewForTemplate(
+      "gradient-20",
+      "/background-templates/gradients/gradient-20.svg",
+      "rgb(255 209 189)"
+    ),
+    svgPublicPath: "/background-templates/gradients/gradient-20.svg",
+    inlineSvgWithCssVars: true,
+  },
+  {
+    id: "gradient-21",
+    label: "Gradient template 21",
+    previewBackground: previewForTemplate(
+      "gradient-21",
+      "/background-templates/gradients/gradient-21.svg",
+      "rgb(223 12 12)"
+    ),
+    svgPublicPath: "/background-templates/gradients/gradient-21.svg",
+    inlineSvgWithCssVars: true,
+  },
 ];
 
 export function getCanvasGradientTemplateById(

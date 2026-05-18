@@ -1,14 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import { StyleGradientIcon } from "@/components/canvas-style-icons";
+import { useEffect, useState } from "react";
+import { preloadAllCanvasGradientSvgs } from "@/lib/gradient-svg-cache";
+import {
+  StyleGradientIcon,
+  StyleOrganicIcon,
+} from "@/components/canvas-style-icons";
 import { EffectAccordionSection } from "@/components/effect-accordion-section";
 import { useMockupFrame } from "@/components/mockup-frame-context";
 import { CANVAS_GRADIENT_TEMPLATES } from "@/lib/canvas-background-gradient-templates";
 import { cn } from "@/lib/utils";
 
+const templatePreviewGridClass =
+  "grid w-full grid-cols-5 gap-2";
+
 const previewButtonBase = cn(
-  "size-9 shrink-0 overflow-hidden rounded-lg border text-left outline-none transition-colors",
+  "aspect-square w-full min-w-0 overflow-hidden rounded-lg border text-left outline-none transition-colors",
   "focus-visible:ring-2 focus-visible:ring-white/25"
 );
 
@@ -16,6 +23,12 @@ export function CanvasBackgroundTemplatesSection() {
   const { canvasGradientTemplateId, setCanvasGradientTemplateId } =
     useMockupFrame();
   const [gradientOpen, setGradientOpen] = useState(false);
+  const [organicOpen, setOrganicOpen] = useState(false);
+
+  useEffect(() => {
+    if (!gradientOpen) return;
+    preloadAllCanvasGradientSvgs();
+  }, [gradientOpen]);
 
   return (
     <div className="space-y-2 pt-1">
@@ -32,7 +45,7 @@ export function CanvasBackgroundTemplatesSection() {
             <div
               role="radiogroup"
               aria-label="Gradient templates"
-              className="flex min-w-0 flex-wrap items-center gap-2"
+              className={templatePreviewGridClass}
             >
               {CANVAS_GRADIENT_TEMPLATES.map((entry) => {
                 const selected = canvasGradientTemplateId === entry.id;
@@ -59,16 +72,21 @@ export function CanvasBackgroundTemplatesSection() {
                 );
               })}
             </div>
-            {canvasGradientTemplateId ? (
-              <button
-                type="button"
-                onClick={() => setCanvasGradientTemplateId(null)}
-                className="text-xs font-medium text-zinc-500 underline-offset-2 hover:text-zinc-300 hover:underline"
-              >
-                Remove template background
-              </button>
-            ) : null}
           </div>
+        </EffectAccordionSection>
+        <EffectAccordionSection
+          sectionId="canvas-template-organic"
+          label="Organic"
+          Icon={StyleOrganicIcon}
+          open={organicOpen}
+          onToggle={() => setOrganicOpen((o) => !o)}
+          openTrailingIcon="collapse"
+        >
+          <div
+            role="radiogroup"
+            aria-label="Organic templates"
+            className={templatePreviewGridClass}
+          />
         </EffectAccordionSection>
       </div>
     </div>

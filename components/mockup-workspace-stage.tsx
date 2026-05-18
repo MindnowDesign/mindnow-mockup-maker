@@ -16,21 +16,24 @@ import { MockupDeviceFrame } from "@/components/mockup-device-frame";
 import { CanvasGradientFillPaletteBar } from "@/components/canvas-gradient-fill-palette-bar";
 import { useMockupMedia } from "@/components/mockup-media-context";
 import { CanvasBackgroundNoiseOverlay } from "@/components/canvas-background-noise-overlay";
-import { useGradientSvgHtml } from "@/components/use-gradient-svg-html";
+import { CanvasGradientInlineBackground } from "@/components/canvas-gradient-inline-background";
 import { hexToRgb } from "@/lib/color-hex-hsv";
 import { scaledFramePixelSize } from "@/lib/mockup-aspect";
 import { buildFrameShadowBoxShadow } from "@/lib/mockup-frame-shadow";
 import {
   canvasGradientTemplateToCaptureStyle,
+  canvasGradientTemplateToPeekBackgroundStyle,
   getCanvasGradientTemplateById,
 } from "@/lib/canvas-background-gradient-templates";
+import { preloadAllCanvasGradientSvgs } from "@/lib/gradient-svg-cache";
 import { checkerboardBackgroundStyle } from "@/lib/mockup-canvas-background";
 import { getGradientTemplateFillKeys } from "@/lib/canvas-gradient-1-fill";
 import {
   SCREENSHOT_GLASS_LIGHT,
   SCREENSHOT_LIQUID_GLASS,
   SCREENSHOT_OUTLINE,
-  screenshotBorderOutlineOffset,
+  fitScreenshotDimensions,
+  screenshotBorderBoxShadow,
   screenshotEffectiveCornerRadius,
   type ScreenshotBorderPosition,
   type ScreenshotStyleId,
@@ -126,25 +129,17 @@ function UploadedScreenshotImage({
 
   const fitted = useMemo(() => {
     if (!natural || viewport.w < 1 || viewport.h < 1) return null;
-    const s = Math.min(viewport.w / natural.w, viewport.h / natural.h);
-    return {
-      w: Math.max(1, Math.round(natural.w * s)),
-      h: Math.max(1, Math.round(natural.h * s)),
-    };
+    return fitScreenshotDimensions(natural, viewport);
   }, [natural, viewport.w, viewport.h]);
 
-  const borderStyle = useMemo<CSSProperties | undefined>(() => {
-    if (style !== "border") return undefined;
-    if (!border || border.weight <= 0) return undefined;
-    return {
-      outlineStyle: "solid",
-      outlineColor: rgbaFromHex(border.color, border.opacity),
-      outlineWidth: `${border.weight}px`,
-      outlineOffset: `${screenshotBorderOutlineOffset(
-        border.position,
-        border.weight
-      )}px`,
-    };
+  const borderBoxShadow = useMemo(() => {
+    if (style !== "border") return null;
+    if (!border || border.weight <= 0) return null;
+    return screenshotBorderBoxShadow(
+      border.position,
+      border.weight,
+      rgbaFromHex(border.color, border.opacity)
+    );
   }, [border, style]);
 
   const glassFrameStyle = useMemo<CSSProperties | undefined>(() => {
@@ -203,13 +198,20 @@ function UploadedScreenshotImage({
     } else if (style === "outline") {
       inner = { ...base, ...radiusBase };
     } else {
-      inner = { ...base, ...radiusBase, ...borderStyle };
+      inner = { ...base, ...radiusBase };
     }
-    if (mediaBoxShadow) {
-      return { ...inner, boxShadow: mediaBoxShadow };
+    const shadows = [borderBoxShadow, mediaBoxShadow].filter(Boolean);
+    if (shadows.length > 0) {
+      return { ...inner, boxShadow: shadows.join(", ") };
     }
     return inner;
-  }, [fitted, style, borderStyle, effectiveCornerRadius, mediaBoxShadow]);
+  }, [
+    fitted,
+    style,
+    borderBoxShadow,
+    effectiveCornerRadius,
+    mediaBoxShadow,
+  ]);
 
   return (
     <div
@@ -251,10 +253,8 @@ function UploadedScreenshotImage({
               })
             }
             className={cn(
-              "pointer-events-none select-none object-contain",
-              fitted
-                ? "block h-full w-full"
-                : "block h-auto w-auto max-h-full max-w-full"
+              "pointer-events-none block size-full select-none",
+              !fitted && "h-auto w-auto max-h-full max-w-full object-contain"
             )}
           />
         </div>
@@ -430,7 +430,9 @@ export function MockupWorkspaceStage() {
   const activeGradientTemplateId =
     canvasBackgroundMode === "template" ? canvasGradientTemplateId : null;
 
-  const gradientSvgHtml = useGradientSvgHtml(activeGradientTemplateId);
+  useEffect(() => {
+    preloadAllCanvasGradientSvgs();
+  }, []);
 
   const captureSurfaceStyle: CSSProperties = useMemo(() => {
     const base: CSSProperties = { width: "100%", height };
@@ -472,12 +474,6 @@ export function MockupWorkspaceStage() {
     () => (canvasBlurPercent / 100) * 28,
     [canvasBlurPercent]
   );
-
-  const gradientInline =
-    Boolean(
-      getCanvasGradientTemplateById(activeGradientTemplateId)
-        ?.inlineSvgWithCssVars
-    ) && Boolean(gradientSvgHtml);
 
   const gradientCssVarStyle = useMemo((): CSSProperties => {
     const o: CSSProperties = {};
@@ -561,12 +557,16 @@ export function MockupWorkspaceStage() {
    * Blur on a layer that is then clipped to rounded rect can look like a vignette
    * (darker/soft edge). Extra bleed lets the gaussian falloff sit outside the clip.
    */
-  const backgroundBlurLayerStyle: CSSProperties = useMemo(() => {
+  const gradientInlineLoadingFallbackStyle: CSSProperties = useMemo(() => {
+    const peek = canvasGradientTemplateToPeekBackgroundStyle(
+      activeGradientTemplateId,
+      height
+    );
+    const base = peek ?? captureSurfaceStyle;
     const blurPx = backgroundBlurPx;
     const blurFilter = blurPx > 0 ? `blur(${blurPx}px)` : undefined;
     const bleed =
       blurPx > 0 ? Math.min(80, Math.ceil(blurPx * 3) + 20) : 0;
-    const base = { ...captureSurfaceStyle };
 
     if (bleed <= 0) {
       return {
@@ -586,7 +586,12 @@ export function MockupWorkspaceStage() {
       width: `calc(100% + ${bleed * 2}px)`,
       height: `calc(100% + ${bleed * 2}px)`,
     };
-  }, [captureSurfaceStyle, backgroundBlurPx]);
+  }, [
+    activeGradientTemplateId,
+    height,
+    captureSurfaceStyle,
+    backgroundBlurPx,
+  ]);
 
   return (
     <div
@@ -638,18 +643,12 @@ export function MockupWorkspaceStage() {
           aria-hidden
           className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[16px]"
         >
-          {gradientInline ? (
-            <div className="absolute inset-0" style={gradientCssVarStyle}>
-              <div
-                className="[&>svg]:pointer-events-none [&>svg]:block [&>svg]:h-full [&>svg]:w-full"
-                style={gradientInlineBlurLayerStyle}
-                // eslint-disable-next-line react/no-danger
-                dangerouslySetInnerHTML={{ __html: gradientSvgHtml! }}
-              />
-            </div>
-          ) : (
-            <div style={backgroundBlurLayerStyle} />
-          )}
+          <CanvasGradientInlineBackground
+            templateId={activeGradientTemplateId}
+            cssVarStyle={gradientCssVarStyle}
+            blurLayerStyle={gradientInlineBlurLayerStyle}
+            fallback={<div style={gradientInlineLoadingFallbackStyle} />}
+          />
         </div>
         <CanvasBackgroundNoiseOverlay
           strength={canvasNoisePercent / 100}

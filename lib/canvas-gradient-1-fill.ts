@@ -48,6 +48,76 @@ export const GRADIENT_TEMPLATE_FILL_CONFIG: Record<string, GradientTemplateFillC
       "#FF7D45",
       "#FF396A",
     ]),
+    "gradient-8": buildConfig([
+      "#F8F8F8",
+      "#F5B4CA",
+      "#FEAAE6",
+      "#F23861",
+    ]),
+    "gradient-9": buildConfig([
+      "#FFFFFF",
+      "#F0618B",
+      "#FDFF85",
+      "#FF7D45",
+    ]),
+    "gradient-10": buildConfig(["#F8F8F8", "#FEAAE6", "#5C28DF"]),
+    "gradient-11": buildConfig([
+      "#F8F8F8",
+      "#BA1E95",
+      "#062AA9",
+      "#08174A",
+    ]),
+    "gradient-12": buildConfig(["#FFFFFF", "#FF7D45", "#FDFF85"]),
+    "gradient-13": buildConfig([
+      "#FFFFFF",
+      "#FF7D45",
+      "#F585FF",
+      "#F0618B",
+    ]),
+    "gradient-14": buildConfig([
+      "#F8F8F8",
+      "#CAE4C0",
+      "#AAE6D9",
+      "#00C9D2",
+    ]),
+    "gradient-15": buildConfig([
+      "#190870",
+      "#030D31",
+      "#062AA9",
+      "#08174A",
+    ]),
+    "gradient-16": buildConfig([
+      "#001972",
+      "#DF0C0C",
+      "#FF7D45",
+      "#FDFF85",
+    ]),
+    "gradient-17": buildConfig([
+      "#00C9D2",
+      "#FFB65D",
+      "#FF7D45",
+      "#FDFF85",
+    ]),
+    "gradient-18": buildConfig([
+      "#FAC1FF",
+      "#F238CD",
+      "#FF7D45",
+      "#FDFF85",
+    ]),
+    "gradient-19": buildConfig(["#DF0C0C", "#F585FF", "#F128E0"]),
+    "gradient-20": buildConfig([
+      "#FFD1BD",
+      "#FF7D45",
+      "#FFF087",
+      "#DAAFC9",
+    ]),
+    "gradient-21": buildConfig([
+      "#DF0C0C",
+      "#FF7D45",
+      "#FF85B2",
+      "#FFFAFC",
+      "#F585FF",
+    ]),
   };
 
 /** @deprecated Use per-template keys from `getGradientTemplateFillKeys()` */

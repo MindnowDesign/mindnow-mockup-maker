@@ -214,6 +214,7 @@ export function clampScreenshotBorderOpacity(
 /**
  * Outline offset used to align the stroke against the inner / center / outer
  * edge of the screenshot, while keeping a single `outline` declaration.
+ * @deprecated Prefer `screenshotBorderBoxShadow` — outline ignores border-radius.
  */
 export function screenshotBorderOutlineOffset(
   position: ScreenshotBorderPosition,
@@ -222,4 +223,44 @@ export function screenshotBorderOutlineOffset(
   if (position === "outside") return 0;
   if (position === "center") return -weight / 2;
   return -weight;
+}
+
+/**
+ * Box dimensions for `object-contain` inside a viewport while preserving the
+ * bitmap aspect ratio (rounding width and height independently causes ~1px gaps).
+ */
+export function fitScreenshotDimensions(
+  natural: { w: number; h: number },
+  viewport: { w: number; h: number }
+): { w: number; h: number } {
+  const s = Math.min(viewport.w / natural.w, viewport.h / natural.h);
+  const ar = natural.w / natural.h;
+  let w = Math.round(natural.w * s);
+  let h = Math.round(natural.h * s);
+  if (w / h > ar) {
+    w = Math.max(1, Math.round(h * ar));
+  } else if (w / h < ar) {
+    h = Math.max(1, Math.round(w / ar));
+  }
+  return {
+    w: Math.min(viewport.w, Math.max(1, w)),
+    h: Math.min(viewport.h, Math.max(1, h)),
+  };
+}
+
+/** Border stroke that follows `border-radius` (unlike CSS `outline`). */
+export function screenshotBorderBoxShadow(
+  position: ScreenshotBorderPosition,
+  weight: number,
+  color: string
+): string {
+  if (weight <= 0) return "none";
+  if (position === "inside") {
+    return `inset 0 0 0 ${weight}px ${color}`;
+  }
+  if (position === "center") {
+    const half = weight / 2;
+    return `inset 0 0 0 ${half}px ${color}, 0 0 0 ${half}px ${color}`;
+  }
+  return `0 0 0 ${weight}px ${color}`;
 }
