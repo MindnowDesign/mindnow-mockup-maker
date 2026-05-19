@@ -18,7 +18,15 @@ import {
   WORKSPACE_HYDRATED_EVENT,
   type WorkspaceHydratedDetail,
 } from "@/lib/project-workspace";
+import { backfillVisualThumbnails } from "@/lib/backfill-visual-thumbnails";
 import { captureMockupPreview } from "@/lib/capture-mockup-preview";
+import { frameMatchesVisualPrefs } from "@/lib/frame-matches-visual-prefs";
+import {
+  preloadAllCanvasGradientSvgs,
+  preloadAllCanvasWaveSvgs,
+} from "@/lib/gradient-svg-cache";
+import { isCanvasOrganicTemplateId } from "@/lib/canvas-background-organic-templates";
+import { preloadOrganicTemplateId } from "@/lib/organic-image-cache";
 import type { PersistedCanvasBackground } from "@/lib/mockup-canvas-background";
 import {
   DEFAULT_CANVAS_NOISE_COLOR,
@@ -31,6 +39,7 @@ import {
   DEFAULT_CANVAS_NOISE_TYPE,
 } from "@/lib/mockup-noise";
 import { resourceUrlToDataUrl } from "@/lib/resource-to-data-url";
+import { applyVisualUpdatedAt } from "@/lib/apply-visual-updated-at";
 import { serializeMockupMediaForSave } from "@/lib/serialize-mockup-media";
 import {
   getSavedProject,
@@ -94,8 +103,13 @@ export function WorkspaceTopBar({
     screenshotCornerType,
     screenshotCornerRadius,
   } = frame;
-  const { library, visuals, activeVisualId, visualWorkspacePrefs } =
-    useMockupMedia();
+  const {
+    library,
+    visuals,
+    activeVisualId,
+    visualWorkspacePrefs,
+    setActiveVisualId,
+  } = useMockupMedia();
   const { title, setTitle } = useProjectWorkspaceTitle();
   const fallbackTitle = getWorkspaceTitle(pathname);
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -103,6 +117,38 @@ export function WorkspaceTopBar({
   const persistInFlightRef = useRef(false);
   const persistQueuedRef = useRef(false);
   const persistPendingCaptureRef = useRef(false);
+  const backfillingThumbsRef = useRef(false);
+  const backfillAbortRef = useRef(false);
+  const pathnameRef = useRef(pathname);
+  pathnameRef.current = pathname;
+
+  const frameCaptureRef = useRef({
+    aspectPreset,
+    canvasBackgroundMode,
+    canvasSolidColor,
+    canvasGradientTemplateId,
+    deviceTemplateId,
+  });
+  frameCaptureRef.current = {
+    aspectPreset,
+    canvasBackgroundMode,
+    canvasSolidColor,
+    canvasGradientTemplateId,
+    deviceTemplateId,
+  };
+  const activeVisualIdRef = useRef(activeVisualId);
+  activeVisualIdRef.current = activeVisualId;
+  const visualWorkspacePrefsRef = useRef(visualWorkspacePrefs);
+  visualWorkspacePrefsRef.current = visualWorkspacePrefs;
+
+  useEffect(() => {
+    backfillAbortRef.current = false;
+    return () => {
+      backfillAbortRef.current = true;
+      backfillingThumbsRef.current = false;
+      persistPendingCaptureRef.current = false;
+    };
+  }, [pathname]);
 
   useEffect(() => {
     setHydrationReady(false);
@@ -140,7 +186,7 @@ export function WorkspaceTopBar({
 
     persistPendingCaptureRef.current = false;
 
-    const segment = getProjectsWorkspaceSegment(pathname);
+    const segment = getProjectsWorkspaceSegment(pathnameRef.current);
     if (!segment) return;
 
     persistInFlightRef.current = true;
@@ -191,6 +237,66 @@ export function WorkspaceTopBar({
       if (serialized.activeVisualId && captured) {
         mergedThumbs[serialized.activeVisualId] = captured;
       }
+
+      const focusVisualIdAtPersistStart = activeVisualId;
+
+      const canBackfillThumbs =
+        shouldCapture &&
+        serialized.visualSlots.length > 0 &&
+        !backfillAbortRef.current &&
+        getProjectsWorkspaceSegment(pathnameRef.current) != null;
+
+      if (canBackfillThumbs) {
+        preloadAllCanvasGradientSvgs();
+        preloadAllCanvasWaveSvgs();
+        for (const slot of serialized.visualSlots) {
+          const prefs = resolveVisualPrefsForSave(
+            slot.id,
+            activeVisualId,
+            visualWorkspacePrefs,
+            frame
+          );
+          const templateId = prefs.canvasBackground?.gradientTemplateId;
+          if (templateId && isCanvasOrganicTemplateId(templateId)) {
+            preloadOrganicTemplateId(templateId);
+          }
+        }
+
+        backfillingThumbsRef.current = true;
+        try {
+          mergedThumbs = await backfillVisualThumbnails({
+            visualSlotIds: serialized.visualSlots.map((s) => s.id),
+            thumbs: mergedThumbs,
+            justCapturedVisualId: serialized.activeVisualId,
+            justCapturedDataUrl: captured,
+            activeVisualId: focusVisualIdAtPersistStart,
+            switchToVisual: setActiveVisualId,
+            getCaptureElement: () =>
+              document.querySelector<HTMLElement>(
+                "[data-mockup-capture-target]"
+              ),
+            isFrameSyncedForVisual: (visualId) => {
+              if (activeVisualIdRef.current !== visualId) return false;
+              return frameMatchesVisualPrefs(
+                frameCaptureRef.current,
+                visualWorkspacePrefsRef.current[visualId]
+              );
+            },
+            gradientTemplateIdForVisual: (visualId) => {
+              const bg =
+                visualWorkspacePrefsRef.current[visualId]?.canvasBackground;
+              if (bg?.mode !== "template") return null;
+              return bg.gradientTemplateId ?? null;
+            },
+            shouldAbort: () =>
+              backfillAbortRef.current ||
+              getProjectsWorkspaceSegment(pathnameRef.current) == null,
+          });
+        } finally {
+          backfillingThumbsRef.current = false;
+        }
+      }
+
       for (const id of Object.keys(mergedThumbs)) {
         if (!slotIds.has(id)) delete mergedThumbs[id];
       }
@@ -336,12 +442,19 @@ export function WorkspaceTopBar({
           : undefined;
 
       const resolvedTitle = title.trim() || fallbackTitle;
+      const savedAt = Date.now();
+      const visualSlotsWithTimestamps = applyVisualUpdatedAt(
+        serialized.visualSlots,
+        serialized.activeVisualId,
+        disk,
+        savedAt
+      );
 
       try {
         upsertSavedProject({
           id: projectId,
           title: resolvedTitle,
-          updatedAt: Date.now(),
+          updatedAt: savedAt,
           previewDataUrl,
           ...(Object.keys(mergedThumbs).length > 0
             ? { previewThumbByVisualId: mergedThumbs }
@@ -349,9 +462,9 @@ export function WorkspaceTopBar({
           ...(previewDataUrls.length > 0 ? { previewDataUrls } : {}),
           aspectPreset: aspectPresetRoot,
           canvasBackground: canvasBackgroundRoot,
-          visualCount: serialized.visualSlots.length,
+          visualCount: visualSlotsWithTimestamps.length,
           mediaItems: serialized.mediaItems,
-          visualSlots: serialized.visualSlots,
+          visualSlots: visualSlotsWithTimestamps,
           activeVisualId: serialized.activeVisualId,
           activeMediaId: serialized.activeVisualId,
           ...(prefsPayload ? { visualWorkspacePrefs: prefsPayload } : {}),
@@ -367,14 +480,16 @@ export function WorkspaceTopBar({
           upsertSavedProject({
             id: projectId,
             title: resolvedTitle,
-            updatedAt: Date.now(),
+            updatedAt: savedAt,
             previewDataUrl,
             ...(Object.keys(mergedThumbs).length > 0
               ? { previewThumbByVisualId: mergedThumbs }
               : {}),
             ...(previewDataUrls.length > 0 ? { previewDataUrls } : {}),
             aspectPreset: aspectPresetRoot,
-            visualCount: serialized.visualSlots.length,
+            visualCount: visualSlotsWithTimestamps.length,
+            visualSlots: visualSlotsWithTimestamps,
+            activeVisualId: serialized.activeVisualId,
             ...(prefsPayload ? { visualWorkspacePrefs: prefsPayload } : {}),
           });
         } else {
@@ -423,6 +538,7 @@ export function WorkspaceTopBar({
     visuals,
     activeVisualId,
     visualWorkspacePrefs,
+    setActiveVisualId,
     title,
     fallbackTitle,
     frame,
@@ -467,6 +583,8 @@ export function WorkspaceTopBar({
     if (!hydrationReady) return;
     const segment = getProjectsWorkspaceSegment(pathname);
     if (!segment) return;
+
+    if (backfillingThumbsRef.current) return;
 
     const visualSwitched = prevActiveVisualIdRef.current !== activeVisualId;
     prevActiveVisualIdRef.current = activeVisualId;

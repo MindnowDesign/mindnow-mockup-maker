@@ -26,6 +26,12 @@ export function getProjectsWorkspaceSegment(pathname: string): string | null {
   return m?.[1] ?? null;
 }
 
+/** `?visual=` on `/projects/:id` — open that canvas slot after hydrate. */
+export function getRequestedVisualIdFromSearch(search: string): string | null {
+  const id = new URLSearchParams(search).get("visual")?.trim();
+  return id && id.length > 0 ? id : null;
+}
+
 /** Title shown in the workspace top bar from the current path. */
 export function getWorkspaceTitle(pathname: string): string {
   const m = normalizePathname(pathname).match(/^\/projects\/([^/]+)$/);

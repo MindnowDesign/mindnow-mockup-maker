@@ -16,6 +16,8 @@ export type SavedVisualSlot = {
   id: string;
   mediaId: string | null;
   label?: string;
+  /** Last time this visual was edited (autosave); falls back to project `updatedAt`. */
+  updatedAt?: number;
 };
 
 export type SavedProject = {

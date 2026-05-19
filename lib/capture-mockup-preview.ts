@@ -12,7 +12,13 @@ function flushPaint(): Promise<void> {
  *
  * Does not force a flat underlay color so saved thumbnails match customized backgrounds.
  */
-export async function captureMockupPreview(el: HTMLElement): Promise<string> {
+const DEFAULT_PREVIEW_TARGET_MAX_SIDE = 480;
+
+export async function captureMockupPreview(
+  el: HTMLElement,
+  options?: { targetMaxSide?: number }
+): Promise<string> {
+  const targetMaxSide = options?.targetMaxSide ?? DEFAULT_PREVIEW_TARGET_MAX_SIDE;
   try {
     el.scrollIntoView({ block: "nearest", inline: "nearest" });
   } catch {
@@ -25,7 +31,7 @@ export async function captureMockupPreview(el: HTMLElement): Promise<string> {
 
   const maxSide = Math.max(el.offsetWidth, el.offsetHeight, 1);
   /** Readable card thumbnail without huge files — keeps localStorage happy. */
-  const pixelRatio = Math.min(2, Math.max(1, 720 / maxSide));
+  const pixelRatio = Math.min(2, Math.max(1, targetMaxSide / maxSide));
 
   const { toPng, toCanvas } = await import("html-to-image");
 

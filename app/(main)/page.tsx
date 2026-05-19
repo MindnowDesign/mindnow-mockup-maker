@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 import { ProjectCardsGrid } from "@/components/project-cards-grid";
-import { RecentVisualCard } from "@/components/recent-visual-card";
+import { RecentVisualsGrid } from "@/components/recent-visuals-grid";
 
 /** Hero — `public/images/hero_image.png`. */
 const HERO_IMAGE = "/images/hero_image.png";
@@ -42,24 +42,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <RecentVisualCard
-              title="Hero mockup"
-              editedLabel="Edited 1 hour ago"
-            />
-            <RecentVisualCard
-              title="Checkout flow"
-              editedLabel="Edited yesterday"
-            />
-            <RecentVisualCard
-              title="Settings panel"
-              editedLabel="Edited 3 days ago"
-            />
-            <RecentVisualCard
-              title="Onboarding tour"
-              editedLabel="Edited last week"
-            />
-          </div>
+          <RecentVisualsGrid />
         </section>
 
         <section

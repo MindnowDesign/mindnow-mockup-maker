@@ -9,6 +9,7 @@ import type { VisualWorkspacePrefs } from "@/lib/mockup-workspace-snapshot";
 import { getSavedProject } from "@/lib/saved-projects";
 import {
   getProjectsWorkspaceSegment,
+  getRequestedVisualIdFromSearch,
   skipHydrateSessionStorageKey,
   WORKSPACE_HYDRATED_EVENT,
   type WorkspaceHydratedDetail,
@@ -70,13 +71,23 @@ export function ProjectWorkspaceHydrate() {
 
     const saved = getSavedProject(segment);
     if (saved) {
-      /** Opening a project always starts on the first canvas (same order as the visuals strip). */
+      const slotIds = new Set(
+        (saved.visualSlots ?? saved.mediaItems ?? []).map((s) => s.id)
+      );
       const firstVisualId =
         saved.visualSlots?.[0]?.id ?? saved.mediaItems?.[0]?.id ?? null;
+      const requestedVisualId =
+        typeof window !== "undefined"
+          ? getRequestedVisualIdFromSearch(window.location.search)
+          : null;
+      const activeVisualId =
+        requestedVisualId && slotIds.has(requestedVisualId)
+          ? requestedVisualId
+          : firstVisualId;
 
       const perVisual: VisualWorkspacePrefs | undefined =
-        firstVisualId != null
-          ? saved.visualWorkspacePrefs?.[firstVisualId]
+        activeVisualId != null
+          ? saved.visualWorkspacePrefs?.[activeVisualId]
           : undefined;
       const projectFrameSeed: VisualWorkspacePrefs = {
         aspectPreset: saved.aspectPreset,
@@ -93,7 +104,7 @@ export function ProjectWorkspaceHydrate() {
       hydrateFromSaved({
         mediaItems: saved.mediaItems,
         visualSlots: saved.visualSlots,
-        activeVisualId: firstVisualId,
+        activeVisualId,
         projectFrameSeed,
         visualWorkspacePrefs: saved.visualWorkspacePrefs ?? null,
       });

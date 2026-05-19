@@ -9,6 +9,7 @@ import {
   DEFAULT_CANVAS_NOISE_COLOR_OPACITY,
   persistedCanvasBackgroundToPeekStyle,
 } from "@/lib/mockup-canvas-background";
+import { canvasBackgroundBlurLayerStyles } from "@/lib/canvas-background-blur-layer";
 import { parseCanvasNoiseType } from "@/lib/mockup-noise";
 import { parseCanvasNoiseBlendMode } from "@/lib/mockup-noise-blend";
 
@@ -40,16 +41,9 @@ export function VisualCanvasPeekBackground({
     [persisted?.blurPercent]
   );
 
-  const blurLayerStyle: CSSProperties = useMemo(
-    () => ({
-      ...baseStyle,
-      position: "absolute",
-      inset: 0,
-      width: "100%",
-      height: "100%",
-      ...(blurPx > 0 ? { filter: `blur(${blurPx}px)` } : {}),
-    }),
-    [baseStyle, blurPx]
+  const blurLayers = useMemo(
+    () => canvasBackgroundBlurLayerStyles(blurPx),
+    [blurPx]
   );
 
   const noiseStrength = clampPercent(persisted?.noisePercent) / 100;
@@ -70,13 +64,27 @@ export function VisualCanvasPeekBackground({
 
   const blendMode = parseCanvasNoiseBlendMode(persisted?.noiseBlendMode);
 
+  const fillStyle: CSSProperties = useMemo(
+    () => ({
+      ...blurLayers.content,
+      ...baseStyle,
+      width: "100%",
+      height: "100%",
+    }),
+    [blurLayers.content, baseStyle]
+  );
+
   return (
     <>
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 overflow-hidden rounded-[3px]"
       >
-        <div style={blurLayerStyle} />
+        <div style={blurLayers.container}>
+          <div style={blurLayers.shell}>
+            <div style={fillStyle} />
+          </div>
+        </div>
       </div>
       <CanvasBackgroundNoiseOverlay
         strength={noiseStrength}
