@@ -121,6 +121,8 @@ export function WorkspaceTopBar({
   const backfillAbortRef = useRef(false);
   const pathnameRef = useRef(pathname);
   pathnameRef.current = pathname;
+  /** One id for all autosaves on `/projects/new` (avoids duplicate projects per save). */
+  const pendingNewProjectIdRef = useRef<string | null>(null);
 
   const frameCaptureRef = useRef({
     aspectPreset,
@@ -148,6 +150,15 @@ export function WorkspaceTopBar({
       backfillingThumbsRef.current = false;
       persistPendingCaptureRef.current = false;
     };
+  }, [pathname]);
+
+  useEffect(() => {
+    const segment = getProjectsWorkspaceSegment(pathname);
+    if (segment === "new") {
+      pendingNewProjectIdRef.current ??= crypto.randomUUID();
+    } else {
+      pendingNewProjectIdRef.current = null;
+    }
   }, [pathname]);
 
   useEffect(() => {
@@ -193,7 +204,10 @@ export function WorkspaceTopBar({
     persistQueuedRef.current = false;
 
     try {
-      const projectId = segment === "new" ? crypto.randomUUID() : segment;
+      const projectId =
+        segment === "new"
+          ? (pendingNewProjectIdRef.current ??= crypto.randomUUID())
+          : segment;
 
       const serialized = await serializeMockupMediaForSave(
         library,

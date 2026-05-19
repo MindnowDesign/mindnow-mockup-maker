@@ -33,7 +33,7 @@ export function RecentVisualCard({
   return (
     <Card
       className={cn(
-        "relative flex h-full min-h-0 min-w-0 flex-col gap-0 overflow-hidden py-0 ring-zinc-800/80 transition-shadow hover:shadow-md",
+        "relative flex h-full w-full min-h-0 flex-col gap-0 overflow-hidden py-0 ring-0 border border-zinc-800/80 transition-colors hover:border-zinc-600/90",
         className
       )}
     >

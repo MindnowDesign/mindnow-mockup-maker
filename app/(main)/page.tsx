@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 import { ProjectCardsGrid } from "@/components/project-cards-grid";
-import { RecentVisualsGrid } from "@/components/recent-visuals-grid";
+import { RecentVisualsSection } from "@/components/recent-visuals-section";
 
 /** Hero — `public/images/hero_image.png`. */
 const HERO_IMAGE = "/images/hero_image.png";
@@ -26,24 +26,7 @@ export default function Home() {
       </header>
 
       <div className="w-full flex-1 space-y-[72px] px-[72px] py-10">
-        <section
-          aria-labelledby="recent-visuals-heading"
-          className="flex flex-col gap-8"
-        >
-          <div className="flex flex-col gap-2">
-            <h1
-              id="recent-visuals-heading"
-              className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
-            >
-              Recent visuals
-            </h1>
-            <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
-              Screenshots and exports you have worked on recently will show up here.
-            </p>
-          </div>
-
-          <RecentVisualsGrid />
-        </section>
+        <RecentVisualsSection />
 
         <section
           aria-labelledby="projects-heading"

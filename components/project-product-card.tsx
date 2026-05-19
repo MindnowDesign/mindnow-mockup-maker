@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, MoreHorizontal, Trash2 } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import { ProjectCardSlidePreview } from "@/components/project-card-slide-preview";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type { ProjectCardPreviewSlide } from "@/lib/project-card-preview-slides";
 import {
   deleteSavedProject,
   notifySavedProjectsChanged,
@@ -36,8 +38,10 @@ export type ProjectProductCardProps = {
   href?: string;
   /** Last saved canvas preview (often a PNG data URL). */
   previewSrc?: string | null;
-  /** Optional list of previews (one per visual); enables hover arrows when length > 1. */
+  /** @deprecated Prefer `previewSlides` — one entry per visual slot. */
   previewSrcs?: string[] | null;
+  /** One slide per visual (workspace order); enables hover arrows when length > 1. */
+  previewSlides?: ProjectCardPreviewSlide[];
   /** When set, shows the overflow menu (e.g. delete). */
   projectId?: string;
 };
@@ -54,29 +58,44 @@ export function ProjectProductCard({
   href,
   previewSrc,
   previewSrcs,
+  previewSlides,
   projectId,
 }: ProjectProductCardProps) {
   const router = useRouter();
   const pathname = usePathname();
   const visualBadgeLabel = `${visualCount} ${visualCount === 1 ? "visual" : "visuals"} in this project`;
 
-  const previewSources = useMemo(() => {
-    const list = previewSrcs?.filter((u) => u && u.length > 0) ?? [];
-    if (list.length > 0) return list;
-    return previewSrc ? [previewSrc] : [];
-  }, [previewSrcs, previewSrc]);
+  const slides = useMemo((): ProjectCardPreviewSlide[] => {
+    if (previewSlides?.length) return previewSlides;
+    const legacyUrls = previewSrcs?.filter((u) => u && u.length > 0) ?? [];
+    const urls =
+      legacyUrls.length > 0
+        ? legacyUrls
+        : previewSrc
+          ? [previewSrc]
+          : [];
+    return urls.map((captureSrc, i) => ({
+      visualId: `legacy-${i}`,
+      captureSrc,
+      canvasBackground: null,
+      mediaDataUrl: null,
+    }));
+  }, [previewSlides, previewSrcs, previewSrc]);
 
   const [previewIdx, setPreviewIdx] = useState(0);
-  const n = previewSources.length;
-  const displayPreviewSrc =
-    n > 0 ? previewSources[((previewIdx % n) + n) % n]! : null;
-  const showPreviewSwitcher =
-    visualCount > 1 && previewSources.length > 1;
+  const n = slides.length;
+  const activeSlide =
+    n > 0 ? slides[((previewIdx % n) + n) % n]! : null;
+  const showPreviewSwitcher = slides.length > 1;
+  const previewPageLabel =
+    slides.length > 1
+      ? `Preview ${previewIdx + 1} of ${slides.length}`
+      : undefined;
 
   const card = (
     <Card
       className={cn(
-        "group/card flex h-full min-h-0 flex-col gap-0 overflow-hidden py-0 ring-zinc-800/80 transition-shadow hover:shadow-md",
+        "group/card flex h-full min-h-0 flex-col gap-0 overflow-hidden py-0 ring-0 border border-zinc-800/80 transition-colors hover:border-zinc-600/90",
         href && "relative",
         className
       )}
@@ -97,13 +116,10 @@ export function ProjectProductCard({
       >
         <div className="relative aspect-[4/3] w-full shrink-0 bg-zinc-950">
           <div className="absolute inset-0 flex items-center justify-center p-6 md:p-8">
-            {displayPreviewSrc ? (
-              // eslint-disable-next-line @next/next/no-img-element -- PNG data URLs from saved projects; layout needs object-contain like design reference
-              <img
-                src={displayPreviewSrc}
-                alt=""
-                className="max-h-full max-w-full object-contain object-center rounded-[8px]"
-                draggable={false}
+            {activeSlide ? (
+              <ProjectCardSlidePreview
+                slide={activeSlide}
+                pageLabel={previewPageLabel}
               />
             ) : (
               <span className="sr-only">Project preview placeholder image</span>
