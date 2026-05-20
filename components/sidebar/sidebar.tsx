@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ComponentProps } from "react";
 
+import { scrollbarSubtleClass } from "@/lib/scrollbar-classes";
 import { cn } from "@/lib/utils";
 
 export function Sidebar({ className, ...props }: ComponentProps<"aside">) {
@@ -24,6 +25,7 @@ export function SidebarBody({ className, ...props }: ComponentProps<"div">) {
     <div
       className={cn(
         "flex min-h-0 flex-1 flex-col overflow-y-auto px-2 pb-2 pt-2",
+        scrollbarSubtleClass,
         className
       )}
       {...props}

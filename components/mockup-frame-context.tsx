@@ -17,6 +17,7 @@ import type {
   PersistedCanvasBackground,
 } from "@/lib/mockup-canvas-background";
 import { isValidCanvasBackgroundTemplateId } from "@/lib/canvas-background-template-id";
+import { isCanvasOverlayShadowTemplateId } from "@/lib/canvas-overlay-shadow-templates";
 import {
   normalizeGradientBlendModesByTemplate,
   normalizeTemplateFillBlendModes,
@@ -35,6 +36,7 @@ import {
 import {
   DEFAULT_CANVAS_NOISE_COLOR,
   DEFAULT_CANVAS_NOISE_COLOR_OPACITY,
+  DEFAULT_CANVAS_OVERLAY_SHADOW_OPACITY,
   DEFAULT_CANVAS_SOLID_COLOR,
 } from "@/lib/mockup-canvas-background";
 import type { CanvasNoiseBlendModeId } from "@/lib/mockup-noise-blend";
@@ -126,6 +128,10 @@ type MockupFrameContextValue = {
   setCanvasNoiseBlendModePreview: (
     id: CanvasNoiseBlendModeId | null
   ) => void;
+  canvasOverlayShadowId: string | null;
+  setCanvasOverlayShadowId: (id: string | null) => void;
+  canvasOverlayShadowOpacity: number;
+  setCanvasOverlayShadowOpacity: (value: number) => void;
   hydrateCanvasBackground: (
     payload: PersistedCanvasBackground | null | undefined
   ) => void;
@@ -238,6 +244,11 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
     useState<CanvasNoiseBlendModeId>(DEFAULT_CANVAS_NOISE_BLEND_MODE);
   const [canvasNoiseBlendModePreview, setCanvasNoiseBlendModePreview] =
     useState<CanvasNoiseBlendModeId | null>(null);
+  const [canvasOverlayShadowId, setCanvasOverlayShadowIdState] = useState<
+    string | null
+  >(null);
+  const [canvasOverlayShadowOpacity, setCanvasOverlayShadowOpacityState] =
+    useState(DEFAULT_CANVAS_OVERLAY_SHADOW_OPACITY);
 
   const [deviceTemplateId, setDeviceTemplateId] = useState<string | null>(null);
 
@@ -529,6 +540,23 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
     }));
   }, [canvasGradientTemplateId]);
 
+  const setCanvasOverlayShadowId = useCallback((id: string | null) => {
+    if (id == null || id.trim() === "") {
+      setCanvasOverlayShadowIdState(null);
+      return;
+    }
+    const next = id.trim();
+    if (!isCanvasOverlayShadowTemplateId(next)) {
+      setCanvasOverlayShadowIdState(null);
+      return;
+    }
+    setCanvasOverlayShadowIdState(next);
+  }, []);
+
+  const setCanvasOverlayShadowOpacity = useCallback((value: number) => {
+    setCanvasOverlayShadowOpacityState(clampPercent(value));
+  }, []);
+
   const setCanvasBackgroundImageFromFile = useCallback(
     (file: File | null) => {
       if (!file || !file.type.startsWith("image/")) {
@@ -576,6 +604,8 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
         setCanvasNoiseColor(DEFAULT_CANVAS_NOISE_COLOR);
         setCanvasNoiseColorOpacity(DEFAULT_CANVAS_NOISE_COLOR_OPACITY);
         setCanvasNoiseBlendMode(DEFAULT_CANVAS_NOISE_BLEND_MODE);
+        setCanvasOverlayShadowIdState(null);
+        setCanvasOverlayShadowOpacityState(DEFAULT_CANVAS_OVERLAY_SHADOW_OPACITY);
         return;
       }
       setCanvasBackgroundMode(payload.mode);
@@ -600,6 +630,20 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
           : DEFAULT_CANVAS_NOISE_COLOR_OPACITY
       );
       setCanvasNoiseBlendMode(parseCanvasNoiseBlendMode(payload.noiseBlendMode));
+      {
+        const rawOverlay = payload.overlayShadowId?.trim();
+        setCanvasOverlayShadowIdState(
+          rawOverlay && isCanvasOverlayShadowTemplateId(rawOverlay)
+            ? rawOverlay
+            : null
+        );
+      }
+      setCanvasOverlayShadowOpacityState(
+        payload.overlayShadowOpacity != null &&
+          !Number.isNaN(Number(payload.overlayShadowOpacity))
+          ? clampPercent(payload.overlayShadowOpacity)
+          : DEFAULT_CANVAS_OVERLAY_SHADOW_OPACITY
+      );
       {
         const rawG = payload.gradientTemplateId?.trim();
         setCanvasGradientTemplateIdState(
@@ -676,6 +720,10 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       setCanvasNoiseBlendMode,
       canvasNoiseBlendModePreview,
       setCanvasNoiseBlendModePreview,
+      canvasOverlayShadowId,
+      setCanvasOverlayShadowId,
+      canvasOverlayShadowOpacity,
+      setCanvasOverlayShadowOpacity,
       hydrateCanvasBackground,
       deviceTemplateId,
       setDeviceTemplateId,
@@ -732,6 +780,8 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       canvasNoiseColorOpacity,
       canvasNoiseBlendMode,
       canvasNoiseBlendModePreview,
+      canvasOverlayShadowId,
+      canvasOverlayShadowOpacity,
       deviceTemplateId,
       setCanvasBackgroundImageFromFile,
       setCanvasGradientTemplateId,

@@ -31,9 +31,17 @@ function preloadInlineSvgPath(path: string | null | undefined) {
 export function CanvasBackgroundTemplatesSection() {
   const { canvasGradientTemplateId, setCanvasGradientTemplateId } =
     useMockupFrame();
-  const [gradientOpen, setGradientOpen] = useState(false);
-  const [organicOpen, setOrganicOpen] = useState(false);
-  const [wavesOpen, setWavesOpen] = useState(false);
+  const [openTemplateSection, setOpenTemplateSection] = useState("");
+
+  const gradientOpen = openTemplateSection === "canvas-template-gradient";
+  const organicOpen = openTemplateSection === "canvas-template-organic";
+  const wavesOpen = openTemplateSection === "canvas-template-waves";
+
+  function toggleTemplateSection(sectionId: string) {
+    setOpenTemplateSection((current) =>
+      current === sectionId ? "" : sectionId
+    );
+  }
 
   useEffect(() => {
     if (!gradientOpen) return;
@@ -67,7 +75,7 @@ export function CanvasBackgroundTemplatesSection() {
           label="Gradient"
           Icon={StyleGradientIcon}
           open={gradientOpen}
-          onToggle={() => setGradientOpen((o) => !o)}
+          onToggle={() => toggleTemplateSection("canvas-template-gradient")}
           openTrailingIcon="collapse"
         >
           <div className="space-y-2">
@@ -111,7 +119,7 @@ export function CanvasBackgroundTemplatesSection() {
           label="Organic"
           Icon={LineSquiggle}
           open={organicOpen}
-          onToggle={() => setOrganicOpen((o) => !o)}
+          onToggle={() => toggleTemplateSection("canvas-template-organic")}
           openTrailingIcon="collapse"
         >
           <div
@@ -139,7 +147,7 @@ export function CanvasBackgroundTemplatesSection() {
           label="Waves"
           Icon={ZodiacAquarius}
           open={wavesOpen}
-          onToggle={() => setWavesOpen((o) => !o)}
+          onToggle={() => toggleTemplateSection("canvas-template-waves")}
           openTrailingIcon="collapse"
         >
           <div

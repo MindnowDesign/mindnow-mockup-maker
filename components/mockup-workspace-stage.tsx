@@ -16,6 +16,7 @@ import { MockupDeviceFrame } from "@/components/mockup-device-frame";
 import { CanvasGradientFillPaletteBar } from "@/components/canvas-gradient-fill-palette-bar";
 import { useMockupMedia } from "@/components/mockup-media-context";
 import { CanvasBackgroundNoiseOverlay } from "@/components/canvas-background-noise-overlay";
+import { CanvasOverlayShadowLayer } from "@/components/canvas-overlay-shadow-layer";
 import { CanvasGradientInlineBackground } from "@/components/canvas-gradient-inline-background";
 import { CanvasOrganicBackground } from "@/components/canvas-organic-background";
 import { hexToRgb } from "@/lib/color-hex-hsv";
@@ -33,6 +34,7 @@ import {
   canvasWaveTemplateToCaptureStyle,
   canvasWaveTemplateToPeekBackgroundStyle,
 } from "@/lib/canvas-background-wave-templates";
+import { canvasBackgroundBlurLayerStyles } from "@/lib/canvas-background-blur-layer";
 import { ensureGradientSvgCached } from "@/lib/gradient-svg-cache";
 import { getCanvasInlineSvgTemplateById } from "@/lib/canvas-background-inline-svg-template";
 import { preloadOrganicTemplateId } from "@/lib/organic-image-cache";
@@ -403,6 +405,8 @@ export function MockupWorkspaceStage() {
     canvasNoiseColorOpacity,
     canvasNoiseBlendMode,
     canvasNoiseBlendModePreview,
+    canvasOverlayShadowId,
+    canvasOverlayShadowOpacity,
     deviceTemplateId,
     screenshotStyle,
     screenshotBorderColor,
@@ -528,29 +532,10 @@ export function MockupWorkspaceStage() {
     canvasGradientFillOpacity,
   ]);
 
-  const gradientInlineBlurLayerStyle: CSSProperties = useMemo(() => {
-    const blurPx = backgroundBlurPx;
-    const blurFilter = blurPx > 0 ? `blur(${blurPx}px)` : undefined;
-    const bleed =
-      blurPx > 0 ? Math.min(80, Math.ceil(blurPx * 3) + 20) : 0;
-
-    if (bleed <= 0) {
-      return {
-        filter: blurFilter,
-        position: "absolute",
-        inset: 0,
-      };
-    }
-
-    return {
-      filter: blurFilter,
-      position: "absolute",
-      top: -bleed,
-      left: -bleed,
-      width: `calc(100% + ${bleed * 2}px)`,
-      height: `calc(100% + ${bleed * 2}px)`,
-    };
-  }, [backgroundBlurPx]);
+  const canvasBackgroundBlurLayers = useMemo(
+    () => canvasBackgroundBlurLayerStyles(backgroundBlurPx),
+    [backgroundBlurPx]
+  );
 
   const screenshotBorder = useMemo<ScreenshotBorderStyle | null>(() => {
     if (deviceTemplateId != null) return null;
@@ -599,7 +584,7 @@ export function MockupWorkspaceStage() {
    * Blur on a layer that is then clipped to rounded rect can look like a vignette
    * (darker/soft edge). Extra bleed lets the gaussian falloff sit outside the clip.
    */
-  const gradientInlineLoadingFallbackStyle: CSSProperties = useMemo(() => {
+  const gradientInlineLoadingFallback = useMemo(() => {
     const peek =
       canvasGradientTemplateToPeekBackgroundStyle(
         activeGradientTemplateId,
@@ -614,34 +599,20 @@ export function MockupWorkspaceStage() {
         height
       );
     const base = peek ?? captureSurfaceStyle;
-    const blurPx = backgroundBlurPx;
-    const blurFilter = blurPx > 0 ? `blur(${blurPx}px)` : undefined;
-    const bleed =
-      blurPx > 0 ? Math.min(80, Math.ceil(blurPx * 3) + 20) : 0;
+    const { container, shell, content } = canvasBackgroundBlurLayers;
 
-    if (bleed <= 0) {
-      return {
-        ...base,
-        filter: blurFilter,
-        position: "absolute",
-        inset: 0,
-      };
-    }
-
-    return {
-      ...base,
-      filter: blurFilter,
-      position: "absolute",
-      top: -bleed,
-      left: -bleed,
-      width: `calc(100% + ${bleed * 2}px)`,
-      height: `calc(100% + ${bleed * 2}px)`,
-    };
+    return (
+      <div style={container}>
+        <div style={shell}>
+          <div style={{ ...content, ...base }} />
+        </div>
+      </div>
+    );
   }, [
     activeGradientTemplateId,
     height,
     captureSurfaceStyle,
-    backgroundBlurPx,
+    canvasBackgroundBlurLayers,
   ]);
 
   return (
@@ -665,6 +636,7 @@ export function MockupWorkspaceStage() {
       <div
         key={aspectPreset}
         data-mockup-capture-target
+        data-active-visual-id={activeVisual?.id ?? ""}
         style={{ width: "100%", height }}
         role="region"
         aria-label="Mockup canvas"
@@ -697,12 +669,12 @@ export function MockupWorkspaceStage() {
           <CanvasGradientInlineBackground
             templateId={activeGradientTemplateId}
             cssVarStyle={gradientCssVarStyle}
-            blurLayerStyle={gradientInlineBlurLayerStyle}
-            fallback={<div style={gradientInlineLoadingFallbackStyle} />}
+            blurLayers={canvasBackgroundBlurLayers}
+            fallback={gradientInlineLoadingFallback}
           />
           <CanvasOrganicBackground
             templateId={activeOrganicTemplateId}
-            layerStyle={gradientInlineBlurLayerStyle}
+            blurLayers={canvasBackgroundBlurLayers}
           />
         </div>
         <CanvasBackgroundNoiseOverlay
@@ -712,6 +684,10 @@ export function MockupWorkspaceStage() {
           noiseColor={canvasNoiseColor}
           noiseColorOpacity={canvasNoiseColorOpacity}
           blendMode={noiseBlendModeEffective}
+        />
+        <CanvasOverlayShadowLayer
+          templateId={canvasOverlayShadowId}
+          opacityPercent={canvasOverlayShadowOpacity}
         />
         <div className="relative z-10 flex min-h-0 min-w-0 flex-1 items-center justify-center">
           <MockupDeviceFrame deviceTemplateId={deviceTemplateId}>

@@ -22,7 +22,12 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { CanvasBackgroundTemplatesSection } from "@/components/canvas-background-templates-section";
-import { StyleBlurIcon, StyleNoiseIcon } from "@/components/canvas-style-icons";
+import {
+  OverlayShadowIcon,
+  StyleBlurIcon,
+  StyleNoiseIcon,
+} from "@/components/canvas-style-icons";
+import { CANVAS_OVERLAY_SHADOW_TEMPLATES } from "@/lib/canvas-overlay-shadow-templates";
 import { CanvasSolidColorPicker } from "@/components/canvas-solid-color-picker";
 import { EffectAccordionSection } from "@/components/effect-accordion-section";
 import { SolidColorPopoverRow } from "@/components/solid-color-popover-row";
@@ -350,7 +355,14 @@ function NoiseBlendModeDropdown({
   );
 }
 
-function CanvasEffectSliderRow({
+const templatePreviewGridClass = "grid w-full grid-cols-5 gap-2";
+
+const overlayPreviewButtonBase = cn(
+  "aspect-square w-full min-w-0 overflow-hidden rounded-lg border text-left outline-none transition-colors",
+  "focus-visible:ring-2 focus-visible:ring-white/25"
+);
+
+export function CanvasEffectSliderRow({
   id,
   label,
   Icon,
@@ -447,17 +459,29 @@ export function CanvasBackgroundControls() {
     setCanvasNoiseColor,
     canvasNoiseBlendMode,
     setCanvasNoiseBlendMode,
+    canvasOverlayShadowId,
+    setCanvasOverlayShadowId,
+    canvasOverlayShadowOpacity,
+    setCanvasOverlayShadowOpacity,
   } = useMockupFrame();
 
-  const [noiseSectionOpen, setNoiseSectionOpen] = useState(false);
-  const [blurSectionOpen, setBlurSectionOpen] = useState(false);
+  const [openEffectSection, setOpenEffectSection] = useState("");
+  const [openOverlaySection, setOpenOverlaySection] = useState("");
 
-  function toggleNoiseSection() {
-    setNoiseSectionOpen((open) => !open);
+  const noiseSectionOpen = openEffectSection === "canvas-effect-noise";
+  const blurSectionOpen = openEffectSection === "canvas-effect-blur";
+  const shadowSectionOpen = openOverlaySection === "canvas-overlay-shadow";
+
+  function toggleEffectSection(sectionId: string) {
+    setOpenEffectSection((current) =>
+      current === sectionId ? "" : sectionId
+    );
   }
 
-  function toggleBlurSection() {
-    setBlurSectionOpen((open) => !open);
+  function toggleOverlaySection(sectionId: string) {
+    setOpenOverlaySection((current) =>
+      current === sectionId ? "" : sectionId
+    );
   }
 
   return (
@@ -485,13 +509,19 @@ export function CanvasBackgroundControls() {
                   aria-label={label}
                   onClick={() => setMode(id)}
                   className={cn(
-                    "flex min-h-10 min-w-0 flex-1 items-center justify-center rounded-lg border px-2 py-2 transition-colors",
+                    "flex h-12 min-w-0 flex-1 items-center justify-center rounded-lg border p-1.5 transition-colors",
                     mode === id
                       ? "border-zinc-500 bg-zinc-800 text-white shadow-sm"
                       : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:bg-zinc-900 hover:text-zinc-200"
                   )}
                 >
-                  <Icon className="size-[18px] shrink-0" strokeWidth={2} aria-hidden />
+                  <span className="flex size-[20px] shrink-0 items-center justify-center [&>svg]:block [&>svg]:size-[20px]">
+                    <Icon
+                      className="size-[20px] shrink-0"
+                      strokeWidth={2}
+                      aria-hidden
+                    />
+                  </span>
                 </button>
               </TooltipTrigger>
               <TooltipContent side="top" sideOffset={6}>
@@ -613,7 +643,7 @@ export function CanvasBackgroundControls() {
           label="Noise"
           Icon={StyleNoiseIcon}
           open={noiseSectionOpen}
-          onToggle={toggleNoiseSection}
+          onToggle={() => toggleEffectSection("canvas-effect-noise")}
         >
           <CanvasEffectSliderRow
             id="canvas-effect-noise"
@@ -654,7 +684,7 @@ export function CanvasBackgroundControls() {
           label="Blur"
           Icon={StyleBlurIcon}
           open={blurSectionOpen}
-          onToggle={toggleBlurSection}
+          onToggle={() => toggleEffectSection("canvas-effect-blur")}
         >
           <CanvasEffectSliderRow
             id="canvas-effect-blur"
@@ -664,6 +694,58 @@ export function CanvasBackgroundControls() {
             onChange={setCanvasBlurPercent}
             hideLabel
           />
+        </EffectAccordionSection>
+      </div>
+    </div>
+
+    <div className="space-y-2 pt-1">
+      <span className="block text-xs font-medium text-zinc-400">Overlay</span>
+      <div className="space-y-2">
+        <EffectAccordionSection
+          sectionId="canvas-overlay-shadow"
+          label="Shadow"
+          Icon={OverlayShadowIcon}
+          open={shadowSectionOpen}
+          onToggle={() => toggleOverlaySection("canvas-overlay-shadow")}
+        >
+          <div className="space-y-3">
+            <div
+              role="radiogroup"
+              aria-label="Shadow overlays"
+              className={templatePreviewGridClass}
+            >
+              {CANVAS_OVERLAY_SHADOW_TEMPLATES.map((entry) => {
+                const selected = canvasOverlayShadowId === entry.id;
+                return (
+                  <button
+                    key={entry.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    aria-label={entry.label}
+                    onClick={() =>
+                      setCanvasOverlayShadowId(selected ? null : entry.id)
+                    }
+                    className={cn(
+                      overlayPreviewButtonBase,
+                      selected
+                        ? "border-zinc-500 shadow-sm ring-2 ring-inset ring-white/20"
+                        : "border-zinc-700 hover:border-zinc-500"
+                    )}
+                    style={{ background: entry.previewBackground }}
+                  />
+                );
+              })}
+            </div>
+            <CanvasEffectSliderRow
+              id="canvas-overlay-shadow-opacity"
+              label="Opacity"
+              Icon={Droplet}
+              value={canvasOverlayShadowOpacity}
+              onChange={setCanvasOverlayShadowOpacity}
+              hideLabel
+            />
+          </div>
         </EffectAccordionSection>
       </div>
     </div>

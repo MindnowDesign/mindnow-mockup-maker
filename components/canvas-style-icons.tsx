@@ -101,6 +101,31 @@ export function StyleOrganicIcon({
 /**
  * Synced from `public/icons/style-blur.svg` (update both when you change the file).
  */
+/**
+ * Synced from `public/icons/overlay-shadow.svg` (update both when you change the file).
+ */
+export function OverlayShadowIcon({
+  className,
+  ...rest
+}: CanvasStyleIconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={cn("shrink-0", className)}
+      {...rest}
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M20.333 1C21.8058 1 23 2.19423 23 3.66699V15.333C23 16.8058 21.8058 18 20.333 18H17.7031V20.333C17.7031 21.6418 16.6418 22.7031 15.333 22.7031H3.66699C2.35819 22.7031 1.29688 21.6418 1.29688 20.333V8.66699C1.29688 7.35819 2.35819 6.29688 3.66699 6.29688H6V3.66699C6 2.19423 7.19423 1 8.66699 1H20.333ZM8.66699 3C8.2988 3 8 3.2988 8 3.66699V15.333C8 15.7012 8.2988 16 8.66699 16H20.333C20.7012 16 21 15.7012 21 15.333V3.66699C21 3.2988 20.7012 3 20.333 3H8.66699Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 export function StyleBlurIcon({
   className,
   ...rest

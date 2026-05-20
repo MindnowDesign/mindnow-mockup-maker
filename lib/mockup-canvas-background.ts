@@ -59,7 +59,13 @@ export type PersistedCanvasBackground = {
   noiseColorOpacity?: number;
   /** How the grain layer composites over the canvas background (`mix-blend-mode`). */
   noiseBlendMode?: CanvasNoiseBlendModeId;
+  /** Selected shadow overlay template id (`overlay-shadow-1`, …), or null. */
+  overlayShadowId?: string | null;
+  /** 0–100 — opacity of the shadow overlay layer. */
+  overlayShadowOpacity?: number;
 };
+
+export const DEFAULT_CANVAS_OVERLAY_SHADOW_OPACITY = 100;
 
 /** Checkerboard pattern used for “transparency” preview in the canvas frame. */
 /** Compact fill for thumbnails / floating-bar previews (noise omitted). */

@@ -76,6 +76,8 @@ export type FrameLike = {
   canvasNoiseColor: string;
   canvasNoiseColorOpacity: number;
   canvasNoiseBlendMode: import("@/lib/mockup-noise-blend").CanvasNoiseBlendModeId;
+  canvasOverlayShadowId: string | null;
+  canvasOverlayShadowOpacity: number;
   deviceTemplateId: string | null;
   screenshotStyle: ScreenshotStyleId;
   screenshotBorderColor: string;
@@ -241,6 +243,8 @@ export function frameLikeToPersistedCanvasBackground(
     noiseColor: f.canvasNoiseColor.trim().toUpperCase(),
     noiseColorOpacity: f.canvasNoiseColorOpacity,
     noiseBlendMode: f.canvasNoiseBlendMode,
+    overlayShadowId: f.canvasOverlayShadowId,
+    overlayShadowOpacity: f.canvasOverlayShadowOpacity,
   };
   const gradientTemplateId =
     f.canvasBackgroundMode === "template"

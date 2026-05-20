@@ -7,6 +7,7 @@ import type { MockupLibraryItem } from "@/components/mockup-media-context";
 import { useMockupMedia } from "@/components/mockup-media-context";
 import { VisualCanvasPeekBackground } from "@/components/visual-canvas-peek-background";
 import { defaultVisualLabel } from "@/lib/mockup-visual-label";
+import { scrollbarSubtleClass } from "@/lib/scrollbar-classes";
 import { cn } from "@/lib/utils";
 
 export type WorkspaceVisualsFloatingBarProps = {
@@ -77,7 +78,7 @@ export function WorkspaceVisualsFloatingBar({
       aria-label="Visuals in this project"
       className={cn(
         "pointer-events-auto flex max-h-[calc(100svh-7.5rem)] w-[92px] min-w-[92px] shrink-0 flex-col items-center gap-3 overflow-x-hidden overflow-y-auto rounded-xl border border-border bg-popover/95 p-3 text-popover-foreground shadow-lg ring-1 ring-foreground/10 backdrop-blur-md md:max-h-[calc(100dvh-8rem)]",
-        "[scrollbar-width:thin] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/25 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1",
+        scrollbarSubtleClass,
         className
       )}
     >

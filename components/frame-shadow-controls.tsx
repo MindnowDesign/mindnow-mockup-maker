@@ -26,7 +26,7 @@ const PRESET_OPTIONS: { id: FrameShadowPresetId; label: string }[] = [
   { id: "custom", label: "Custom" },
   { id: "sharp", label: "Sharp" },
   { id: "soft", label: "Soft" },
-  { id: "floating", label: "Floating" },
+  { id: "floating", label: "Float" },
 ];
 
 const SHADOW_FIELD_TOOLTIPS = {

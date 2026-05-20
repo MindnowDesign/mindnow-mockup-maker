@@ -4,6 +4,7 @@ import { CanvasBackgroundControls } from "@/components/canvas-background-control
 import { FrameAspectRatioSelect } from "@/components/frame-aspect-ratio-select";
 import { FrameDevicePicker } from "@/components/frame-device-picker";
 import { WorkspaceMediaPanel } from "@/components/workspace-media-panel";
+import { scrollbarSubtleClass } from "@/lib/scrollbar-classes";
 import { cn } from "@/lib/utils";
 
 export type WorkspaceFeatureId = "frame" | "background" | "media";
@@ -44,6 +45,7 @@ export function WorkspaceFeaturePanel({ feature }: WorkspaceFeaturePanelProps) {
       <div
         className={cn(
           "min-h-0 flex-1 overflow-y-auto px-4 py-3",
+          scrollbarSubtleClass,
           feature === "background" && "space-y-6"
         )}
       >

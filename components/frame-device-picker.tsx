@@ -22,6 +22,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FrameDeviceStyles } from "@/components/frame-device-styles";
 import { FrameShadowControls } from "@/components/frame-shadow-controls";
+import { scrollbarSubtleClass } from "@/lib/scrollbar-classes";
 import { cn } from "@/lib/utils";
 
 export type FrameDeviceValue =
@@ -248,7 +249,12 @@ export function FrameDevicePicker() {
                   ))}
                 </TabsList>
               </div>
-              <div className="max-h-[min(520px,calc(70vh))] overflow-y-auto overscroll-contain px-3 py-4">
+              <div
+                className={cn(
+                  "max-h-[min(520px,calc(70vh))] overflow-y-auto overscroll-contain px-3 py-4",
+                  scrollbarSubtleClass
+                )}
+              >
                 <TabsContent value="screenshot" className="m-0 outline-none">
                   <div className="flex justify-start">
                     <div className="w-full min-w-0 max-w-[calc((100%-0.5rem)/2)]">

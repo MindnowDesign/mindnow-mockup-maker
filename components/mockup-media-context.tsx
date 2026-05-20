@@ -218,6 +218,8 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
     frame.canvasNoiseColor,
     frame.canvasNoiseColorOpacity,
     frame.canvasNoiseBlendMode,
+    frame.canvasOverlayShadowId,
+    frame.canvasOverlayShadowOpacity,
     frame.deviceTemplateId,
     frame.screenshotStyle,
     frame.screenshotBorderColor,

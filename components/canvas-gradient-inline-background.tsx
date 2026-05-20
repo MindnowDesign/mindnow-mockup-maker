@@ -3,6 +3,7 @@
 import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 
 import { useGradientSvgHtml } from "@/components/use-gradient-svg-html";
+import type { CanvasBackgroundBlurLayerStyles } from "@/lib/canvas-background-blur-layer";
 import { getCanvasInlineSvgTemplateById } from "@/lib/canvas-background-inline-svg-template";
 import { cn } from "@/lib/utils";
 
@@ -15,14 +16,14 @@ const INLINE_SVG_CLASS =
 type CanvasGradientInlineBackgroundProps = {
   templateId: string | null;
   cssVarStyle: CSSProperties;
-  blurLayerStyle: CSSProperties;
+  blurLayers: CanvasBackgroundBlurLayerStyles;
   fallback: ReactNode;
 };
 
 export function CanvasGradientInlineBackground({
   templateId,
   cssVarStyle,
-  blurLayerStyle,
+  blurLayers,
   fallback,
 }: CanvasGradientInlineBackgroundProps) {
   const wantsInline = Boolean(
@@ -56,16 +57,20 @@ export function CanvasGradientInlineBackground({
           __html: INLINE_SVG_INTERACTION_STYLE,
         }}
       />
-      <div
-        key={templateId}
-        className={cn(
-          INLINE_SVG_CLASS,
-          "animate-in fade-in-0 duration-150"
-        )}
-        style={blurLayerStyle}
-        // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: htmlForTemplate }}
-      />
+      <div style={blurLayers.container}>
+        <div style={blurLayers.shell}>
+          <div
+            key={templateId}
+            className={cn(
+              INLINE_SVG_CLASS,
+              "animate-in fade-in-0 duration-150"
+            )}
+            style={blurLayers.content}
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{ __html: htmlForTemplate }}
+          />
+        </div>
+      </div>
     </div>
   );
 }

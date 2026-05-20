@@ -46,6 +46,30 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --accordion-duration: 300ms;
+  --accordion-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --animate-accordion-down: accordion-down var(--accordion-duration)
+    var(--accordion-ease);
+  --animate-accordion-up: accordion-up var(--accordion-duration)
+    var(--accordion-ease);
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
 }
 
 body {
@@ -141,6 +165,35 @@ body {
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer utilities {
+  /**
+   * Thin scrollbar aligned with zinc-900 panels (sidebar, popovers, lists).
+   * WebKit + Firefox; thumb darkens slightly on hover.
+   */
+  .scrollbar-subtle {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(63 63 70 / 0.55) transparent;
+  }
+
+  .scrollbar-subtle::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-subtle::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-subtle::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: rgb(63 63 70 / 0.55);
+  }
+
+  .scrollbar-subtle:hover::-webkit-scrollbar-thumb {
+    background: rgb(82 82 91 / 0.75);
   }
 }
 

@@ -1,19 +1,20 @@
 "use client";
 
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useRef } from "react";
 
 import { useOrganicImageReady } from "@/components/use-organic-image-ready";
+import type { CanvasBackgroundBlurLayerStyles } from "@/lib/canvas-background-blur-layer";
 import { getOrganicDisplayPathForTemplateId } from "@/lib/organic-image-cache";
 import { cn } from "@/lib/utils";
 
 type CanvasOrganicBackgroundProps = {
   templateId: string | null;
-  layerStyle: CSSProperties;
+  blurLayers: CanvasBackgroundBlurLayerStyles;
 };
 
 export function CanvasOrganicBackground({
   templateId,
-  layerStyle,
+  blurLayers,
 }: CanvasOrganicBackgroundProps) {
   const path = getOrganicDisplayPathForTemplateId(templateId);
   const ready = useOrganicImageReady(path);
@@ -31,20 +32,24 @@ export function CanvasOrganicBackground({
   return (
     <div
       className="pointer-events-none absolute inset-0 overflow-hidden"
-      style={layerStyle}
+      style={blurLayers.container}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element -- optimized display WebP */}
-      <img
-        key={src}
-        src={src}
-        alt=""
-        decoding="async"
-        draggable={false}
-        className={cn(
-          "h-full w-full object-cover transition-opacity duration-200 ease-out",
-          ready ? "opacity-100" : "opacity-0"
-        )}
-      />
+      <div style={blurLayers.shell}>
+        <div className="h-full w-full" style={blurLayers.content}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- optimized display WebP */}
+          <img
+            key={src}
+            src={src}
+            alt=""
+            decoding="async"
+            draggable={false}
+            className={cn(
+              "h-full w-full object-cover transition-opacity duration-200 ease-out",
+              ready ? "opacity-100" : "opacity-0"
+            )}
+          />
+        </div>
+      </div>
     </div>
   );
 }
