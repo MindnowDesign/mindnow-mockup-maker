@@ -13,11 +13,22 @@ import {
 
 import type { FrameAspectPresetId } from "@/lib/mockup-aspect";
 import type {
+  PersistedCanvasImageBaseline,
+  PersistedCanvasImageLayer,
+  PersistedCanvasImageRect,
+} from "@/lib/mockup-workspace-snapshot";
+import type {
   CanvasBackgroundMode,
   PersistedCanvasBackground,
 } from "@/lib/mockup-canvas-background";
 import { isValidCanvasBackgroundTemplateId } from "@/lib/canvas-background-template-id";
-import { isCanvasOverlayShadowTemplateId } from "@/lib/canvas-overlay-shadow-templates";
+import {
+  DEFAULT_CANVAS_MOOD_SHADOW_PLACEMENT,
+  isCanvasMoodShadowTemplateId,
+  normalizeCanvasMoodShadowTemplateId,
+  parseCanvasMoodShadowPlacement,
+  type CanvasMoodShadowPlacement,
+} from "@/lib/canvas-mood-shadow-templates";
 import {
   normalizeGradientBlendModesByTemplate,
   normalizeTemplateFillBlendModes,
@@ -67,7 +78,9 @@ import {
   clampScreenshotBorderOpacity,
   clampScreenshotBorderWeight,
   clampScreenshotCornerRadius,
+  clampScreenshotGlassFramePadding,
   DEFAULT_SCREENSHOT_BORDER_COLOR,
+  DEFAULT_SCREENSHOT_GLASS_FRAME_PADDING,
   DEFAULT_SCREENSHOT_BORDER_COLOR_OPACITY,
   DEFAULT_SCREENSHOT_BORDER_POSITION,
   DEFAULT_SCREENSHOT_BORDER_WEIGHT,
@@ -132,6 +145,8 @@ type MockupFrameContextValue = {
   setCanvasOverlayShadowId: (id: string | null) => void;
   canvasOverlayShadowOpacity: number;
   setCanvasOverlayShadowOpacity: (value: number) => void;
+  canvasOverlayShadowPlacement: CanvasMoodShadowPlacement;
+  setCanvasOverlayShadowPlacement: (placement: CanvasMoodShadowPlacement) => void;
   hydrateCanvasBackground: (
     payload: PersistedCanvasBackground | null | undefined
   ) => void;
@@ -157,6 +172,8 @@ type MockupFrameContextValue = {
   setScreenshotCornerType: (type: ScreenshotCornerType) => void;
   screenshotCornerRadius: number;
   setScreenshotCornerRadius: (value: number) => void;
+  screenshotGlassFramePadding: number;
+  setScreenshotGlassFramePadding: (value: number) => void;
   hydrateScreenshotStyle: (
     payload: PersistedScreenshotStyle | null | undefined
   ) => void;
@@ -177,6 +194,13 @@ type MockupFrameContextValue = {
   hydrateFrameShadow: (
     payload: PersistedFrameShadow | null | undefined
   ) => void;
+  /** Free-form image layers on the canvas (empty until canvas-image editor ships). */
+  canvasLayers: PersistedCanvasImageLayer[];
+  selectedCanvasLayerId: string | null;
+  /** @deprecated Legacy single-image rect — use `canvasLayers`. */
+  canvasImageRect: PersistedCanvasImageRect | null;
+  /** @deprecated Legacy single-image baseline — use `canvasLayers`. */
+  canvasImageBaseline: PersistedCanvasImageBaseline | null;
 };
 
 const MockupFrameContext = createContext<MockupFrameContextValue | null>(null);
@@ -249,6 +273,8 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
   >(null);
   const [canvasOverlayShadowOpacity, setCanvasOverlayShadowOpacityState] =
     useState(DEFAULT_CANVAS_OVERLAY_SHADOW_OPACITY);
+  const [canvasOverlayShadowPlacement, setCanvasOverlayShadowPlacementState] =
+    useState<CanvasMoodShadowPlacement>(DEFAULT_CANVAS_MOOD_SHADOW_PLACEMENT);
 
   const [deviceTemplateId, setDeviceTemplateId] = useState<string | null>(null);
 
@@ -274,6 +300,8 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
   const [screenshotCornerRadius, setScreenshotCornerRadiusState] = useState(
     DEFAULT_SCREENSHOT_CORNER_RADIUS
   );
+  const [screenshotGlassFramePadding, setScreenshotGlassFramePaddingState] =
+    useState(DEFAULT_SCREENSHOT_GLASS_FRAME_PADDING);
 
   const initialShadow = defaultFrameShadowNumbers();
   const [frameShadowPreset, setFrameShadowPresetState] =
@@ -336,6 +364,9 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
   }, []);
   const setScreenshotCornerRadius = useCallback((value: number) => {
     setScreenshotCornerRadiusState(clampScreenshotCornerRadius(value));
+  }, []);
+  const setScreenshotGlassFramePadding = useCallback((value: number) => {
+    setScreenshotGlassFramePaddingState(clampScreenshotGlassFramePadding(value));
   }, []);
 
   const setFrameShadowPreset = useCallback((id: FrameShadowPresetId) => {
@@ -426,6 +457,7 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
         );
         setScreenshotCornerTypeState(DEFAULT_SCREENSHOT_CORNER_TYPE);
         setScreenshotCornerRadiusState(DEFAULT_SCREENSHOT_CORNER_RADIUS);
+        setScreenshotGlassFramePaddingState(DEFAULT_SCREENSHOT_GLASS_FRAME_PADDING);
         return;
       }
       setScreenshotStyleState(parseScreenshotStyle(payload.style));
@@ -458,6 +490,9 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       );
       setScreenshotCornerRadiusState(
         clampScreenshotCornerRadius(payload.cornerRadius)
+      );
+      setScreenshotGlassFramePaddingState(
+        clampScreenshotGlassFramePadding(payload.glassFramePadding)
       );
     },
     []
@@ -541,21 +576,21 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
   }, [canvasGradientTemplateId]);
 
   const setCanvasOverlayShadowId = useCallback((id: string | null) => {
-    if (id == null || id.trim() === "") {
-      setCanvasOverlayShadowIdState(null);
-      return;
-    }
-    const next = id.trim();
-    if (!isCanvasOverlayShadowTemplateId(next)) {
-      setCanvasOverlayShadowIdState(null);
-      return;
-    }
-    setCanvasOverlayShadowIdState(next);
+    setCanvasOverlayShadowIdState(normalizeCanvasMoodShadowTemplateId(id));
   }, []);
 
   const setCanvasOverlayShadowOpacity = useCallback((value: number) => {
     setCanvasOverlayShadowOpacityState(clampPercent(value));
   }, []);
+
+  const setCanvasOverlayShadowPlacement = useCallback(
+    (placement: CanvasMoodShadowPlacement) => {
+      setCanvasOverlayShadowPlacementState(
+        parseCanvasMoodShadowPlacement(placement)
+      );
+    },
+    []
+  );
 
   const setCanvasBackgroundImageFromFile = useCallback(
     (file: File | null) => {
@@ -606,6 +641,7 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
         setCanvasNoiseBlendMode(DEFAULT_CANVAS_NOISE_BLEND_MODE);
         setCanvasOverlayShadowIdState(null);
         setCanvasOverlayShadowOpacityState(DEFAULT_CANVAS_OVERLAY_SHADOW_OPACITY);
+        setCanvasOverlayShadowPlacementState(DEFAULT_CANVAS_MOOD_SHADOW_PLACEMENT);
         return;
       }
       setCanvasBackgroundMode(payload.mode);
@@ -631,11 +667,8 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       );
       setCanvasNoiseBlendMode(parseCanvasNoiseBlendMode(payload.noiseBlendMode));
       {
-        const rawOverlay = payload.overlayShadowId?.trim();
         setCanvasOverlayShadowIdState(
-          rawOverlay && isCanvasOverlayShadowTemplateId(rawOverlay)
-            ? rawOverlay
-            : null
+          normalizeCanvasMoodShadowTemplateId(payload.overlayShadowId)
         );
       }
       setCanvasOverlayShadowOpacityState(
@@ -643,6 +676,9 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
           !Number.isNaN(Number(payload.overlayShadowOpacity))
           ? clampPercent(payload.overlayShadowOpacity)
           : DEFAULT_CANVAS_OVERLAY_SHADOW_OPACITY
+      );
+      setCanvasOverlayShadowPlacementState(
+        parseCanvasMoodShadowPlacement(payload.overlayShadowPlacement)
       );
       {
         const rawG = payload.gradientTemplateId?.trim();
@@ -724,6 +760,8 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       setCanvasOverlayShadowId,
       canvasOverlayShadowOpacity,
       setCanvasOverlayShadowOpacity,
+      canvasOverlayShadowPlacement,
+      setCanvasOverlayShadowPlacement,
       hydrateCanvasBackground,
       deviceTemplateId,
       setDeviceTemplateId,
@@ -745,6 +783,8 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       setScreenshotCornerType,
       screenshotCornerRadius,
       setScreenshotCornerRadius,
+      screenshotGlassFramePadding,
+      setScreenshotGlassFramePadding,
       hydrateScreenshotStyle,
       frameShadowPreset,
       setFrameShadowPreset,
@@ -761,6 +801,10 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       frameShadowColorOpacity,
       setFrameShadowColorOpacity,
       hydrateFrameShadow,
+      canvasLayers: [],
+      selectedCanvasLayerId: null,
+      canvasImageRect: null,
+      canvasImageBaseline: null,
     }),
     [
       aspectPreset,
@@ -782,6 +826,7 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       canvasNoiseBlendModePreview,
       canvasOverlayShadowId,
       canvasOverlayShadowOpacity,
+      canvasOverlayShadowPlacement,
       deviceTemplateId,
       setCanvasBackgroundImageFromFile,
       setCanvasGradientTemplateId,
@@ -807,6 +852,8 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       setScreenshotCornerType,
       screenshotCornerRadius,
       setScreenshotCornerRadius,
+      screenshotGlassFramePadding,
+      setScreenshotGlassFramePadding,
       hydrateScreenshotStyle,
       frameShadowPreset,
       setFrameShadowPreset,

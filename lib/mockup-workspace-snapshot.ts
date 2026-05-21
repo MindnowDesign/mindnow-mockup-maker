@@ -1,6 +1,7 @@
 import type { FrameAspectPresetId } from "@/lib/mockup-aspect";
 import { templateSupportsEditableGradientFills } from "@/lib/canvas-gradient-1-fill";
 import type { PersistedCanvasBackground } from "@/lib/mockup-canvas-background";
+import type { CanvasMoodShadowPlacement } from "@/lib/canvas-mood-shadow-templates";
 import type {
   PersistedScreenshotStyle,
   ScreenshotBorderPosition,
@@ -21,6 +22,7 @@ import {
   DEFAULT_SCREENSHOT_BORDER_WEIGHT,
   DEFAULT_SCREENSHOT_CORNER_RADIUS,
   DEFAULT_SCREENSHOT_CORNER_TYPE,
+  DEFAULT_SCREENSHOT_GLASS_FRAME_PADDING,
   DEFAULT_SCREENSHOT_OUTLINE_COLOR,
   DEFAULT_SCREENSHOT_OUTLINE_COLOR_OPACITY,
   DEFAULT_SCREENSHOT_STYLE,
@@ -37,6 +39,29 @@ export type WorkspaceVisualSlotEntry = {
   id: string;
   mediaId: string | null;
   label?: string;
+};
+
+/** Canvas image placement (stage coordinates). */
+export type PersistedCanvasImageRect = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+/** Natural dimensions used to fit images on the stage. */
+export type PersistedCanvasImageBaseline = {
+  naturalWidth: number;
+  naturalHeight: number;
+};
+
+/** One free-form image layer on the canvas. */
+export type PersistedCanvasImageLayer = {
+  id: string;
+  mediaId: string | null;
+  zIndex: number;
+  rect: PersistedCanvasImageRect | null;
+  baseline: PersistedCanvasImageBaseline | null;
 };
 
 /** Serializable workspace state for undo/redo. */
@@ -78,6 +103,7 @@ export type FrameLike = {
   canvasNoiseBlendMode: import("@/lib/mockup-noise-blend").CanvasNoiseBlendModeId;
   canvasOverlayShadowId: string | null;
   canvasOverlayShadowOpacity: number;
+  canvasOverlayShadowPlacement: CanvasMoodShadowPlacement;
   deviceTemplateId: string | null;
   screenshotStyle: ScreenshotStyleId;
   screenshotBorderColor: string;
@@ -88,6 +114,7 @@ export type FrameLike = {
   screenshotOutlineColorOpacity: number;
   screenshotCornerType: ScreenshotCornerType;
   screenshotCornerRadius: number;
+  screenshotGlassFramePadding: number;
   frameShadowPreset: FrameShadowPresetId;
   frameShadowOffsetX: number;
   frameShadowOffsetY: number;
@@ -95,6 +122,10 @@ export type FrameLike = {
   frameShadowSpread: number;
   frameShadowColor: string;
   frameShadowColorOpacity: number;
+  canvasLayers: PersistedCanvasImageLayer[];
+  canvasImageRect: PersistedCanvasImageRect | null;
+  canvasImageBaseline: PersistedCanvasImageBaseline | null;
+  selectedCanvasLayerId: string | null;
 };
 
 /**
@@ -112,6 +143,13 @@ export type VisualWorkspacePrefs = {
   screenshotStyle?: PersistedScreenshotStyle | null;
   /** Drop shadow on plain screenshot media (`deviceTemplateId` null). */
   frameShadow?: PersistedFrameShadow | null;
+  /** Free-form image layers on the canvas. */
+  canvasLayers?: PersistedCanvasImageLayer[];
+  /** @deprecated Legacy single-image rect — use `canvasLayers`. */
+  canvasImageRect?: PersistedCanvasImageRect | null;
+  /** @deprecated Legacy single-image baseline — use `canvasLayers`. */
+  canvasImageBaseline?: PersistedCanvasImageBaseline | null;
+  selectedCanvasLayerId?: string | null;
 };
 
 export function frameLikeToPersistedScreenshotStyle(
@@ -127,6 +165,7 @@ export function frameLikeToPersistedScreenshotStyle(
     outlineColorOpacity: f.screenshotOutlineColorOpacity,
     cornerType: f.screenshotCornerType,
     cornerRadius: f.screenshotCornerRadius,
+    glassFramePadding: f.screenshotGlassFramePadding,
   };
 }
 
@@ -145,6 +184,18 @@ export function captureVisualWorkspacePrefs(f: FrameLike): VisualWorkspacePrefs 
     deviceTemplateId: f.deviceTemplateId,
     screenshotStyle: frameLikeToPersistedScreenshotStyle(f),
     frameShadow: frameShadowToPersisted(f.frameShadowPreset, shadowNums),
+    canvasLayers: (f.canvasLayers ?? []).map((layer) => ({
+      id: layer.id,
+      mediaId: layer.mediaId,
+      zIndex: layer.zIndex,
+      rect: layer.rect ? { ...layer.rect } : null,
+      baseline: layer.baseline ? { ...layer.baseline } : null,
+    })),
+    canvasImageRect: f.canvasImageRect ? { ...f.canvasImageRect } : null,
+    canvasImageBaseline: f.canvasImageBaseline
+      ? { ...f.canvasImageBaseline }
+      : null,
+    selectedCanvasLayerId: f.selectedCanvasLayerId ?? null,
   };
 }
 
@@ -163,11 +214,14 @@ export const DEFAULT_NEW_VISUAL_WORKSPACE_PREFS: VisualWorkspacePrefs = {
     outlineColorOpacity: DEFAULT_SCREENSHOT_OUTLINE_COLOR_OPACITY,
     cornerType: DEFAULT_SCREENSHOT_CORNER_TYPE,
     cornerRadius: DEFAULT_SCREENSHOT_CORNER_RADIUS,
+    glassFramePadding: DEFAULT_SCREENSHOT_GLASS_FRAME_PADDING,
   },
   frameShadow: frameShadowToPersisted(
     DEFAULT_FRAME_SHADOW_PRESET,
     defaultFrameShadowNumbers()
   ),
+  canvasLayers: [],
+  selectedCanvasLayerId: null,
 };
 
 /**
@@ -185,6 +239,12 @@ export function normalizeVisualWorkspacePrefs(
       deviceTemplateId: d.deviceTemplateId ?? null,
       screenshotStyle: d.screenshotStyle ? { ...d.screenshotStyle } : null,
       frameShadow: d.frameShadow ? { ...d.frameShadow } : null,
+      canvasLayers: d.canvasLayers ? [...d.canvasLayers] : [],
+      canvasImageRect: d.canvasImageRect ? { ...d.canvasImageRect } : null,
+      canvasImageBaseline: d.canvasImageBaseline
+        ? { ...d.canvasImageBaseline }
+        : null,
+      selectedCanvasLayerId: d.selectedCanvasLayerId ?? null,
     };
   }
   const screenshotStyle =
@@ -201,6 +261,19 @@ export function normalizeVisualWorkspacePrefs(
       : d.frameShadow
         ? { ...d.frameShadow }
         : null;
+  const canvasLayers =
+    partial.canvasLayers !== undefined
+      ? partial.canvasLayers.map((layer) => ({
+          id: layer.id,
+          mediaId: layer.mediaId,
+          zIndex: layer.zIndex,
+          rect: layer.rect ? { ...layer.rect } : null,
+          baseline: layer.baseline ? { ...layer.baseline } : null,
+        }))
+      : d.canvasLayers
+        ? [...d.canvasLayers]
+        : [];
+
   return {
     aspectPreset: partial.aspectPreset ?? d.aspectPreset,
     canvasBackground:
@@ -213,6 +286,53 @@ export function normalizeVisualWorkspacePrefs(
         : d.deviceTemplateId ?? null,
     screenshotStyle,
     frameShadow,
+    canvasLayers,
+    canvasImageRect:
+      partial.canvasImageRect !== undefined
+        ? partial.canvasImageRect
+          ? { ...partial.canvasImageRect }
+          : null
+        : d.canvasImageRect
+          ? { ...d.canvasImageRect }
+          : null,
+    canvasImageBaseline:
+      partial.canvasImageBaseline !== undefined
+        ? partial.canvasImageBaseline
+          ? { ...partial.canvasImageBaseline }
+          : null
+        : d.canvasImageBaseline
+          ? { ...d.canvasImageBaseline }
+          : null,
+    selectedCanvasLayerId:
+      partial.selectedCanvasLayerId !== undefined
+        ? partial.selectedCanvasLayerId
+        : d.selectedCanvasLayerId ?? null,
+  };
+}
+
+/** Deep-enough clone for localStorage autosave (includes canvas image layers). */
+export function cloneVisualWorkspacePrefsForSave(
+  prefs: VisualWorkspacePrefs
+): VisualWorkspacePrefs {
+  const n = normalizeVisualWorkspacePrefs(prefs);
+  return {
+    aspectPreset: n.aspectPreset,
+    deviceTemplateId: n.deviceTemplateId ?? null,
+    canvasBackground: n.canvasBackground ? { ...n.canvasBackground } : null,
+    screenshotStyle: n.screenshotStyle ? { ...n.screenshotStyle } : null,
+    frameShadow: n.frameShadow ? { ...n.frameShadow } : null,
+    canvasImageRect: n.canvasImageRect ? { ...n.canvasImageRect } : null,
+    canvasImageBaseline: n.canvasImageBaseline
+      ? { ...n.canvasImageBaseline }
+      : null,
+    canvasLayers: (n.canvasLayers ?? []).map((layer) => ({
+      id: layer.id,
+      mediaId: layer.mediaId,
+      zIndex: layer.zIndex,
+      rect: layer.rect ? { ...layer.rect } : null,
+      baseline: layer.baseline ? { ...layer.baseline } : null,
+    })),
+    selectedCanvasLayerId: n.selectedCanvasLayerId ?? null,
   };
 }
 
@@ -221,14 +341,31 @@ export function resolveVisualPrefsForSave(
   visualId: string,
   activeVisualId: string | null,
   prefsMap: Record<string, VisualWorkspacePrefs>,
-  frame: FrameLike
+  frame: FrameLike,
+  opts?: { preferStoredLayersWhenFrameEmpty?: boolean }
 ): VisualWorkspacePrefs {
+  if (visualId === activeVisualId) {
+    const live = captureVisualWorkspacePrefs(frame);
+    if (opts?.preferStoredLayersWhenFrameEmpty) {
+      const stored = prefsMap[visualId];
+      const storedLayers = stored?.canvasLayers?.length ?? 0;
+      const liveLayers = live.canvasLayers?.length ?? 0;
+      if (liveLayers === 0 && storedLayers > 0 && stored) {
+        return normalizeVisualWorkspacePrefs({
+          ...stored,
+          aspectPreset: live.aspectPreset,
+          canvasBackground: live.canvasBackground,
+          deviceTemplateId: live.deviceTemplateId,
+          screenshotStyle: live.screenshotStyle,
+          frameShadow: live.frameShadow,
+        });
+      }
+    }
+    return live;
+  }
   const stored = prefsMap[visualId];
   if (stored !== undefined) {
     return normalizeVisualWorkspacePrefs(stored);
-  }
-  if (visualId === activeVisualId) {
-    return captureVisualWorkspacePrefs(frame);
   }
   return normalizeVisualWorkspacePrefs(null);
 }
@@ -245,6 +382,7 @@ export function frameLikeToPersistedCanvasBackground(
     noiseBlendMode: f.canvasNoiseBlendMode,
     overlayShadowId: f.canvasOverlayShadowId,
     overlayShadowOpacity: f.canvasOverlayShadowOpacity,
+    overlayShadowPlacement: f.canvasOverlayShadowPlacement,
   };
   const gradientTemplateId =
     f.canvasBackgroundMode === "template"
