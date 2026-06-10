@@ -5,6 +5,7 @@ import {
 } from "@/lib/canvas-background-gradient-templates";
 import { canvasOrganicTemplateToPeekBackgroundStyle } from "@/lib/canvas-background-organic-templates";
 import { canvasWaveTemplateToPeekBackgroundStyle } from "@/lib/canvas-background-wave-templates";
+import type { CanvasMoodShadowPlacement } from "@/lib/canvas-mood-shadow-templates";
 import type { CanvasNoiseBlendModeId } from "./mockup-noise-blend";
 import type { CanvasNoiseTypeId } from "./mockup-noise";
 
@@ -59,10 +60,12 @@ export type PersistedCanvasBackground = {
   noiseColorOpacity?: number;
   /** How the grain layer composites over the canvas background (`mix-blend-mode`). */
   noiseBlendMode?: CanvasNoiseBlendModeId;
-  /** Selected shadow overlay template id (`overlay-shadow-1`, …), or null. */
+  /** Selected mood shadow template id (`mood-shadow-1`, …), or null. */
   overlayShadowId?: string | null;
-  /** 0–100 — opacity of the shadow overlay layer. */
+  /** 0–100 — opacity of the mood shadow layer. */
   overlayShadowOpacity?: number;
+  /** Whether the shadow sits behind or on top of the screenshot. */
+  overlayShadowPlacement?: CanvasMoodShadowPlacement;
 };
 
 export const DEFAULT_CANVAS_OVERLAY_SHADOW_OPACITY = 100;

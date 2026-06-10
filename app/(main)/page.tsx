@@ -1,31 +1,15 @@
-import Image from "next/image";
-
+import { HeroGrainientBackground } from "@/components/hero-grainient-background";
 import { ProjectCardsGrid } from "@/components/project-cards-grid";
 import { RecentVisualsSection } from "@/components/recent-visuals-section";
-
-/** Hero — `public/images/hero_image.png`. */
-const HERO_IMAGE = "/images/hero_image.png";
 
 export default function Home() {
   return (
     <div className="flex min-h-full flex-col">
-      <header className="relative isolate h-[min(44vh,400px)] w-full shrink-0 overflow-hidden bg-zinc-900">
-        <Image
-          src={HERO_IMAGE}
-          alt=""
-          fill
-          priority
-          unoptimized
-          className="object-cover object-center"
-          sizes="100vw"
-        />
-        <div
-          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-950 from-25% via-zinc-950/30 to-transparent"
-          aria-hidden
-        />
+      <header className="relative isolate h-[min(35.2vh,320px)] w-full shrink-0 overflow-hidden bg-zinc-900">
+        <HeroGrainientBackground />
       </header>
 
-      <div className="w-full flex-1 space-y-[72px] px-[72px] py-10">
+      <div className="w-full flex-1 space-y-[72px] px-[72px] pt-[72px] pb-10">
         <RecentVisualsSection />
 
         <section

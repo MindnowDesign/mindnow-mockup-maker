@@ -53,6 +53,8 @@ import {
   SCREENSHOT_BORDER_POSITION_OPTIONS,
   SCREENSHOT_BORDER_WEIGHT_MAX,
   SCREENSHOT_BORDER_WEIGHT_MIN,
+  SCREENSHOT_GLASS_FRAME_PADDING_MAX,
+  SCREENSHOT_GLASS_FRAME_PADDING_MIN,
   SCREENSHOT_CORNER_RADIUS_MAX,
   SCREENSHOT_CORNER_RADIUS_MIN,
   SCREENSHOT_CORNER_TYPE_OPTIONS,
@@ -65,6 +67,12 @@ import { cn } from "@/lib/utils";
 
 const inputChrome =
   "rounded-lg border border-zinc-700 bg-zinc-950 outline-none transition-colors hover:bg-zinc-900 focus-within:ring-2 focus-within:ring-white/25";
+
+const sliderValueFieldChrome =
+  "rounded-lg border border-zinc-700 bg-zinc-950 outline-none transition-colors hover:bg-zinc-900 focus-within:ring-2 focus-within:ring-white/25";
+
+const sliderValueInputClass =
+  "min-w-0 flex-1 bg-transparent px-1.5 py-1 text-center font-mono text-[11px] leading-none tabular-nums text-zinc-100 outline-none focus-visible:bg-white/5";
 
 function normalizeHex(raw: string): string {
   const t = raw.trim();
@@ -214,6 +222,140 @@ function ScreenshotBorderPositionSelect({
         </SelectContent>
       </SelectPortal>
     </SelectRoot>
+  );
+}
+
+function GlassFramePaddingPxField({
+  id,
+  value,
+  onCommit,
+}: {
+  id: string;
+  value: number;
+  onCommit: (next: number) => void;
+}) {
+  const [focused, setFocused] = useState(false);
+  const [text, setText] = useState(String(value));
+
+  useEffect(() => {
+    if (!focused) setText(String(value));
+  }, [value, focused]);
+
+  function clamp(n: number) {
+    return Math.min(
+      SCREENSHOT_GLASS_FRAME_PADDING_MAX,
+      Math.max(SCREENSHOT_GLASS_FRAME_PADDING_MIN, Math.round(n))
+    );
+  }
+
+  function commitFromText(raw: string) {
+    const digits = raw.replace(/\D/g, "").slice(0, 2);
+    if (digits === "") {
+      onCommit(SCREENSHOT_GLASS_FRAME_PADDING_MIN);
+      setText(String(SCREENSHOT_GLASS_FRAME_PADDING_MIN));
+      return;
+    }
+    const n = clamp(parseInt(digits, 10));
+    onCommit(n);
+    setText(String(n));
+  }
+
+  function stepBaseFromField(): number {
+    const digits = text.replace(/\D/g, "");
+    if (digits === "") return value;
+    const n = parseInt(digits, 10);
+    return Number.isNaN(n) ? value : clamp(n);
+  }
+
+  function handleArrowKeys(e: ReactKeyboardEvent<HTMLInputElement>) {
+    if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+    e.preventDefault();
+    const step = e.shiftKey ? 10 : 1;
+    const delta = e.key === "ArrowUp" ? step : -step;
+    const next = clamp(stepBaseFromField() + delta);
+    onCommit(next);
+    setText(String(next));
+  }
+
+  return (
+    <div
+      className={cn(
+        "flex min-h-8 min-w-0 max-w-[5rem] shrink-0 divide-x divide-zinc-700 overflow-hidden",
+        sliderValueFieldChrome
+      )}
+    >
+      <input
+        id={id}
+        type="text"
+        inputMode="numeric"
+        autoComplete="off"
+        aria-label="Width in pixels"
+        value={text}
+        onFocus={() => setFocused(true)}
+        onBlur={() => {
+          setFocused(false);
+          commitFromText(text);
+        }}
+        onChange={(e) => {
+          const digits = e.target.value.replace(/\D/g, "").slice(0, 2);
+          setText(digits);
+          if (digits !== "") onCommit(clamp(parseInt(digits, 10)));
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+            handleArrowKeys(e);
+            return;
+          }
+          if (e.key === "Enter") e.currentTarget.blur();
+        }}
+        className={sliderValueInputClass}
+      />
+      <span
+        className="flex min-w-9 shrink-0 items-center justify-center px-1.5 font-mono text-[11px] text-zinc-400 tabular-nums"
+        aria-hidden
+      >
+        px
+      </span>
+    </div>
+  );
+}
+
+function ScreenshotGlassFramePaddingSliderRow({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (next: number) => void;
+}) {
+  const sliderId = useId();
+  const fieldId = `${sliderId}-px`;
+  const min = SCREENSHOT_GLASS_FRAME_PADDING_MIN;
+  const max = SCREENSHOT_GLASS_FRAME_PADDING_MAX;
+  const rangePct = ((value - min) / (max - min)) * 100;
+
+  return (
+    <div className="flex items-center gap-2">
+      <input
+        id={sliderId}
+        type="range"
+        min={min}
+        max={max}
+        step={1}
+        value={value}
+        aria-label="Width"
+        onChange={(e) => onChange(Number(e.target.value))}
+        style={
+          {
+            ["--range-pct" as string]: `${rangePct}%`,
+          } as CSSProperties
+        }
+        className="canvas-effect-range w-full min-w-0 flex-1 cursor-pointer"
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-valuenow={value}
+      />
+      <GlassFramePaddingPxField id={fieldId} value={value} onCommit={onChange} />
+    </div>
   );
 }
 
@@ -574,6 +716,8 @@ function ScreenshotStyleControls() {
     setScreenshotOutlineColor,
     screenshotOutlineColorOpacity,
     setScreenshotOutlineColorOpacity,
+    screenshotGlassFramePadding,
+    setScreenshotGlassFramePadding,
   } = useMockupFrame();
 
   return (
@@ -660,6 +804,17 @@ function ScreenshotStyleControls() {
             opacity={screenshotOutlineColorOpacity}
             onOpacityChange={setScreenshotOutlineColorOpacity}
           />
+        </div>
+      ) : null}
+
+      {screenshotStyle === "glass" || screenshotStyle === "liquidGlass" ? (
+        <div className="pt-1">
+          <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-zinc-800 bg-zinc-950 p-3">
+            <ScreenshotGlassFramePaddingSliderRow
+              value={screenshotGlassFramePadding}
+              onChange={setScreenshotGlassFramePadding}
+            />
+          </div>
         </div>
       ) : null}
       </div>

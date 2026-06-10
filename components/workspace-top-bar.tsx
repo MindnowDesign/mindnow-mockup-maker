@@ -12,6 +12,8 @@ import { useMockupMedia } from "@/components/mockup-media-context";
 import { Button } from "@/components/ui/button";
 import { useProjectWorkspaceTitle } from "@/components/project-workspace-title-context";
 import {
+  clearPendingNewProjectId,
+  getOrCreatePendingNewProjectId,
   getProjectsWorkspaceSegment,
   getWorkspaceTitle,
   skipHydrateSessionStorageKey,
@@ -47,7 +49,11 @@ import {
   upsertSavedProject,
 } from "@/lib/saved-projects";
 import { templateSupportsEditableGradientFills } from "@/lib/canvas-gradient-1-fill";
-import { resolveVisualPrefsForSave } from "@/lib/mockup-workspace-snapshot";
+import { collectCanvasMediaIdsForSave } from "@/lib/collect-canvas-media-ids";
+import {
+  cloneVisualWorkspacePrefsForSave,
+  resolveVisualPrefsForSave,
+} from "@/lib/mockup-workspace-snapshot";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_WORKSPACE_LOGO_SRC = "/images/logo.png";
@@ -114,6 +120,8 @@ export function WorkspaceTopBar({
   const fallbackTitle = getWorkspaceTitle(pathname);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const [hydrationReady, setHydrationReady] = useState(false);
+  /** Blocks autosave until initial hydrate finishes (prevents empty overwrite). */
+  const isRestoringRef = useRef(true);
   const persistInFlightRef = useRef(false);
   const persistQueuedRef = useRef(false);
   const persistPendingCaptureRef = useRef(false);
@@ -121,6 +129,8 @@ export function WorkspaceTopBar({
   const backfillAbortRef = useRef(false);
   const pathnameRef = useRef(pathname);
   pathnameRef.current = pathname;
+  /** Last workspace segment — used when flushing save after navigating away. */
+  const lastWorkspaceSegmentRef = useRef<string | null>(null);
   /** One id for all autosaves on `/projects/new` (avoids duplicate projects per save). */
   const pendingNewProjectIdRef = useRef<string | null>(null);
 
@@ -140,8 +150,19 @@ export function WorkspaceTopBar({
   };
   const activeVisualIdRef = useRef(activeVisualId);
   activeVisualIdRef.current = activeVisualId;
+  const libraryPersistRef = useRef(library);
+  libraryPersistRef.current = library;
+  const visualsPersistRef = useRef(visuals);
+  visualsPersistRef.current = visuals;
   const visualWorkspacePrefsRef = useRef(visualWorkspacePrefs);
   visualWorkspacePrefsRef.current = visualWorkspacePrefs;
+  const frameForPersistRef = useRef(frame);
+  frameForPersistRef.current = frame;
+
+  useEffect(() => {
+    const seg = getProjectsWorkspaceSegment(pathname);
+    if (seg) lastWorkspaceSegmentRef.current = seg;
+  }, [pathname]);
 
   useEffect(() => {
     backfillAbortRef.current = false;
@@ -155,22 +176,32 @@ export function WorkspaceTopBar({
   useEffect(() => {
     const segment = getProjectsWorkspaceSegment(pathname);
     if (segment === "new") {
-      pendingNewProjectIdRef.current ??= crypto.randomUUID();
+      pendingNewProjectIdRef.current = getOrCreatePendingNewProjectId();
     } else {
       pendingNewProjectIdRef.current = null;
     }
   }, [pathname]);
 
   useEffect(() => {
+    isRestoringRef.current = true;
     setHydrationReady(false);
     const segment = getProjectsWorkspaceSegment(pathname);
-    if (!segment) return;
+    if (!segment) {
+      isRestoringRef.current = false;
+      return;
+    }
 
     function onHydrated(ev: Event) {
       const e = ev as CustomEvent<WorkspaceHydratedDetail>;
-      if (e.detail?.pathname === pathname) {
-        setHydrationReady(true);
-      }
+      if (e.detail?.pathname !== pathname) return;
+      setHydrationReady(true);
+      // Brief grace so frame prefs (canvas layers) apply before autosave runs.
+      isRestoringRef.current = true;
+      window.setTimeout(() => {
+        if (pathnameRef.current === pathname) {
+          isRestoringRef.current = false;
+        }
+      }, 400);
     }
 
     window.addEventListener(WORKSPACE_HYDRATED_EVENT, onHydrated);
@@ -178,12 +209,12 @@ export function WorkspaceTopBar({
       window.removeEventListener(WORKSPACE_HYDRATED_EVENT, onHydrated);
   }, [pathname]);
 
-  const runPersistRef = useRef<(opts?: { capture?: boolean }) => Promise<void>>(
-    () => Promise.resolve()
-  );
+  const runPersistRef = useRef<
+    (opts?: { capture?: boolean; force?: boolean }) => Promise<void>
+  >(() => Promise.resolve());
   const prevActiveVisualIdRef = useRef(activeVisualId);
 
-  const runPersist = useCallback(async (opts?: { capture?: boolean }) => {
+  const runPersist = useCallback(async (opts?: { capture?: boolean; force?: boolean }) => {
     if (opts?.capture) {
       persistPendingCaptureRef.current = true;
     }
@@ -197,27 +228,62 @@ export function WorkspaceTopBar({
 
     persistPendingCaptureRef.current = false;
 
-    const segment = getProjectsWorkspaceSegment(pathnameRef.current);
+    const segment =
+      getProjectsWorkspaceSegment(pathnameRef.current) ??
+      lastWorkspaceSegmentRef.current;
     if (!segment) return;
+
+    const preferStoredLayersWhenFrameEmpty = isRestoringRef.current;
+    if (isRestoringRef.current && !opts?.force) return;
 
     persistInFlightRef.current = true;
     persistQueuedRef.current = false;
 
+    const persistLibrary = libraryPersistRef.current;
+    const persistVisuals = visualsPersistRef.current;
+    const persistActiveVisualId = activeVisualIdRef.current;
+    const persistPrefs = visualWorkspacePrefsRef.current;
+    const persistFrame = frameForPersistRef.current;
+
     try {
       const projectId =
         segment === "new"
-          ? (pendingNewProjectIdRef.current ??= crypto.randomUUID())
+          ? (pendingNewProjectIdRef.current ||
+              getOrCreatePendingNewProjectId())
           : segment;
 
+      const canvasMediaIds = collectCanvasMediaIdsForSave(
+        persistLibrary,
+        persistPrefs,
+        persistFrame
+      );
       const serialized = await serializeMockupMediaForSave(
-        library,
-        visuals,
-        activeVisualId
+        persistLibrary,
+        persistVisuals,
+        persistActiveVisualId,
+        canvasMediaIds
       );
 
-      if (library.length > 0 && serialized.mediaItems.length === 0) {
+      const diskEarly = getSavedProject(projectId);
+      if (
+        persistLibrary.length > 0 &&
+        serialized.mediaItems.length === 0 &&
+        diskEarly?.mediaItems?.length
+      ) {
         console.warn(
-          "Autosave skipped: library had items but serialization produced none."
+          "Autosave: could not re-serialize library blobs; keeping last saved mediaItems."
+        );
+        serialized.mediaItems = diskEarly.mediaItems;
+        if (diskEarly.visualSlots?.length) {
+          serialized.visualSlots = diskEarly.visualSlots;
+        }
+      } else if (
+        persistFrame.canvasLayers.length > 0 &&
+        serialized.mediaItems.length === 0 &&
+        !(diskEarly?.mediaItems?.length)
+      ) {
+        console.warn(
+          "Autosave skipped: canvas images present but media could not be serialized."
         );
         return;
       }
@@ -233,7 +299,7 @@ export function WorkspaceTopBar({
       }
 
       const slotIds = new Set(serialized.visualSlots.map((s) => s.id));
-      const disk = getSavedProject(projectId);
+      const disk = diskEarly ?? getSavedProject(projectId);
       let mergedThumbs: Record<string, string> = {
         ...(disk?.previewThumbByVisualId ?? {}),
       };
@@ -252,7 +318,7 @@ export function WorkspaceTopBar({
         mergedThumbs[serialized.activeVisualId] = captured;
       }
 
-      const focusVisualIdAtPersistStart = activeVisualId;
+      const focusVisualIdAtPersistStart = persistActiveVisualId;
 
       const canBackfillThumbs =
         shouldCapture &&
@@ -266,9 +332,10 @@ export function WorkspaceTopBar({
         for (const slot of serialized.visualSlots) {
           const prefs = resolveVisualPrefsForSave(
             slot.id,
-            activeVisualId,
-            visualWorkspacePrefs,
-            frame
+            persistActiveVisualId,
+            persistPrefs,
+            persistFrame,
+            { preferStoredLayersWhenFrameEmpty }
           );
           const templateId = prefs.canvasBackground?.gradientTemplateId;
           if (templateId && isCanvasOrganicTemplateId(templateId)) {
@@ -371,12 +438,13 @@ export function WorkspaceTopBar({
           : {};
 
       const activeResolved =
-        activeVisualId != null
+        persistActiveVisualId != null
           ? resolveVisualPrefsForSave(
-              activeVisualId,
-              activeVisualId,
-              visualWorkspacePrefs,
-              frame
+              persistActiveVisualId,
+              persistActiveVisualId,
+              persistPrefs,
+              persistFrame,
+              { preferStoredLayersWhenFrameEmpty }
             )
           : undefined;
 
@@ -431,25 +499,16 @@ export function WorkspaceTopBar({
         serialized.visualSlots.length > 0
           ? Object.fromEntries(
               serialized.visualSlots.map((slot) => {
-                const n = resolveVisualPrefsForSave(
+                const resolved = resolveVisualPrefsForSave(
                   slot.id,
-                  activeVisualId,
-                  visualWorkspacePrefs,
-                  frame
+                  persistActiveVisualId,
+                  persistPrefs,
+                  persistFrame,
+                  { preferStoredLayersWhenFrameEmpty }
                 );
                 return [
                   slot.id,
-                  {
-                    aspectPreset: n.aspectPreset,
-                    canvasBackground: n.canvasBackground
-                      ? { ...n.canvasBackground }
-                      : null,
-                    deviceTemplateId: n.deviceTemplateId ?? null,
-                    screenshotStyle: n.screenshotStyle
-                      ? { ...n.screenshotStyle }
-                      : null,
-                    frameShadow: n.frameShadow ? { ...n.frameShadow } : null,
-                  },
+                  cloneVisualWorkspacePrefsForSave(resolved),
                 ];
               })
             )
@@ -489,23 +548,39 @@ export function WorkspaceTopBar({
           persistErr.name === "QuotaExceededError"
         ) {
           console.error(
-            "localStorage quota exceeded; saving metadata without media payload"
+            "localStorage quota exceeded; retrying without preview images"
           );
-          upsertSavedProject({
-            id: projectId,
-            title: resolvedTitle,
-            updatedAt: savedAt,
-            previewDataUrl,
-            ...(Object.keys(mergedThumbs).length > 0
-              ? { previewThumbByVisualId: mergedThumbs }
-              : {}),
-            ...(previewDataUrls.length > 0 ? { previewDataUrls } : {}),
-            aspectPreset: aspectPresetRoot,
-            visualCount: visualSlotsWithTimestamps.length,
-            visualSlots: visualSlotsWithTimestamps,
-            activeVisualId: serialized.activeVisualId,
-            ...(prefsPayload ? { visualWorkspacePrefs: prefsPayload } : {}),
-          });
+          try {
+            upsertSavedProject({
+              id: projectId,
+              title: resolvedTitle,
+              updatedAt: savedAt,
+              previewDataUrl: "",
+              aspectPreset: aspectPresetRoot,
+              canvasBackground: canvasBackgroundRoot,
+              visualCount: visualSlotsWithTimestamps.length,
+              mediaItems: serialized.mediaItems,
+              visualSlots: visualSlotsWithTimestamps,
+              activeVisualId: serialized.activeVisualId,
+              activeMediaId: serialized.activeVisualId,
+              ...(prefsPayload ? { visualWorkspacePrefs: prefsPayload } : {}),
+            });
+          } catch {
+            console.error(
+              "localStorage quota exceeded; saving metadata without media payload"
+            );
+            upsertSavedProject({
+              id: projectId,
+              title: resolvedTitle,
+              updatedAt: savedAt,
+              previewDataUrl: "",
+              aspectPreset: aspectPresetRoot,
+              visualCount: visualSlotsWithTimestamps.length,
+              visualSlots: visualSlotsWithTimestamps,
+              activeVisualId: serialized.activeVisualId,
+              ...(prefsPayload ? { visualWorkspacePrefs: prefsPayload } : {}),
+            });
+          }
         } else {
           throw persistErr;
         }
@@ -514,6 +589,7 @@ export function WorkspaceTopBar({
 
       if (segment === "new") {
         persistQueuedRef.current = false;
+        clearPendingNewProjectId();
         try {
           window.sessionStorage.setItem(
             skipHydrateSessionStorageKey(projectId),
@@ -556,6 +632,10 @@ export function WorkspaceTopBar({
     title,
     fallbackTitle,
     frame,
+    frame.canvasLayers,
+    frame.selectedCanvasLayerId,
+    frame.canvasImageRect,
+    frame.canvasImageBaseline,
   ]);
 
   useEffect(() => {
@@ -591,7 +671,28 @@ export function WorkspaceTopBar({
     visualWorkspacePrefs,
     title,
     frame,
+    frame.canvasLayers,
+    frame.selectedCanvasLayerId,
+    frame.canvasImageRect,
+    frame.canvasImageBaseline,
   ]);
+
+  useEffect(() => {
+    const segment = getProjectsWorkspaceSegment(pathname);
+    if (!segment) return;
+
+    const flush = () => {
+      void runPersistRef.current({ capture: false, force: true });
+    };
+
+    const onPageHide = () => flush();
+    window.addEventListener("pagehide", onPageHide);
+
+    return () => {
+      window.removeEventListener("pagehide", onPageHide);
+      flush();
+    };
+  }, [pathname]);
 
   useEffect(() => {
     if (!hydrationReady) return;
@@ -637,6 +738,10 @@ export function WorkspaceTopBar({
     activeVisualId,
     visualWorkspacePrefs,
     frame,
+    frame.canvasLayers,
+    frame.selectedCanvasLayerId,
+    frame.canvasImageRect,
+    frame.canvasImageBaseline,
   ]);
 
   return (

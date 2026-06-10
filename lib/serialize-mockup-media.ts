@@ -8,23 +8,35 @@ import { resourceUrlToDataUrl } from "@/lib/resource-to-data-url";
 export async function serializeMockupMediaForSave(
   library: MockupLibraryItem[],
   visuals: MockupVisualSlot[],
-  activeVisualId: string | null
+  activeVisualId: string | null,
+  /** Canvas layer media ids — always serialized even if not on a visual slot. */
+  requiredMediaIds: string[] = []
 ): Promise<{
   mediaItems: SavedMediaItem[];
   visualSlots: SavedVisualSlot[];
   activeVisualId: string | null;
 }> {
+  const byId = new Map(library.map((item) => [item.id, item]));
+  const idsToSerialize = new Set<string>([
+    ...library.map((item) => item.id),
+    ...requiredMediaIds.filter(Boolean),
+  ]);
+
   const mediaItems: SavedMediaItem[] = [];
-  for (const item of library) {
+  for (const id of idsToSerialize) {
+    const item = byId.get(id);
+    if (!item) continue;
     try {
-      const dataUrl = await resourceUrlToDataUrl(item.url);
+      const dataUrl = item.url.startsWith("data:")
+        ? item.url
+        : await resourceUrlToDataUrl(item.url);
       mediaItems.push({
         id: item.id,
         kind: item.kind,
         dataUrl,
       });
     } catch (e) {
-      console.error("Failed to serialize media item", e);
+      console.error("Failed to serialize media item", item.id, e);
     }
   }
 

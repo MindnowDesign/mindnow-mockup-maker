@@ -12,6 +12,7 @@ import {
 } from "react";
 
 import { useMockupFrame } from "@/components/mockup-frame-context";
+import { normalizeAspectPreset } from "@/lib/mockup-aspect";
 import type { SavedMediaItem, SavedVisualSlot } from "@/lib/saved-projects";
 import {
   captureVisualWorkspacePrefs,
@@ -57,12 +58,14 @@ export type HydrateFromSavedPayload = {
   visualWorkspacePrefs?: Record<string, VisualWorkspacePrefs> | null;
 } | null;
 
+/** Stable until `ProjectWorkspaceHydrate` runs — random ids break SSR hydration. */
+const WORKSPACE_PLACEHOLDER_VISUAL_ID = "workspace-pending-visual";
+
 function createFreshWorkspaceState(): MockupMediaState {
-  const vid = crypto.randomUUID();
   return {
     library: [],
-    visuals: [{ id: vid, mediaId: null }],
-    activeVisualId: vid,
+    visuals: [{ id: WORKSPACE_PLACEHOLDER_VISUAL_ID, mediaId: null }],
+    activeVisualId: WORKSPACE_PLACEHOLDER_VISUAL_ID,
     visualWorkspacePrefs: {},
   };
 }
@@ -171,7 +174,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
     const raw = visualWorkspacePrefsRef.current[activeVisualId];
     const prefs = raw ?? DEFAULT_NEW_VISUAL_WORKSPACE_PREFS;
     skipFramePrefsSyncRef.current = true;
-    setAspectPresetRef.current(prefs.aspectPreset);
+    setAspectPresetRef.current(normalizeAspectPreset(prefs.aspectPreset));
     hydrateCanvasBackgroundRef.current(prefs.canvasBackground);
     setDeviceTemplateIdRef.current(prefs.deviceTemplateId ?? null);
     hydrateScreenshotStyleRef.current(prefs.screenshotStyle ?? null);
@@ -220,6 +223,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
     frame.canvasNoiseBlendMode,
     frame.canvasOverlayShadowId,
     frame.canvasOverlayShadowOpacity,
+    frame.canvasOverlayShadowPlacement,
     frame.deviceTemplateId,
     frame.screenshotStyle,
     frame.screenshotBorderColor,
@@ -230,6 +234,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
     frame.screenshotOutlineColorOpacity,
     frame.screenshotCornerType,
     frame.screenshotCornerRadius,
+    frame.screenshotGlassFramePadding,
     frame.frameShadowPreset,
     frame.frameShadowOffsetX,
     frame.frameShadowOffsetY,

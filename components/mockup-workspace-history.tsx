@@ -18,6 +18,7 @@ import type {
   MockupVisualSlot,
 } from "@/components/mockup-media-context";
 import { useMockupMedia } from "@/components/mockup-media-context";
+import { normalizeAspectPreset } from "@/lib/mockup-aspect";
 import {
   captureWorkspaceSnapshot,
   createCanvasResetSnapshot,
@@ -151,7 +152,7 @@ export function MockupWorkspaceHistoryProvider({
   const applySnapshot = useCallback(
     (snap: WorkspaceSnapshot) => {
       isApplyingRef.current = true;
-      frame.setAspectPreset(snap.aspectPreset);
+      frame.setAspectPreset(normalizeAspectPreset(snap.aspectPreset));
       frame.hydrateCanvasBackground(snap.canvasBackground);
       const { library, visuals, activeVisualId } = coerceVisualState(snap);
       const frameSeed: VisualWorkspacePrefs = {

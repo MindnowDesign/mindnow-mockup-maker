@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useMockupFrame } from "@/components/mockup-frame-context";
 import { useMockupMedia } from "@/components/mockup-media-context";
 import type { VisualWorkspacePrefs } from "@/lib/mockup-workspace-snapshot";
+import { normalizeAspectPreset } from "@/lib/mockup-aspect";
 import { getSavedProject } from "@/lib/saved-projects";
 import {
   getProjectsWorkspaceSegment,
@@ -62,8 +63,6 @@ export function ProjectWorkspaceHydrate() {
           "1"
       ) {
         window.sessionStorage.removeItem(skipHydrateSessionStorageKey(segment));
-        signalHydrated();
-        return;
       }
     } catch {
       /* ignore sessionStorage */
@@ -97,7 +96,7 @@ export function ProjectWorkspaceHydrate() {
       };
       const seedForFrame = perVisual ?? projectFrameSeed;
 
-      setAspectPreset(seedForFrame.aspectPreset);
+      setAspectPreset(normalizeAspectPreset(seedForFrame.aspectPreset));
       hydrateCanvasBackground(seedForFrame.canvasBackground);
       setDeviceTemplateId(seedForFrame.deviceTemplateId ?? null);
       hydrateScreenshotStyle(seedForFrame.screenshotStyle ?? null);

@@ -4,7 +4,21 @@ export type FrameAspectPresetId =
   | "square-1-1"
   | "portrait-4-5"
   | "vertical-9-16"
+  /** @deprecated Legacy saves only — not offered in the aspect ratio picker. */
   | "custom";
+
+export type SelectableFrameAspectPresetId = Exclude<
+  FrameAspectPresetId,
+  "custom"
+>;
+
+/** Maps legacy `custom` to the former default proportions (9:16). */
+export function normalizeAspectPreset(
+  id: FrameAspectPresetId
+): SelectableFrameAspectPresetId {
+  if (id === "custom") return "vertical-9-16";
+  return id;
+}
 
 /** Logical canvas size for export / metadata (matches each preset’s aspect ratio). */
 export type FrameDimensions = {

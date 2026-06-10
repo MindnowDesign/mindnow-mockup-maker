@@ -16,7 +16,7 @@ import { MockupDeviceFrame } from "@/components/mockup-device-frame";
 import { CanvasGradientFillPaletteBar } from "@/components/canvas-gradient-fill-palette-bar";
 import { useMockupMedia } from "@/components/mockup-media-context";
 import { CanvasBackgroundNoiseOverlay } from "@/components/canvas-background-noise-overlay";
-import { CanvasOverlayShadowLayer } from "@/components/canvas-overlay-shadow-layer";
+import { CanvasMoodShadowLayer } from "@/components/canvas-mood-shadow-layer";
 import { CanvasGradientInlineBackground } from "@/components/canvas-gradient-inline-background";
 import { CanvasOrganicBackground } from "@/components/canvas-organic-background";
 import { hexToRgb } from "@/lib/color-hex-hsv";
@@ -59,6 +59,27 @@ function rgbaFromHex(hex: string, opacityPercent: number): string {
   return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${a})`;
 }
 
+/** Frame drop shadow follows the same rounded box as the style wrapper or shell. */
+function appendBoxShadow(
+  base: CSSProperties,
+  extra: string | null | undefined
+): CSSProperties {
+  if (!extra) return base;
+  const existing = base.boxShadow;
+  const combined =
+    existing && existing !== "none" ? `${existing}, ${extra}` : extra;
+  return { ...base, boxShadow: combined };
+}
+
+function screenshotShellRadiusStyle(radiusPx: number): CSSProperties {
+  if (radiusPx <= 0) return {};
+  return {
+    borderRadius: `${radiusPx}px`,
+    overflow: "hidden",
+    isolation: "isolate",
+  };
+}
+
 type ScreenshotBorderStyle = {
   /** Pixel weight; pass 0 to disable. */
   weight: number;
@@ -98,6 +119,7 @@ function UploadedScreenshotImage({
   outlineColor,
   outlineColorOpacity,
   cornerRadius,
+  glassFramePadding,
   mediaBoxShadow,
 }: {
   src: string;
@@ -106,6 +128,7 @@ function UploadedScreenshotImage({
   outlineColor: string;
   outlineColorOpacity: number;
   cornerRadius: number;
+  glassFramePadding: number;
   mediaBoxShadow?: string | null;
 }) {
   const effectiveCornerRadius = screenshotEffectiveCornerRadius(cornerRadius);
@@ -158,10 +181,11 @@ function UploadedScreenshotImage({
     if (style !== "glass" && style !== "liquidGlass") return undefined;
     const spec =
       style === "liquidGlass" ? SCREENSHOT_LIQUID_GLASS : SCREENSHOT_GLASS_LIGHT;
+    const padding = Math.max(0, glassFramePadding);
     /** Same geometry as outline: outer radius tracks the screenshot radius + gap. */
-    const outerRadius = effectiveCornerRadius + spec.framePadding;
+    const outerRadius = effectiveCornerRadius + padding;
     return {
-      padding: `${spec.framePadding}px`,
+      padding: `${padding}px`,
       borderRadius: `${outerRadius}px`,
       background: spec.background,
       backdropFilter: spec.backdropFilter,
@@ -170,7 +194,7 @@ function UploadedScreenshotImage({
         ? { boxShadow: SCREENSHOT_LIQUID_GLASS.boxShadow }
         : {}),
     };
-  }, [style, effectiveCornerRadius]);
+  }, [style, effectiveCornerRadius, glassFramePadding]);
 
   /**
    * Outline = wrapper border with `padding` for the gap so the stroke ends up
@@ -190,29 +214,26 @@ function UploadedScreenshotImage({
     };
   }, [style, outlineColor, outlineColorOpacity, effectiveCornerRadius]);
 
-  const wrapperStyle = glassFrameStyle ?? outlineFrameStyle;
+  const hasStyleWrapper = style === "glass" || style === "liquidGlass" || style === "outline";
+
+  const styleWrapperStyle = useMemo<CSSProperties | undefined>(() => {
+    if (!hasStyleWrapper) return undefined;
+    const base = glassFrameStyle ?? outlineFrameStyle;
+    if (!base) return undefined;
+    return appendBoxShadow(base, mediaBoxShadow);
+  }, [hasStyleWrapper, glassFrameStyle, outlineFrameStyle, mediaBoxShadow]);
 
   const shellStyle = useMemo<CSSProperties>(() => {
     const base: CSSProperties = fitted
       ? { width: fitted.w, height: fitted.h }
       : {};
-    const radiusBase: CSSProperties =
-      effectiveCornerRadius > 0
-        ? { borderRadius: `${effectiveCornerRadius}px`, overflow: "hidden" }
-        : {};
-    let inner: CSSProperties;
-    if (style === "glass" || style === "liquidGlass") {
-      inner = {
-        ...base,
-        borderRadius: `${effectiveCornerRadius}px`,
-        ...(effectiveCornerRadius > 0 ? { overflow: "hidden" } : {}),
-      };
-    } else if (style === "outline") {
-      inner = { ...base, ...radiusBase };
-    } else {
-      inner = { ...base, ...radiusBase };
-    }
-    const shadows = [borderBoxShadow, mediaBoxShadow].filter(Boolean);
+    const radiusBase = screenshotShellRadiusStyle(effectiveCornerRadius);
+    const inner: CSSProperties = { ...base, ...radiusBase };
+
+    const shadows = [
+      borderBoxShadow,
+      !hasStyleWrapper ? mediaBoxShadow : null,
+    ].filter(Boolean);
     if (shadows.length > 0) {
       return { ...inner, boxShadow: shadows.join(", ") };
     }
@@ -220,10 +241,42 @@ function UploadedScreenshotImage({
   }, [
     fitted,
     style,
+    hasStyleWrapper,
     borderBoxShadow,
-    effectiveCornerRadius,
     mediaBoxShadow,
+    effectiveCornerRadius,
   ]);
+
+  const imgClipStyle = useMemo<CSSProperties | undefined>(() => {
+    if (effectiveCornerRadius <= 0) return undefined;
+    return { borderRadius: `${effectiveCornerRadius}px` };
+  }, [effectiveCornerRadius]);
+
+  const shellClassName = cn(
+    "relative shrink-0",
+    !fitted && "max-h-full max-w-full"
+  );
+
+  const screenshotImg = (
+    /* eslint-disable-next-line @next/next/no-img-element -- user-provided blob URL */
+    <img
+      ref={imgRef}
+      src={src}
+      alt=""
+      draggable={false}
+      style={imgClipStyle}
+      onLoad={(e) =>
+        setNatural({
+          w: e.currentTarget.naturalWidth,
+          h: e.currentTarget.naturalHeight,
+        })
+      }
+      className={cn(
+        "pointer-events-none block size-full select-none",
+        !fitted && "h-auto w-auto max-h-full max-w-full object-contain"
+      )}
+    />
+  );
 
   return (
     <div
@@ -237,40 +290,21 @@ function UploadedScreenshotImage({
        */
       className="grid h-full min-h-0 w-full min-w-0 grid-cols-1 grid-rows-1 place-content-center place-items-center"
     >
-      <div
-        className={cn(
-          "relative shrink-0",
-          !fitted && "max-h-full max-w-full"
-        )}
-        style={wrapperStyle}
-      >
+      {styleWrapperStyle ? (
+        <div className={shellClassName} style={styleWrapperStyle}>
+          <div data-mockup-media-shell className={shellClassName} style={shellStyle}>
+            {screenshotImg}
+          </div>
+        </div>
+      ) : (
         <div
           data-mockup-media-shell
-          className={cn(
-            "relative shrink-0",
-            !fitted && "max-h-full max-w-full"
-          )}
+          className={shellClassName}
           style={shellStyle}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element -- user-provided blob URL */}
-          <img
-            ref={imgRef}
-            src={src}
-            alt=""
-            draggable={false}
-            onLoad={(e) =>
-              setNatural({
-                w: e.currentTarget.naturalWidth,
-                h: e.currentTarget.naturalHeight,
-              })
-            }
-            className={cn(
-              "pointer-events-none block size-full select-none",
-              !fitted && "h-auto w-auto max-h-full max-w-full object-contain"
-            )}
-          />
+          {screenshotImg}
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -407,6 +441,7 @@ export function MockupWorkspaceStage() {
     canvasNoiseBlendModePreview,
     canvasOverlayShadowId,
     canvasOverlayShadowOpacity,
+    canvasOverlayShadowPlacement,
     deviceTemplateId,
     screenshotStyle,
     screenshotBorderColor,
@@ -416,6 +451,7 @@ export function MockupWorkspaceStage() {
     screenshotOutlineColor,
     screenshotOutlineColorOpacity,
     screenshotCornerRadius,
+    screenshotGlassFramePadding,
     frameShadowOffsetX,
     frameShadowOffsetY,
     frameShadowBlur,
@@ -685,10 +721,13 @@ export function MockupWorkspaceStage() {
           noiseColorOpacity={canvasNoiseColorOpacity}
           blendMode={noiseBlendModeEffective}
         />
-        <CanvasOverlayShadowLayer
-          templateId={canvasOverlayShadowId}
-          opacityPercent={canvasOverlayShadowOpacity}
-        />
+        {canvasOverlayShadowPlacement === "underlay" ? (
+          <CanvasMoodShadowLayer
+            templateId={canvasOverlayShadowId}
+            opacityPercent={canvasOverlayShadowOpacity}
+            placement="underlay"
+          />
+        ) : null}
         <div className="relative z-10 flex min-h-0 min-w-0 flex-1 items-center justify-center">
           <MockupDeviceFrame deviceTemplateId={deviceTemplateId}>
             {activeItem?.kind === "image" ? (
@@ -701,6 +740,7 @@ export function MockupWorkspaceStage() {
                   outlineColor={screenshotOutlineColor}
                   outlineColorOpacity={screenshotOutlineColorOpacity}
                   cornerRadius={screenshotCornerRadius}
+                  glassFramePadding={screenshotGlassFramePadding}
                   mediaBoxShadow={screenshotMediaBoxShadow}
                 />
               ) : (
@@ -774,6 +814,13 @@ export function MockupWorkspaceStage() {
             )}
           </MockupDeviceFrame>
         </div>
+        {canvasOverlayShadowPlacement === "overlay" ? (
+          <CanvasMoodShadowLayer
+            templateId={canvasOverlayShadowId}
+            opacityPercent={canvasOverlayShadowOpacity}
+            placement="overlay"
+          />
+        ) : null}
       </div>
       <CanvasGradientFillPaletteBar
         displayFills={canvasGradientFillHex}

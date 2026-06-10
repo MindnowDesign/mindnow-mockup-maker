@@ -116,9 +116,14 @@ export const DEFAULT_SCREENSHOT_OUTLINE_COLOR_OPACITY = 100;
  * `screenshotEffectiveCornerRadius(cornerRadius) + framePadding` so the glass
  * band follows the same Corner radius controls as the image.
  */
+/** Default glass band width (px) — user-adjustable 0–`SCREENSHOT_GLASS_FRAME_PADDING_MAX`. */
+export const DEFAULT_SCREENSHOT_GLASS_FRAME_PADDING = 8;
+export const SCREENSHOT_GLASS_FRAME_PADDING_MIN = 0;
+export const SCREENSHOT_GLASS_FRAME_PADDING_MAX = 50;
+
 export const SCREENSHOT_GLASS_LIGHT = {
-  /** Padding (px) between the image and the outer glass frame. */
-  framePadding: 8,
+  /** Fallback when no persisted value (see `screenshotGlassFramePadding`). */
+  framePadding: DEFAULT_SCREENSHOT_GLASS_FRAME_PADDING,
   /** Background fill for the glass frame (translucent). */
   background:
     "linear-gradient(135deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.18) 100%)",
@@ -131,7 +136,7 @@ export const SCREENSHOT_GLASS_LIGHT = {
  * saturation/blur, and a soft specular rim so it reads wet vs frosted glass.
  */
 export const SCREENSHOT_LIQUID_GLASS = {
-  framePadding: 10,
+  framePadding: DEFAULT_SCREENSHOT_GLASS_FRAME_PADDING,
   background:
     "linear-gradient(155deg, rgba(255, 255, 255, 0.5) 0%, rgba(186, 230, 253, 0.32) 42%, rgba(255, 255, 255, 0.1) 68%, rgba(165, 210, 255, 0.22) 100%)",
   backdropFilter: "blur(28px) saturate(210%) brightness(1.06)",
@@ -173,6 +178,8 @@ export type PersistedScreenshotStyle = {
   cornerType?: ScreenshotCornerType;
   /** Pixel radius for non-sharp corner types. */
   cornerRadius?: number;
+  /** Glass / liquid-glass band width (px), 0–50. */
+  glassFramePadding?: number;
 };
 
 export function parseScreenshotStyle(value: unknown): ScreenshotStyleId {
@@ -190,6 +197,18 @@ export function parseScreenshotBorderPosition(
     return value;
   }
   return DEFAULT_SCREENSHOT_BORDER_POSITION;
+}
+
+export function clampScreenshotGlassFramePadding(
+  value: number | undefined
+): number {
+  if (value == null || Number.isNaN(value)) {
+    return DEFAULT_SCREENSHOT_GLASS_FRAME_PADDING;
+  }
+  return Math.min(
+    SCREENSHOT_GLASS_FRAME_PADDING_MAX,
+    Math.max(SCREENSHOT_GLASS_FRAME_PADDING_MIN, Math.round(value))
+  );
 }
 
 export function clampScreenshotBorderWeight(value: number | undefined): number {

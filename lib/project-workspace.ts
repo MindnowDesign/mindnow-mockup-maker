@@ -9,6 +9,24 @@ export function skipHydrateSessionStorageKey(projectId: string) {
   return `mindnow:skip-hydrate:${projectId}`;
 }
 
+const PENDING_NEW_PROJECT_ID_KEY = "mindnow:pending-new-project-id";
+
+/** Stable id for all autosaves on `/projects/new` until redirect to `/projects/:id`. */
+export function getOrCreatePendingNewProjectId(): string {
+  if (typeof window === "undefined") return "";
+  let id = window.sessionStorage.getItem(PENDING_NEW_PROJECT_ID_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    window.sessionStorage.setItem(PENDING_NEW_PROJECT_ID_KEY, id);
+  }
+  return id;
+}
+
+export function clearPendingNewProjectId() {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.removeItem(PENDING_NEW_PROJECT_ID_KEY);
+}
+
 /** Strip trailing slashes so `/projects/new/` matches workspace routes like `/projects/new`. */
 function normalizePathname(pathname: string): string {
   const t = pathname.replace(/\/+$/, "");

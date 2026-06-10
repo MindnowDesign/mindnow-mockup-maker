@@ -23,11 +23,14 @@ import {
 } from "react";
 import { CanvasBackgroundTemplatesSection } from "@/components/canvas-background-templates-section";
 import {
-  OverlayShadowIcon,
+  MoodShadowIcon,
   StyleBlurIcon,
   StyleNoiseIcon,
 } from "@/components/canvas-style-icons";
-import { CANVAS_OVERLAY_SHADOW_TEMPLATES } from "@/lib/canvas-overlay-shadow-templates";
+import {
+  CANVAS_MOOD_SHADOW_TEMPLATES,
+  type CanvasMoodShadowPlacement,
+} from "@/lib/canvas-mood-shadow-templates";
 import { CanvasSolidColorPicker } from "@/components/canvas-solid-color-picker";
 import { EffectAccordionSection } from "@/components/effect-accordion-section";
 import { SolidColorPopoverRow } from "@/components/solid-color-popover-row";
@@ -362,6 +365,22 @@ const overlayPreviewButtonBase = cn(
   "focus-visible:ring-2 focus-visible:ring-white/25"
 );
 
+const MOOD_SHADOW_PLACEMENT_OPTIONS: {
+  id: CanvasMoodShadowPlacement;
+  label: string;
+}[] = [
+  { id: "underlay", label: "Underlay" },
+  { id: "overlay", label: "Overlay" },
+];
+
+const overlayShadowPlacementButtonClass = (selected: boolean) =>
+  cn(
+    "min-h-9 rounded-lg border px-2 py-1.5 text-center text-[11px] font-semibold leading-tight transition-colors",
+    selected
+      ? "border-zinc-500 bg-zinc-800 text-white shadow-sm"
+      : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:bg-zinc-900 hover:text-zinc-200"
+  );
+
 export function CanvasEffectSliderRow({
   id,
   label,
@@ -463,14 +482,16 @@ export function CanvasBackgroundControls() {
     setCanvasOverlayShadowId,
     canvasOverlayShadowOpacity,
     setCanvasOverlayShadowOpacity,
+    canvasOverlayShadowPlacement,
+    setCanvasOverlayShadowPlacement,
   } = useMockupFrame();
 
   const [openEffectSection, setOpenEffectSection] = useState("");
-  const [openOverlaySection, setOpenOverlaySection] = useState("");
+  const [openMoodSection, setOpenMoodSection] = useState("");
 
   const noiseSectionOpen = openEffectSection === "canvas-effect-noise";
   const blurSectionOpen = openEffectSection === "canvas-effect-blur";
-  const shadowSectionOpen = openOverlaySection === "canvas-overlay-shadow";
+  const shadowSectionOpen = openMoodSection === "canvas-mood-shadow";
 
   function toggleEffectSection(sectionId: string) {
     setOpenEffectSection((current) =>
@@ -478,10 +499,8 @@ export function CanvasBackgroundControls() {
     );
   }
 
-  function toggleOverlaySection(sectionId: string) {
-    setOpenOverlaySection((current) =>
-      current === sectionId ? "" : sectionId
-    );
+  function toggleMoodSection(sectionId: string) {
+    setOpenMoodSection((current) => (current === sectionId ? "" : sectionId));
   }
 
   return (
@@ -699,22 +718,22 @@ export function CanvasBackgroundControls() {
     </div>
 
     <div className="space-y-2 pt-1">
-      <span className="block text-xs font-medium text-zinc-400">Overlay</span>
+      <span className="block text-xs font-medium text-zinc-400">Mood</span>
       <div className="space-y-2">
         <EffectAccordionSection
-          sectionId="canvas-overlay-shadow"
+          sectionId="canvas-mood-shadow"
           label="Shadow"
-          Icon={OverlayShadowIcon}
+          Icon={MoodShadowIcon}
           open={shadowSectionOpen}
-          onToggle={() => toggleOverlaySection("canvas-overlay-shadow")}
+          onToggle={() => toggleMoodSection("canvas-mood-shadow")}
         >
           <div className="space-y-3">
             <div
               role="radiogroup"
-              aria-label="Shadow overlays"
+              aria-label="Mood shadow presets"
               className={templatePreviewGridClass}
             >
-              {CANVAS_OVERLAY_SHADOW_TEMPLATES.map((entry) => {
+              {CANVAS_MOOD_SHADOW_TEMPLATES.map((entry) => {
                 const selected = canvasOverlayShadowId === entry.id;
                 return (
                   <button
@@ -738,13 +757,34 @@ export function CanvasBackgroundControls() {
               })}
             </div>
             <CanvasEffectSliderRow
-              id="canvas-overlay-shadow-opacity"
+              id="canvas-mood-shadow-opacity"
               label="Opacity"
               Icon={Droplet}
               value={canvasOverlayShadowOpacity}
               onChange={setCanvasOverlayShadowOpacity}
               hideLabel
             />
+            <div
+              role="radiogroup"
+              aria-label="Shadow placement"
+              className="grid grid-cols-2 gap-1.5"
+            >
+              {MOOD_SHADOW_PLACEMENT_OPTIONS.map(({ id, label }) => {
+                const selected = canvasOverlayShadowPlacement === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => setCanvasOverlayShadowPlacement(id)}
+                    className={overlayShadowPlacementButtonClass(selected)}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </EffectAccordionSection>
       </div>

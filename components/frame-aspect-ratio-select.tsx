@@ -6,11 +6,10 @@ import {
   Monitor,
   RectangleHorizontal,
   RectangleVertical,
-  SlidersHorizontal,
   Smartphone,
   Square,
 } from "lucide-react";
-import { type ComponentType } from "react";
+import { useEffect, type ComponentType } from "react";
 import {
   Content,
   Icon as SelectDropdownIcon,
@@ -22,16 +21,20 @@ import {
   Viewport,
 } from "@radix-ui/react-select";
 
-import type { FrameAspectPresetId } from "@/lib/mockup-aspect";
+import {
+  normalizeAspectPreset,
+  type FrameAspectPresetId,
+  type SelectableFrameAspectPresetId,
+} from "@/lib/mockup-aspect";
 import { useMockupFrame } from "@/components/mockup-frame-context";
 import { cn } from "@/lib/utils";
 
 export type { FrameAspectPresetId };
 
 type Preset = {
-  id: FrameAspectPresetId;
+  id: SelectableFrameAspectPresetId;
   label: string;
-  ratio: string | null;
+  ratio: string;
   Icon: ComponentType<{ className?: string; strokeWidth?: number }>;
 };
 
@@ -66,21 +69,23 @@ const PRESETS: Preset[] = [
     ratio: "9:16",
     Icon: RectangleVertical,
   },
-  {
-    id: "custom",
-    label: "Custom",
-    ratio: null,
-    Icon: SlidersHorizontal,
-  },
 ];
 
 function presetEntryLabel(p: Preset) {
-  return p.ratio ? `${p.label} (${p.ratio})` : p.label;
+  return `${p.label} (${p.ratio})`;
 }
 
 export function FrameAspectRatioSelect() {
   const { aspectPreset: value, setAspectPreset: setValue } = useMockupFrame();
-  const selected = PRESETS.find((p) => p.id === value) ?? PRESETS[4];
+  const selectValue = normalizeAspectPreset(value);
+
+  useEffect(() => {
+    if (value === "custom") {
+      setValue(selectValue);
+    }
+  }, [value, selectValue, setValue]);
+
+  const selected = PRESETS.find((p) => p.id === selectValue) ?? PRESETS[2];
   const SelectedIcon = selected.Icon;
 
   return (
@@ -89,7 +94,7 @@ export function FrameAspectRatioSelect() {
         Aspect ratio
       </span>
       <Root
-        value={value}
+        value={selectValue}
         onValueChange={(v) => setValue(v as FrameAspectPresetId)}
       >
         <Trigger
@@ -109,11 +114,9 @@ export function FrameAspectRatioSelect() {
               <span className="truncate font-semibold text-white">
                 {selected.label}
               </span>
-              {selected.ratio ? (
-                <span className="shrink-0 whitespace-nowrap text-zinc-500">
-                  ({selected.ratio})
-                </span>
-              ) : null}
+              <span className="shrink-0 whitespace-nowrap text-zinc-500">
+                ({selected.ratio})
+              </span>
             </span>
           </span>
           <SelectDropdownIcon asChild>
@@ -153,11 +156,9 @@ export function FrameAspectRatioSelect() {
                       <span className="font-semibold text-white">
                         {preset.label}
                       </span>
-                      {preset.ratio ? (
-                        <span className="shrink-0 whitespace-nowrap text-zinc-500">
-                          ({preset.ratio})
-                        </span>
-                      ) : null}
+                      <span className="shrink-0 whitespace-nowrap text-zinc-500">
+                        ({preset.ratio})
+                      </span>
                     </span>
                     <ItemIndicator className="absolute right-2 flex size-4 items-center justify-center">
                       <Check

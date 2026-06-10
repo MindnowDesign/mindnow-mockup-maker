@@ -102,9 +102,9 @@ export function StyleOrganicIcon({
  * Synced from `public/icons/style-blur.svg` (update both when you change the file).
  */
 /**
- * Synced from `public/icons/overlay-shadow.svg` (update both when you change the file).
+ * Synced from `public/icons/mood-shadow.svg` (update both when you change the file).
  */
-export function OverlayShadowIcon({
+export function MoodShadowIcon({
   className,
   ...rest
 }: CanvasStyleIconProps) {
