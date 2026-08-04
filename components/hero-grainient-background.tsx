@@ -1,6 +1,11 @@
 "use client";
 
-import Grainient from "@/components/grainient";
+import dynamic from "next/dynamic";
+
+const Grainient = dynamic(() => import("@/components/grainient"), {
+  ssr: false,
+  loading: () => <div className="absolute inset-0 bg-zinc-900" aria-hidden />,
+});
 
 /** Animated hero header — React Bits Grainient preset. */
 export function HeroGrainientBackground() {

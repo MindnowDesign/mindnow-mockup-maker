@@ -867,6 +867,8 @@ function IphoneProMaxStyleControls() {
                             alt=""
                             width={24}
                             height={24}
+                            loading="lazy"
+                            decoding="async"
                             className="absolute inset-0 size-full rounded-xl object-cover"
                             draggable={false}
                           />

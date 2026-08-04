@@ -1,6 +1,12 @@
 "use client";
 
-import { CopyPlus, EllipsisVertical, Image as ImageIcon, Trash2 } from "lucide-react";
+import {
+  CopyPlus,
+  EllipsisVertical,
+  Image as ImageIcon,
+  Trash2,
+  Upload,
+} from "lucide-react";
 import { useState } from "react";
 
 import { useMockupFrame } from "@/components/mockup-frame-context";
@@ -48,7 +54,8 @@ export function WorkspaceMediaPanel() {
               e.target.value = "";
             }}
           />
-          <span className="flex w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm font-medium text-white outline-none transition-colors hover:bg-zinc-900 focus-within:ring-2 focus-within:ring-white/25">
+          <span className="flex w-full items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm font-medium text-white outline-none transition-colors hover:bg-zinc-900 focus-within:ring-2 focus-within:ring-white/25">
+            <Upload className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
             Add media
           </span>
         </label>
@@ -83,6 +90,8 @@ export function WorkspaceMediaPanel() {
                     <img
                       src={item.url}
                       alt=""
+                      loading="lazy"
+                      decoding="async"
                       className="pointer-events-none block size-full object-cover select-none"
                       draggable={false}
                     />

@@ -577,11 +577,12 @@ export function CanvasBackgroundControls() {
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 className={cn(
-                  "w-full rounded-lg border border-dashed border-zinc-600 bg-zinc-950/80 px-3 py-2.5 text-left text-sm font-medium text-zinc-300 outline-none transition-colors",
+                  "flex w-full items-center gap-2 rounded-lg border border-dashed border-zinc-600 bg-zinc-950/80 px-3 py-2.5 text-left text-sm font-medium text-zinc-300 outline-none transition-colors",
                   "hover:border-zinc-500 hover:bg-zinc-900 hover:text-white",
                   "focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
                 )}
               >
+                <Upload className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
                 Upload background image
               </button>
               <p className="text-xs leading-relaxed text-zinc-500">
@@ -594,6 +595,7 @@ export function CanvasBackgroundControls() {
               <img
                 src={canvasBackgroundImageUrl}
                 alt=""
+                decoding="async"
                 className="max-h-24 w-full object-cover"
               />
               <div

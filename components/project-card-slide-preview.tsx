@@ -80,6 +80,8 @@ export function ProjectCardSlidePreview({
         <img
           src={mediaDataUrl}
           alt=""
+          loading="lazy"
+          decoding="async"
           draggable={false}
           className="absolute inset-0 z-[2] size-full object-contain p-[12%]"
         />

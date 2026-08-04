@@ -37,6 +37,8 @@ function VisualCanvasPeek({
           <img
             src={libraryItem.url}
             alt=""
+            loading="lazy"
+            decoding="async"
             className="absolute inset-0 z-[2] size-full object-cover"
             draggable={false}
           />

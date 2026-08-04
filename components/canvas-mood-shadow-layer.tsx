@@ -40,6 +40,7 @@ export function CanvasMoodShadowLayer({
       <img
         src={template.svgPublicPath}
         alt=""
+        decoding="async"
         className="block h-full w-full object-cover"
         draggable={false}
       />
