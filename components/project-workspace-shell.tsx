@@ -204,24 +204,25 @@ export function ProjectWorkspaceShell({
     </Sidebar>
   );
 
-  const workspaceSidebar = workspaceFeature ? (
+  // Stable wrapper so the rail does not remount when the feature panel opens.
+  const workspaceSidebar = (
     <div className="hidden h-full min-h-0 shrink-0 flex-row overflow-hidden lg:flex">
       {sidebarRail}
-      <aside
-        className="flex h-full min-h-0 w-[304px] min-w-[304px] shrink-0 flex-col overflow-hidden border-r border-zinc-800 bg-zinc-900"
-        aria-label={
-          workspaceFeature === "frame"
-            ? "Frame tools"
-            : workspaceFeature === "background"
-              ? "Canvas tools"
-              : "Media tools"
-        }
-      >
-        <WorkspaceFeaturePanel feature={workspaceFeature} />
-      </aside>
+      {workspaceFeature ? (
+        <aside
+          className="flex h-full min-h-0 w-[304px] min-w-[304px] shrink-0 flex-col overflow-hidden border-r border-zinc-800 bg-zinc-900"
+          aria-label={
+            workspaceFeature === "frame"
+              ? "Frame tools"
+              : workspaceFeature === "background"
+                ? "Canvas tools"
+                : "Media tools"
+          }
+        >
+          <WorkspaceFeaturePanel feature={workspaceFeature} />
+        </aside>
+      ) : null}
     </div>
-  ) : (
-    sidebarRail
   );
 
   return (

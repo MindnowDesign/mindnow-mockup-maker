@@ -155,6 +155,24 @@ export function FrameDevicePicker() {
       setFilterTab("phone");
       return;
     }
+    if (deviceTemplateId === "tablet-11-space-black") {
+      setSelection({
+        preset: "tablet",
+        headline: "Tablet 11″",
+        detail: "834 × 1194",
+      });
+      setFilterTab("tablet");
+      return;
+    }
+    if (deviceTemplateId === "tablet-13-space-black") {
+      setSelection({
+        preset: "tablet",
+        headline: "Tablet 13″",
+        detail: "1024 × 1366",
+      });
+      setFilterTab("tablet");
+      return;
+    }
     setSelection({
       preset: "screenshot",
       headline: TRIGGER_META.screenshot.label,
@@ -333,29 +351,31 @@ export function FrameDevicePicker() {
                           <div className={TILE_PREVIEW_INNER} />
                         </PreviewPlate>
                       }
-                      onPick={() =>
+                      onPick={() => {
+                        setDeviceTemplateId("tablet-11-space-black");
                         pickTemplate({
                           preset: "tablet",
                           headline: "Tablet 11″",
                           detail: "834 × 1194",
-                        })
-                      }
+                        });
+                      }}
                     />
                     <TemplateTile
                       title="Tablet 13″"
-                      resolution="1366 × 1024"
+                      resolution="1024 × 1366"
                       preview={
                         <PreviewPlate>
                           <div className={TILE_PREVIEW_INNER} />
                         </PreviewPlate>
                       }
-                      onPick={() =>
+                      onPick={() => {
+                        setDeviceTemplateId("tablet-13-space-black");
                         pickTemplate({
                           preset: "tablet",
                           headline: "Tablet 13″",
-                          detail: "1366 × 1024",
-                        })
-                      }
+                          detail: "1024 × 1366",
+                        });
+                      }}
                     />
                   </div>
                 </TabsContent>

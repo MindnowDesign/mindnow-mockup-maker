@@ -22,6 +22,12 @@ export type MockupDeviceTemplate = {
   framePixelWidth: number;
   framePixelHeight: number;
   screen: MockupDeviceScreenInset;
+  /**
+   * CSS border-radius for the screen clip.
+   * - `number`: single `%` value (phones ~8.6)
+   * - `{ xPct, yPct }`: elliptical `% / %` so corners stay circular on non-square screens
+   */
+  screenBorderRadiusPct?: number | { xPct: number; yPct: number };
 };
 
 /** Shared geometry for all iPhone 17 Pro Max finish variants (swap PNG per finish). */
@@ -164,6 +170,44 @@ export const MOCKUP_DEVICE_TEMPLATES: MockupDeviceTemplate[] = [
     framePixelWidth: 1438,
     framePixelHeight: 2956,
     screen: { ...IPHONE_17_PRO_MAX_SCREEN },
+  },
+  {
+    id: "tablet-11-space-black",
+    label: "Tablet 11″",
+    frameSrc: mockupDeviceFile("tablet-11-space-black.png"),
+    framePixelWidth: 1868,
+    framePixelHeight: 2620,
+    /** Hole is 99,100 1668×2420; expand 2px under bezel to avoid canvas bleed. */
+    screen: {
+      leftPct: (97 / 1868) * 100,
+      topPct: (98 / 2620) * 100,
+      widthPct: (1672 / 1868) * 100,
+      heightPct: (2424 / 2620) * 100,
+    },
+    /** ~68px circular corner matching the frame screen hole */
+    screenBorderRadiusPct: {
+      xPct: (70 / 1672) * 100,
+      yPct: (70 / 2424) * 100,
+    },
+  },
+  {
+    id: "tablet-13-space-black",
+    label: "Tablet 13″",
+    frameSrc: mockupDeviceFile("tablet-13-space-black.png"),
+    framePixelWidth: 2264,
+    framePixelHeight: 2952,
+    /** Hole is 100,100 2064×2752; expand 2px under bezel to avoid canvas bleed. */
+    screen: {
+      leftPct: (98 / 2264) * 100,
+      topPct: (98 / 2952) * 100,
+      widthPct: (2068 / 2264) * 100,
+      heightPct: (2756 / 2952) * 100,
+    },
+    /** ~68px circular corner matching the frame screen hole */
+    screenBorderRadiusPct: {
+      xPct: (70 / 2068) * 100,
+      yPct: (70 / 2756) * 100,
+    },
   },
 ];
 

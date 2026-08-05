@@ -1,7 +1,9 @@
 "use client";
 
-import dynamic from "next/dynamic";
-
+import { CanvasBackgroundControls } from "@/components/canvas-background-controls";
+import { FrameAspectRatioSelect } from "@/components/frame-aspect-ratio-select";
+import { FrameDevicePicker } from "@/components/frame-device-picker";
+import { WorkspaceMediaPanel } from "@/components/workspace-media-panel";
 import { scrollbarSubtleClass } from "@/lib/scrollbar-classes";
 import { cn } from "@/lib/utils";
 
@@ -21,26 +23,6 @@ const DESCRIPTIONS: Record<WorkspaceFeatureId, string> = {
   media:
     "Add images, uploads, and asset placeholders for this project.",
 };
-
-const FrameAspectRatioSelect = dynamic(() =>
-  import("@/components/frame-aspect-ratio-select").then(
-    (m) => m.FrameAspectRatioSelect
-  )
-);
-
-const CanvasBackgroundControls = dynamic(() =>
-  import("@/components/canvas-background-controls").then(
-    (m) => m.CanvasBackgroundControls
-  )
-);
-
-const FrameDevicePicker = dynamic(() =>
-  import("@/components/frame-device-picker").then((m) => m.FrameDevicePicker)
-);
-
-const WorkspaceMediaPanel = dynamic(() =>
-  import("@/components/workspace-media-panel").then((m) => m.WorkspaceMediaPanel)
-);
 
 type WorkspaceFeaturePanelProps = {
   feature: WorkspaceFeatureId;
