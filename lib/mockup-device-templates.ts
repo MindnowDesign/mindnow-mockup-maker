@@ -265,6 +265,46 @@ export const MOCKUP_DEVICE_TEMPLATES: MockupDeviceTemplate[] = [
     fitToScreen: true,
     fitScale: 0.9,
   },
+  {
+    id: "macbook-pro-16",
+    label: "MacBook Pro 16″",
+    frameSrc: mockupDeviceFile("macbook-pro-16.png"),
+    framePixelWidth: 4893,
+    framePixelHeight: 3164,
+    /** Full screen hole incl. notch bay: 818,530 3260×2106; expand 2px under bezel. */
+    screen: {
+      leftPct: (816 / 4893) * 100,
+      topPct: (528 / 3164) * 100,
+      widthPct: (3264 / 4893) * 100,
+      heightPct: (2110 / 3164) * 100,
+    },
+    screenBorderRadiusPct: {
+      xPct: (28 / 3264) * 100,
+      yPct: (28 / 2110) * 100,
+    },
+    fitToScreen: true,
+    fitScale: 0.9,
+  },
+  {
+    id: "macbook-air-13",
+    label: "MacBook Air 13″",
+    frameSrc: mockupDeviceFile("macbook-air-13.png"),
+    framePixelWidth: 3840,
+    framePixelHeight: 2401,
+    /** Hole is 640,401 2560×1599; expand 2px under bezel. */
+    screen: {
+      leftPct: (638 / 3840) * 100,
+      topPct: (399 / 2401) * 100,
+      widthPct: (2564 / 3840) * 100,
+      heightPct: (1603 / 2401) * 100,
+    },
+    screenBorderRadiusPct: {
+      xPct: (24 / 2564) * 100,
+      yPct: (24 / 1603) * 100,
+    },
+    fitToScreen: true,
+    fitScale: 0.9,
+  },
 ];
 
 export const MOCKUP_DEVICE_BY_ID: Record<string, MockupDeviceTemplate> =

@@ -754,9 +754,7 @@ export function MockupWorkspaceStage() {
                   src={activeItem.url}
                   alt=""
                   draggable={false}
-                  className={cn(
-                    "pointer-events-none select-none block max-h-full max-w-full h-auto w-auto object-contain"
-                  )}
+                  className="pointer-events-none block h-full w-full select-none object-cover"
                 />
               )
             ) : (

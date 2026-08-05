@@ -190,6 +190,24 @@ export function FrameDevicePicker() {
       setFilterTab("desktop");
       return;
     }
+    if (deviceTemplateId === "macbook-pro-16") {
+      setSelection({
+        preset: "laptop",
+        headline: "MacBook Pro 16″",
+        detail: "1728 × 1117",
+      });
+      setFilterTab("laptop");
+      return;
+    }
+    if (deviceTemplateId === "macbook-air-13") {
+      setSelection({
+        preset: "laptop",
+        headline: "MacBook Air 13″",
+        detail: "1440 × 900",
+      });
+      setFilterTab("laptop");
+      return;
+    }
     setSelection({
       preset: "screenshot",
       headline: TRIGGER_META.screenshot.label,
@@ -439,36 +457,38 @@ export function FrameDevicePicker() {
                 <TabsContent value="laptop" className="m-0 outline-none">
                   <div className="grid grid-cols-2 items-stretch gap-2">
                     <TemplateTile
-                      title="Laptop Pro 16″"
+                      title="MacBook Pro 16″"
                       resolution="1728 × 1117"
                       preview={
                         <PreviewPlate>
                           <div className={TILE_PREVIEW_INNER} />
                         </PreviewPlate>
                       }
-                      onPick={() =>
+                      onPick={() => {
+                        setDeviceTemplateId("macbook-pro-16");
                         pickTemplate({
                           preset: "laptop",
-                          headline: "Laptop Pro 16″",
+                          headline: "MacBook Pro 16″",
                           detail: "1728 × 1117",
-                        })
-                      }
+                        });
+                      }}
                     />
                     <TemplateTile
-                      title="Laptop Air 13″"
+                      title="MacBook Air 13″"
                       resolution="1440 × 900"
                       preview={
                         <PreviewPlate>
                           <div className={TILE_PREVIEW_INNER} />
                         </PreviewPlate>
                       }
-                      onPick={() =>
+                      onPick={() => {
+                        setDeviceTemplateId("macbook-air-13");
                         pickTemplate({
                           preset: "laptop",
-                          headline: "Laptop Air 13″",
+                          headline: "MacBook Air 13″",
                           detail: "1440 × 900",
-                        })
-                      }
+                        });
+                      }}
                     />
                   </div>
                 </TabsContent>
