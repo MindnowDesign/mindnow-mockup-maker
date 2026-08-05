@@ -3,7 +3,6 @@
 import {
   Camera,
   ChevronDown,
-  Globe,
   Laptop,
   Monitor,
   Smartphone,
@@ -171,6 +170,24 @@ export function FrameDevicePicker() {
         detail: "1024 × 1366",
       });
       setFilterTab("tablet");
+      return;
+    }
+    if (deviceTemplateId === "imac-24") {
+      setSelection({
+        preset: "desktop",
+        headline: "iMac 24",
+        detail: "4480 × 2520",
+      });
+      setFilterTab("desktop");
+      return;
+    }
+    if (deviceTemplateId === "imac-pro") {
+      setSelection({
+        preset: "desktop",
+        headline: "iMac Pro",
+        detail: "5120 × 2880",
+      });
+      setFilterTab("desktop");
       return;
     }
     setSelection({
@@ -383,47 +400,38 @@ export function FrameDevicePicker() {
                 <TabsContent value="desktop" className="m-0 outline-none">
                   <div className="grid grid-cols-2 items-stretch gap-2">
                     <TemplateTile
-                      title="Browser"
-                      subtitle="Adapts to media"
-                      preview={
-                        <PreviewPlate>
-                          <div
-                            className={cn(
-                              TILE_PREVIEW_INNER,
-                              "flex items-center justify-center"
-                            )}
-                          >
-                            <Globe
-                              className="size-10 text-zinc-500"
-                              strokeWidth={1}
-                              aria-hidden
-                            />
-                          </div>
-                        </PreviewPlate>
-                      }
-                      onPick={() =>
-                        pickTemplate({
-                          preset: "desktop",
-                          headline: "Browser",
-                          detail: "1440 × 900",
-                        })
-                      }
-                    />
-                    <TemplateTile
-                      title="Desktop 5K"
-                      resolution="2560 × 1440"
+                      title="iMac 24"
+                      resolution="4480 × 2520"
                       preview={
                         <PreviewPlate>
                           <div className={TILE_PREVIEW_INNER} />
                         </PreviewPlate>
                       }
-                      onPick={() =>
+                      onPick={() => {
+                        setDeviceTemplateId("imac-24");
                         pickTemplate({
                           preset: "desktop",
-                          headline: "Desktop 5K",
-                          detail: "2560 × 1440",
-                        })
+                          headline: "iMac 24",
+                          detail: "4480 × 2520",
+                        });
+                      }}
+                    />
+                    <TemplateTile
+                      title="iMac Pro"
+                      resolution="5120 × 2880"
+                      preview={
+                        <PreviewPlate>
+                          <div className={TILE_PREVIEW_INNER} />
+                        </PreviewPlate>
                       }
+                      onPick={() => {
+                        setDeviceTemplateId("imac-pro");
+                        pickTemplate({
+                          preset: "desktop",
+                          headline: "iMac Pro",
+                          detail: "5120 × 2880",
+                        });
+                      }}
                     />
                   </div>
                 </TabsContent>

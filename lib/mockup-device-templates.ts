@@ -28,6 +28,18 @@ export type MockupDeviceTemplate = {
    * - `{ xPct, yPct }`: elliptical `% / %` so corners stay circular on non-square screens
    */
   screenBorderRadiusPct?: number | { xPct: number; yPct: number };
+  /**
+   * Size the device so the *screen* contain-fits the canvas (stand/bezel may clip).
+   * Prefer for desktops with large chins/stands where frame-fit leaves the display tiny.
+   */
+  fitToScreen?: boolean;
+  /**
+   * Y position in the frame (0–100) that should sit on the canvas center when
+   * `fitToScreen` is set. Defaults to the screen midpoint.
+   */
+  opticalCenterYPct?: number;
+  /** Scale vs contain-fit (1 = fill the padded canvas; ~0.88 leaves presentation margin). */
+  fitScale?: number;
 };
 
 /** Shared geometry for all iPhone 17 Pro Max finish variants (swap PNG per finish). */
@@ -208,6 +220,50 @@ export const MOCKUP_DEVICE_TEMPLATES: MockupDeviceTemplate[] = [
       xPct: (70 / 2068) * 100,
       yPct: (70 / 2756) * 100,
     },
+  },
+  {
+    id: "imac-24",
+    label: "iMac 24",
+    frameSrc: mockupDeviceFile("imac-24.png"),
+    framePixelWidth: 4880,
+    framePixelHeight: 5720,
+    /** Hole is 200,1600 4480×2520; expand 2px under bezel. */
+    screen: {
+      leftPct: (198 / 4880) * 100,
+      topPct: (1598 / 5720) * 100,
+      widthPct: (4484 / 4880) * 100,
+      heightPct: (2524 / 5720) * 100,
+    },
+    screenBorderRadiusPct: {
+      xPct: (8 / 4484) * 100,
+      yPct: (8 / 2524) * 100,
+    },
+    /**
+     * Size by the display (not the tall stand asset) so landscape canvases
+     * still get a large mockup; stand may clip slightly at the edges.
+     */
+    fitToScreen: true,
+    fitScale: 0.9,
+  },
+  {
+    id: "imac-pro",
+    label: "iMac Pro",
+    frameSrc: mockupDeviceFile("imac-pro.png"),
+    framePixelWidth: 5520,
+    framePixelHeight: 4316,
+    /** Hole is 200,200 5120×2880; expand 2px under bezel. */
+    screen: {
+      leftPct: (198 / 5520) * 100,
+      topPct: (198 / 4316) * 100,
+      widthPct: (5124 / 5520) * 100,
+      heightPct: (2884 / 4316) * 100,
+    },
+    screenBorderRadiusPct: {
+      xPct: (8 / 5124) * 100,
+      yPct: (8 / 2884) * 100,
+    },
+    fitToScreen: true,
+    fitScale: 0.9,
   },
 ];
 

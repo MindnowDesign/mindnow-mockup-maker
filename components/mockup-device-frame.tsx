@@ -44,24 +44,42 @@ export function MockupDeviceFrame({
     borderRadius,
   };
 
+  const screenW = s.widthPct / 100;
+  const screenH = s.heightPct / 100;
+  const fitToScreen = template.fitToScreen === true;
+  const fitScale = template.fitScale ?? 1;
+  /** Align this Y% of the frame with the canvas center (default: screen center). */
+  const anchorYPct =
+    template.opticalCenterYPct ?? s.topPct + s.heightPct / 2;
+  const anchorXPct = s.leftPct + s.widthPct / 2;
+
   /**
-   * Contain-fit inside the parent: size by the limiting axis so landscape
-   * tablets are not squashed in a square canvas (height:100% + max-w used to).
+   * Frame-fit: whole asset contain-fits the canvas (stand/chin stay visible).
+   * Screen-fit: screen rect contain-fits (stand may clip) — optional for tight crops.
+   * `fitScale` leaves presentation margin (e.g. 0.88 ≈ reference mockup framing).
    */
-  const frameBoxStyle: CSSProperties = {
-    aspectRatio: `${fw} / ${fh}`,
-    width: `min(100cqw, calc(100cqh * ${fw} / ${fh}))`,
-    height: `min(100cqh, calc(100cqw * ${fh} / ${fw}))`,
-  };
+  const frameBoxStyle: CSSProperties = fitToScreen
+    ? {
+        aspectRatio: `${fw} / ${fh}`,
+        width: `calc(min(calc(100cqw / ${screenW}), calc(100cqh / ${screenH} * ${fw} / ${fh})) * ${fitScale})`,
+        height: `calc(min(calc(100cqh / ${screenH}), calc(100cqw / ${screenW} * ${fh} / ${fw})) * ${fitScale})`,
+        transform: `translate(${50 - anchorXPct}%, ${50 - anchorYPct}%)`,
+      }
+    : {
+        aspectRatio: `${fw} / ${fh}`,
+        width: `calc(min(100cqw, calc(100cqh * ${fw} / ${fh})) * ${fitScale})`,
+        height: `calc(min(100cqh, calc(100cqw * ${fh} / ${fw})) * ${fitScale})`,
+      };
 
   return (
     <div
       className={cn(
-        "@container relative flex h-full w-full min-h-0 min-w-0 items-center justify-center [container-type:size]",
+        "relative flex h-full w-full min-h-0 min-w-0 items-center justify-center",
         className
       )}
+      style={{ containerType: "size" }}
     >
-      <div className="relative max-h-full max-w-full" style={frameBoxStyle}>
+      <div className="relative" style={frameBoxStyle}>
         <div
           className="absolute z-0 overflow-hidden bg-black"
           style={clipStyle}

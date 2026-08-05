@@ -21,6 +21,7 @@ import { CanvasGradientInlineBackground } from "@/components/canvas-gradient-inl
 import { CanvasOrganicBackground } from "@/components/canvas-organic-background";
 import { hexToRgb } from "@/lib/color-hex-hsv";
 import { scaledFramePixelSize } from "@/lib/mockup-aspect";
+import { MOCKUP_DEVICE_BY_ID } from "@/lib/mockup-device-templates";
 import { buildFrameShadowBoxShadow } from "@/lib/mockup-frame-shadow";
 import {
   canvasGradientTemplateToCaptureStyle,
@@ -472,6 +473,9 @@ export function MockupWorkspaceStage() {
 
   const visualForTitle = activeVisual ?? visuals[0] ?? null;
   const { maxW, maxH } = useFrameViewportCaps();
+  const fitDeviceToScreen =
+    deviceTemplateId != null &&
+    MOCKUP_DEVICE_BY_ID[deviceTemplateId]?.fitToScreen === true;
 
   const { width, height } = useMemo(
     () => scaledFramePixelSize(aspectPreset, maxW, maxH),
@@ -694,7 +698,8 @@ export function MockupWorkspaceStage() {
           }
         }}
         className={cn(
-          "group relative box-border grid shrink-0 grid-rows-[minmax(0,1fr)] overflow-hidden rounded-[16px] p-8 shadow-[0_32px_80px_-20px_rgba(0,0,0,0.75)] md:p-12",
+          "group relative box-border grid shrink-0 grid-rows-[minmax(0,1fr)] overflow-hidden rounded-[16px] shadow-[0_32px_80px_-20px_rgba(0,0,0,0.75)]",
+          fitDeviceToScreen ? "p-6 md:p-8" : "p-8 md:p-12",
           "min-h-0 min-w-0 outline-none focus-visible:ring-2 focus-visible:ring-white/20"
         )}
       >
