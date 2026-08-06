@@ -904,12 +904,7 @@ function BrowserStyleControls() {
         >
           URL
         </label>
-        <div
-          className={cn(
-            inputChrome,
-            "flex min-h-10 w-full items-stretch overflow-hidden focus-within:ring-2 focus-within:ring-white/25"
-          )}
-        >
+        <div className="flex min-w-0 items-stretch gap-2">
           {isChrome ? (
             <>
               <input
@@ -928,7 +923,10 @@ function BrowserStyleControls() {
                 onClick={() => faviconFileRef.current?.click()}
                 aria-label="Upload favicon"
                 title="Upload favicon"
-                className="flex shrink-0 items-center justify-center border-r border-zinc-700 px-2.5 text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-200"
+                className={cn(
+                  inputChrome,
+                  "flex size-10 shrink-0 items-center justify-center text-zinc-400"
+                )}
               >
                 {browserFaviconUrl ? (
                   /* eslint-disable-next-line @next/next/no-img-element -- favicon preview */
@@ -952,7 +950,10 @@ function BrowserStyleControls() {
             placeholder={DEFAULT_BROWSER_URL}
             spellCheck={false}
             autoComplete="off"
-            className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-600"
+            className={cn(
+              inputChrome,
+              "min-w-0 flex-1 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600"
+            )}
           />
         </div>
       </div>

@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 type MockupDeviceFrameProps = {
   deviceTemplateId: string | null;
   className?: string;
+  /** CSS `filter` value (e.g. `drop-shadow(...)`) on the whole device stack (screen + bezel). */
+  frameDropShadow?: string | null;
   children: ReactNode;
 };
 
@@ -19,6 +21,7 @@ type MockupDeviceFrameProps = {
 export function MockupDeviceFrame({
   deviceTemplateId,
   className,
+  frameDropShadow,
   children,
 }: MockupDeviceFrameProps) {
   const template =
@@ -73,6 +76,10 @@ export function MockupDeviceFrame({
         height: `calc(min(100cqh, calc(100cqw * ${fh} / ${fw})) * ${fitScale})`,
       };
 
+  const frameBoxFilterStyle: CSSProperties = frameDropShadow
+    ? { filter: frameDropShadow }
+    : {};
+
   return (
     <div
       className={cn(
@@ -81,7 +88,10 @@ export function MockupDeviceFrame({
       )}
       style={{ containerType: "size" }}
     >
-      <div className="relative" style={frameBoxStyle}>
+      <div
+        className="relative isolate"
+        style={{ ...frameBoxStyle, ...frameBoxFilterStyle }}
+      >
         <div
           className="absolute z-0 overflow-hidden bg-black"
           style={clipStyle}

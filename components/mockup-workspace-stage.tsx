@@ -33,7 +33,10 @@ import {
   type BrowserTabTitleInset,
 } from "@/lib/mockup-browser-templates";
 import { MOCKUP_DEVICE_BY_ID } from "@/lib/mockup-device-templates";
-import { buildFrameShadowBoxShadow } from "@/lib/mockup-frame-shadow";
+import {
+  buildFrameShadowBoxShadow,
+  buildFrameShadowDropShadow,
+} from "@/lib/mockup-frame-shadow";
 import {
   canvasGradientTemplateToCaptureStyle,
   canvasGradientTemplateToPeekBackgroundStyle,
@@ -710,6 +713,8 @@ export function MockupWorkspaceStage() {
 
   const isPlainScreenshot = deviceTemplateId == null;
   const isBrowserScreenshot = browserTemplate != null;
+  const isPhysicalDevice =
+    deviceTemplateId != null && !isBrowserTemplateId(deviceTemplateId);
 
   const { width, height } = useMemo(
     () => scaledFramePixelSize(aspectPreset, maxW, maxH),
@@ -834,26 +839,34 @@ export function MockupWorkspaceStage() {
   const screenshotStyleForCanvas =
     isPlainScreenshot ? screenshotStyle : "default";
 
-  const screenshotMediaBoxShadow = useMemo(() => {
-    if (!isPlainScreenshot && !isBrowserScreenshot) return null;
-    return buildFrameShadowBoxShadow({
+  const frameShadowNumbers = useMemo(
+    () => ({
       offsetX: frameShadowOffsetX,
       offsetY: frameShadowOffsetY,
       blur: frameShadowBlur,
       spread: frameShadowSpread,
       color: frameShadowColor,
       colorOpacity: frameShadowColorOpacity,
-    });
-  }, [
-    isPlainScreenshot,
-    isBrowserScreenshot,
-    frameShadowOffsetX,
-    frameShadowOffsetY,
-    frameShadowBlur,
-    frameShadowSpread,
-    frameShadowColor,
-    frameShadowColorOpacity,
-  ]);
+    }),
+    [
+      frameShadowOffsetX,
+      frameShadowOffsetY,
+      frameShadowBlur,
+      frameShadowSpread,
+      frameShadowColor,
+      frameShadowColorOpacity,
+    ]
+  );
+
+  const screenshotMediaBoxShadow = useMemo(() => {
+    if (!isPlainScreenshot && !isBrowserScreenshot) return null;
+    return buildFrameShadowBoxShadow(frameShadowNumbers);
+  }, [isPlainScreenshot, isBrowserScreenshot, frameShadowNumbers]);
+
+  const deviceFrameDropShadow = useMemo(() => {
+    if (!isPhysicalDevice) return null;
+    return buildFrameShadowDropShadow(frameShadowNumbers);
+  }, [isPhysicalDevice, frameShadowNumbers]);
 
   const browserTopChrome = useMemo(() => {
     if (!browserTemplate) return null;
@@ -984,7 +997,10 @@ export function MockupWorkspaceStage() {
           />
         ) : null}
         <div className="relative z-10 flex min-h-0 min-w-0 flex-1 items-center justify-center">
-          <MockupDeviceFrame deviceTemplateId={deviceTemplateId}>
+          <MockupDeviceFrame
+            deviceTemplateId={deviceTemplateId}
+            frameDropShadow={deviceFrameDropShadow}
+          >
             {activeItem?.kind === "image" ? (
               isPlainScreenshot || isBrowserScreenshot ? (
                 <UploadedScreenshotImage

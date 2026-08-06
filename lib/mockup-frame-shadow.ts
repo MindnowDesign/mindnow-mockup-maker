@@ -125,8 +125,17 @@ function rgbaFromHex(hex: string, opacityPercent: number): string {
   return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${a})`;
 }
 
-/** Single drop-shadow on the screenshot media shell. */
+/** Rectangular `box-shadow` for screenshot / browser chrome shells. */
 export function buildFrameShadowBoxShadow(n: FrameShadowNumbers): string {
   const color = rgbaFromHex(n.color, n.colorOpacity);
   return `${n.offsetX}px ${n.offsetY}px ${n.blur}px ${n.spread}px ${color}`;
+}
+
+/**
+ * Alpha-aware shadow for PNG device frames (iPhone, MacBook, etc.).
+ * `drop-shadow()` follows the frame silhouette; spread is not supported in CSS filters.
+ */
+export function buildFrameShadowDropShadow(n: FrameShadowNumbers): string {
+  const color = rgbaFromHex(n.color, n.colorOpacity);
+  return `drop-shadow(${n.offsetX}px ${n.offsetY}px ${n.blur}px ${color})`;
 }

@@ -42,7 +42,6 @@ export type DeviceFilterTab = FrameDeviceValue;
 const FILTER_ORDER: { value: FrameDeviceValue; icon: LucideIcon; label: string }[] =
   [
     { value: "screenshot", icon: Camera, label: "Screenshot" },
-    { value: "browser", icon: Globe, label: "Browser" },
     { value: "phone", icon: Smartphone, label: "Phone" },
     { value: "tablet", icon: Tablet, label: "Tablet" },
     { value: "desktop", icon: Monitor, label: "Desktop" },
@@ -158,7 +157,7 @@ export function FrameDevicePicker() {
         headline: "Browser",
         detail: variantLabel,
       });
-      setFilterTab("browser");
+      setFilterTab("screenshot");
       return;
     }
     if (deviceTemplateId === "iphone-17-black") {
@@ -393,43 +392,6 @@ export function FrameDevicePicker() {
                         pickBrowser("browser-chrome-light", "Chrome Light");
                       }}
                     />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="browser" className="m-0 outline-none">
-                  <div className="grid grid-cols-2 items-stretch gap-2">
-                    {MOCKUP_BROWSER_TEMPLATES.map(
-                      ({ id, label, chromeSrc, browser }) => (
-                        <TemplateTile
-                          key={id}
-                          title={label}
-                          subtitle={
-                            browser === "chrome" ? "Google Chrome" : "Safari"
-                          }
-                          footer={
-                            <span className="text-xs font-medium leading-snug text-zinc-500">
-                              Top chrome bar
-                            </span>
-                          }
-                          preview={
-                            <PreviewPlate>
-                              <div className={TILE_PREVIEW_INNER}>
-                                {/* eslint-disable-next-line @next/next/no-img-element -- static preview */}
-                                <img
-                                  src={chromeSrc}
-                                  alt=""
-                                  className="absolute inset-x-2.5 top-2.5 h-auto w-[calc(100%-1.25rem)] object-contain object-top"
-                                  draggable={false}
-                                />
-                              </div>
-                            </PreviewPlate>
-                          }
-                          onPick={() => {
-                            pickBrowser(id, label);
-                          }}
-                        />
-                      )
-                    )}
                   </div>
                 </TabsContent>
 
