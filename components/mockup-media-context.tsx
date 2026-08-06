@@ -182,11 +182,15 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
   const setAspectPresetRef = useRef(frame.setAspectPreset);
   const hydrateCanvasBackgroundRef = useRef(frame.hydrateCanvasBackground);
   const setDeviceTemplateIdRef = useRef(frame.setDeviceTemplateId);
+  const setBrowserUrlRef = useRef(frame.setBrowserUrl);
+  const setBrowserFaviconUrlRef = useRef(frame.setBrowserFaviconUrl);
   const hydrateScreenshotStyleRef = useRef(frame.hydrateScreenshotStyle);
   const hydrateFrameShadowRef = useRef(frame.hydrateFrameShadow);
   setAspectPresetRef.current = frame.setAspectPreset;
   hydrateCanvasBackgroundRef.current = frame.hydrateCanvasBackground;
   setDeviceTemplateIdRef.current = frame.setDeviceTemplateId;
+  setBrowserUrlRef.current = frame.setBrowserUrl;
+  setBrowserFaviconUrlRef.current = frame.setBrowserFaviconUrl;
   hydrateScreenshotStyleRef.current = frame.hydrateScreenshotStyle;
   hydrateFrameShadowRef.current = frame.hydrateFrameShadow;
 
@@ -200,6 +204,8 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
     setAspectPresetRef.current(normalizeAspectPreset(prefs.aspectPreset));
     hydrateCanvasBackgroundRef.current(prefs.canvasBackground);
     setDeviceTemplateIdRef.current(prefs.deviceTemplateId ?? null);
+    setBrowserUrlRef.current(prefs.browserUrl ?? "");
+    setBrowserFaviconUrlRef.current(prefs.browserFaviconUrl ?? null);
     hydrateScreenshotStyleRef.current(prefs.screenshotStyle ?? null);
     hydrateFrameShadowRef.current(prefs.frameShadow ?? null);
     if (raw === undefined) {
@@ -250,6 +256,8 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
     frame.canvasOverlayShadowOpacity,
     frame.canvasOverlayShadowPlacement,
     frame.deviceTemplateId,
+    frame.browserUrl,
+    frame.browserFaviconUrl,
     frame.screenshotStyle,
     frame.screenshotBorderColor,
     frame.screenshotBorderColorOpacity,

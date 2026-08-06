@@ -18,10 +18,12 @@ import {
   CircleOff,
   Rows3,
   Square,
+  Upload,
 } from "lucide-react";
 import {
   useEffect,
   useId,
+  useRef,
   useState,
   type ComponentType,
   type CSSProperties,
@@ -48,7 +50,9 @@ import {
   isIphone17ProMaxTemplateId,
 } from "@/lib/mockup-device-templates";
 import {
+  DEFAULT_BROWSER_URL,
   isBrowserTemplateId,
+  isChromeBrowserTemplateId,
   MOCKUP_BROWSER_TEMPLATES,
 } from "@/lib/mockup-browser-templates";
 import {
@@ -829,7 +833,17 @@ function ScreenshotStyleControls() {
 }
 
 function BrowserStyleControls() {
-  const { deviceTemplateId, setDeviceTemplateId } = useMockupFrame();
+  const {
+    deviceTemplateId,
+    setDeviceTemplateId,
+    browserUrl,
+    setBrowserUrl,
+    browserFaviconUrl,
+    setBrowserFaviconFromFile,
+  } = useMockupFrame();
+  const faviconFileRef = useRef<HTMLInputElement>(null);
+  const isChrome = isChromeBrowserTemplateId(deviceTemplateId);
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex min-w-0 flex-col gap-2">
@@ -843,9 +857,9 @@ function BrowserStyleControls() {
           <div
             role="radiogroup"
             aria-labelledby="frame-browser-styles-label"
-            className="grid min-w-0 grid-cols-2 gap-2"
+            className="grid min-w-0 grid-cols-4 gap-2"
           >
-            {MOCKUP_BROWSER_TEMPLATES.map(({ id, label, chromeSrc }) => {
+            {MOCKUP_BROWSER_TEMPLATES.map(({ id, label, previewSrc }) => {
               const selected = deviceTemplateId === id;
               return (
                 <Tooltip key={id}>
@@ -857,17 +871,19 @@ function BrowserStyleControls() {
                       aria-label={label}
                       onClick={() => setDeviceTemplateId(id)}
                       className={cn(
-                        "flex h-11 w-full min-w-0 items-center justify-center overflow-hidden rounded-lg border px-2 transition-colors",
+                        "relative aspect-square w-full min-w-0 overflow-hidden rounded-lg border bg-zinc-950 transition-colors",
                         selected
-                          ? "border-zinc-500 bg-zinc-800 shadow-sm"
-                          : "border-zinc-800 bg-zinc-950 hover:border-zinc-600 hover:bg-zinc-900"
+                          ? "border-zinc-500 shadow-sm ring-1 ring-zinc-500/40"
+                          : "border-zinc-800 hover:border-zinc-600"
                       )}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element -- style thumbnail */}
                       <img
-                        src={chromeSrc}
+                        src={previewSrc}
                         alt=""
-                        className="h-auto max-h-7 w-full object-contain object-center"
+                        loading="lazy"
+                        decoding="async"
+                        className="absolute inset-0 size-full object-cover"
                         draggable={false}
                       />
                     </button>
@@ -880,6 +896,65 @@ function BrowserStyleControls() {
             })}
           </div>
         </TooltipProvider>
+      </div>
+      <div className="flex min-w-0 flex-col gap-2">
+        <label
+          htmlFor="frame-browser-url"
+          className="text-xs font-medium text-zinc-400"
+        >
+          URL
+        </label>
+        <div
+          className={cn(
+            inputChrome,
+            "flex min-h-10 w-full items-stretch overflow-hidden focus-within:ring-2 focus-within:ring-white/25"
+          )}
+        >
+          {isChrome ? (
+            <>
+              <input
+                ref={faviconFileRef}
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null;
+                  setBrowserFaviconFromFile(file);
+                  e.target.value = "";
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => faviconFileRef.current?.click()}
+                aria-label="Upload favicon"
+                title="Upload favicon"
+                className="flex shrink-0 items-center justify-center border-r border-zinc-700 px-2.5 text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-200"
+              >
+                {browserFaviconUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element -- favicon preview */
+                  <img
+                    src={browserFaviconUrl}
+                    alt=""
+                    className="size-5 rounded-sm object-cover"
+                    draggable={false}
+                  />
+                ) : (
+                  <Upload className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
+                )}
+              </button>
+            </>
+          ) : null}
+          <input
+            id="frame-browser-url"
+            type="text"
+            value={browserUrl}
+            onChange={(e) => setBrowserUrl(e.target.value)}
+            placeholder={DEFAULT_BROWSER_URL}
+            spellCheck={false}
+            autoComplete="off"
+            className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-600"
+          />
+        </div>
       </div>
       <ScreenshotCornerRadiusControls />
     </div>

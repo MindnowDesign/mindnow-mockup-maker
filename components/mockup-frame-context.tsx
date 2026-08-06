@@ -93,6 +93,7 @@ import {
   parseScreenshotCornerType,
   parseScreenshotStyle,
 } from "@/lib/mockup-screenshot-style";
+import { normalizeBrowserUrl } from "@/lib/mockup-browser-templates";
 
 function clampPercent(n: number | undefined): number {
   if (n == null || Number.isNaN(n)) return 0;
@@ -153,6 +154,13 @@ type MockupFrameContextValue = {
   /** Device PNG overlay (`null` = plain canvas). */
   deviceTemplateId: string | null;
   setDeviceTemplateId: (id: string | null) => void;
+  /** Address bar label for browser chrome templates. */
+  browserUrl: string;
+  setBrowserUrl: (url: string) => void;
+  /** Custom favicon (data URL) for Chrome browser templates. */
+  browserFaviconUrl: string | null;
+  setBrowserFaviconUrl: (url: string | null) => void;
+  setBrowserFaviconFromFile: (file: File | null) => void;
   /** Screenshot styling (only applied when no device frame is selected). */
   screenshotStyle: ScreenshotStyleId;
   setScreenshotStyle: (id: ScreenshotStyleId) => void;
@@ -277,6 +285,37 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
     useState<CanvasMoodShadowPlacement>(DEFAULT_CANVAS_MOOD_SHADOW_PLACEMENT);
 
   const [deviceTemplateId, setDeviceTemplateId] = useState<string | null>(null);
+  const [browserUrl, setBrowserUrlState] = useState("");
+
+  const setBrowserUrl = useCallback((url: string) => {
+    setBrowserUrlState(normalizeBrowserUrl(url));
+  }, []);
+
+  const [browserFaviconUrl, setBrowserFaviconUrlState] = useState<string | null>(
+    null
+  );
+
+  const setBrowserFaviconUrl = useCallback((url: string | null) => {
+    setBrowserFaviconUrlState(url);
+  }, []);
+
+  const setBrowserFaviconFromFile = useCallback((file: File | null) => {
+    if (!file || !file.type.startsWith("image/")) {
+      setBrowserFaviconUrlState(null);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result === "string") {
+        setBrowserFaviconUrlState(result);
+      }
+    };
+    reader.onerror = () => {
+      setBrowserFaviconUrlState(null);
+    };
+    reader.readAsDataURL(file);
+  }, []);
 
   const [screenshotStyle, setScreenshotStyleState] =
     useState<ScreenshotStyleId>(DEFAULT_SCREENSHOT_STYLE);
@@ -765,6 +804,11 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       hydrateCanvasBackground,
       deviceTemplateId,
       setDeviceTemplateId,
+      browserUrl,
+      setBrowserUrl,
+      browserFaviconUrl,
+      setBrowserFaviconUrl,
+      setBrowserFaviconFromFile,
       screenshotStyle,
       setScreenshotStyle,
       screenshotBorderColor,
@@ -828,6 +872,11 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       canvasOverlayShadowOpacity,
       canvasOverlayShadowPlacement,
       deviceTemplateId,
+      browserUrl,
+      browserFaviconUrl,
+      setBrowserUrl,
+      setBrowserFaviconUrl,
+      setBrowserFaviconFromFile,
       setCanvasBackgroundImageFromFile,
       setCanvasGradientTemplateId,
       patchCanvasGradientFillKey,

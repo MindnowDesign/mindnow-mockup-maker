@@ -1,4 +1,5 @@
 import {
+  normalizeBrowserUrl,
   normalizeDeviceTemplateId,
 } from "@/lib/mockup-browser-templates";
 import type { FrameAspectPresetId } from "@/lib/mockup-aspect";
@@ -108,6 +109,8 @@ export type FrameLike = {
   canvasOverlayShadowOpacity: number;
   canvasOverlayShadowPlacement: CanvasMoodShadowPlacement;
   deviceTemplateId: string | null;
+  browserUrl: string;
+  browserFaviconUrl: string | null;
   screenshotStyle: ScreenshotStyleId;
   screenshotBorderColor: string;
   screenshotBorderColorOpacity: number;
@@ -142,6 +145,10 @@ export type VisualWorkspacePrefs = {
   canvasBackground: PersistedCanvasBackground | null;
   /** `mockup-device-templates` id, or `null` / omitted for plain canvas (no device PNG). */
   deviceTemplateId?: string | null;
+  /** Address bar label when a browser chrome template is active. */
+  browserUrl?: string | null;
+  /** Custom favicon data URL for Chrome browser templates. */
+  browserFaviconUrl?: string | null;
   /** Screenshot styling (only meaningful when `deviceTemplateId` is null). */
   screenshotStyle?: PersistedScreenshotStyle | null;
   /** Drop shadow on plain screenshot media (`deviceTemplateId` null). */
@@ -185,6 +192,8 @@ export function captureVisualWorkspacePrefs(f: FrameLike): VisualWorkspacePrefs 
     aspectPreset: f.aspectPreset,
     canvasBackground: frameLikeToPersistedCanvasBackground(f),
     deviceTemplateId: f.deviceTemplateId,
+    browserUrl: f.browserUrl,
+    browserFaviconUrl: f.browserFaviconUrl,
     screenshotStyle: frameLikeToPersistedScreenshotStyle(f),
     frameShadow: frameShadowToPersisted(f.frameShadowPreset, shadowNums),
     canvasLayers: (f.canvasLayers ?? []).map((layer) => ({
@@ -207,6 +216,8 @@ export const DEFAULT_NEW_VISUAL_WORKSPACE_PREFS: VisualWorkspacePrefs = {
   aspectPreset: "square-1-1",
   canvasBackground: null,
   deviceTemplateId: null,
+  browserUrl: "",
+  browserFaviconUrl: null,
   screenshotStyle: {
     style: DEFAULT_SCREENSHOT_STYLE,
     borderColor: DEFAULT_SCREENSHOT_BORDER_COLOR,
@@ -240,6 +251,8 @@ export function normalizeVisualWorkspacePrefs(
       aspectPreset: d.aspectPreset,
       canvasBackground: d.canvasBackground,
       deviceTemplateId: d.deviceTemplateId ?? null,
+      browserUrl: d.browserUrl ?? "",
+      browserFaviconUrl: d.browserFaviconUrl ?? null,
       screenshotStyle: d.screenshotStyle ? { ...d.screenshotStyle } : null,
       frameShadow: d.frameShadow ? { ...d.frameShadow } : null,
       canvasLayers: d.canvasLayers ? [...d.canvasLayers] : [],
@@ -288,6 +301,13 @@ export function normalizeVisualWorkspacePrefs(
         ? partial.deviceTemplateId
         : d.deviceTemplateId ?? null
     ),
+    browserUrl: normalizeBrowserUrl(
+      partial.browserUrl !== undefined ? partial.browserUrl : d.browserUrl ?? ""
+    ),
+    browserFaviconUrl:
+      partial.browserFaviconUrl !== undefined
+        ? partial.browserFaviconUrl
+        : d.browserFaviconUrl ?? null,
     screenshotStyle,
     frameShadow,
     canvasLayers,
@@ -322,6 +342,8 @@ export function cloneVisualWorkspacePrefsForSave(
   return {
     aspectPreset: n.aspectPreset,
     deviceTemplateId: n.deviceTemplateId ?? null,
+    browserUrl: n.browserUrl ?? "",
+    browserFaviconUrl: n.browserFaviconUrl ?? null,
     canvasBackground: n.canvasBackground ? { ...n.canvasBackground } : null,
     screenshotStyle: n.screenshotStyle ? { ...n.screenshotStyle } : null,
     frameShadow: n.frameShadow ? { ...n.frameShadow } : null,
@@ -360,6 +382,8 @@ export function resolveVisualPrefsForSave(
           aspectPreset: live.aspectPreset,
           canvasBackground: live.canvasBackground,
           deviceTemplateId: live.deviceTemplateId,
+          browserUrl: live.browserUrl,
+          browserFaviconUrl: live.browserFaviconUrl,
           screenshotStyle: live.screenshotStyle,
           frameShadow: live.frameShadow,
         });

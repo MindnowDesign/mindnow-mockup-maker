@@ -23,9 +23,14 @@ import { hexToRgb } from "@/lib/color-hex-hsv";
 import { scaledFramePixelSize } from "@/lib/mockup-aspect";
 import {
   browserChromeHeightRatio,
+  browserTabTitleFromUrl,
+  displayBrowserUrl,
   fitBrowserScreenshotDimensions,
   isBrowserTemplateId,
   MOCKUP_BROWSER_BY_ID,
+  type BrowserAddressBarInset,
+  type BrowserFaviconInset,
+  type BrowserTabTitleInset,
 } from "@/lib/mockup-browser-templates";
 import { MOCKUP_DEVICE_BY_ID } from "@/lib/mockup-device-templates";
 import { buildFrameShadowBoxShadow } from "@/lib/mockup-frame-shadow";
@@ -149,6 +154,12 @@ function UploadedScreenshotImage({
     src: string;
     heightRatio: number;
     backdropColor: string;
+    addressBar: BrowserAddressBarInset;
+    urlLabel: string;
+    favicon?: BrowserFaviconInset;
+    faviconSrc?: string | null;
+    tabTitle?: BrowserTabTitleInset;
+    tabTitleLabel: string;
   } | null;
 }) {
   const effectiveCornerRadius = screenshotEffectiveCornerRadius(cornerRadius);
@@ -364,15 +375,122 @@ function UploadedScreenshotImage({
 
   const browserChromeBar =
     topChrome != null && browserFitted != null && browserChromeImgStyle ? (
-      // eslint-disable-next-line @next/next/no-img-element -- static SVG asset
-      <img
-        aria-hidden
-        alt=""
-        draggable={false}
-        src={topChrome.src}
-        className="pointer-events-none block min-h-0 min-w-0 max-w-none select-none"
+      <div
+        className="relative block min-h-0 min-w-0 max-w-none"
         style={browserChromeImgStyle}
-      />
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element -- static SVG asset */}
+        <img
+          aria-hidden
+          alt=""
+          draggable={false}
+          src={topChrome.src}
+          className="pointer-events-none block size-full min-h-0 min-w-0 max-w-none select-none object-fill"
+        />
+        <div
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute flex items-center overflow-hidden",
+            topChrome.addressBar.textAlign !== "left" && "justify-center"
+          )}
+          style={{
+            left: `${
+              (topChrome.addressBar.urlLabel ?? topChrome.addressBar).leftPct
+            }%`,
+            top: `${
+              (topChrome.addressBar.urlLabel ?? topChrome.addressBar).topPct
+            }%`,
+            width: `${
+              (topChrome.addressBar.urlLabel ?? topChrome.addressBar).widthPct
+            }%`,
+            height: `${
+              (topChrome.addressBar.urlLabel ?? topChrome.addressBar).heightPct
+            }%`,
+            backgroundColor: topChrome.addressBar.fill,
+            color: topChrome.addressBar.textColor,
+            borderRadius: topChrome.addressBar.urlLabel
+              ? undefined
+              : `${topChrome.addressBar.borderRadiusPct}%`,
+            fontSize:
+              browserFitted != null
+                ? `${Math.max(
+                    8,
+                    browserFitted.chromeH *
+                      (topChrome.addressBar.heightPct / 100) *
+                      0.42
+                  )}px`
+                : undefined,
+          }}
+        >
+          <span
+            className={cn(
+              "block w-full truncate font-sans leading-none",
+              topChrome.addressBar.textAlign === "left"
+                ? "text-left"
+                : "px-[6%] text-center"
+            )}
+            style={
+              topChrome.addressBar.urlLabel && browserFitted != null
+                ? {
+                    paddingLeft: `${
+                      browserFitted.w *
+                      (topChrome.addressBar.urlLabel.textPaddingLeftPct / 100)
+                    }px`,
+                  }
+                : undefined
+            }
+          >
+            {topChrome.urlLabel}
+          </span>
+        </div>
+        {topChrome.tabTitle ? (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute flex items-center overflow-hidden"
+            style={{
+              left: `${topChrome.tabTitle.leftPct}%`,
+              top: `${topChrome.tabTitle.topPct}%`,
+              width: `${topChrome.tabTitle.widthPct}%`,
+              height: `${topChrome.tabTitle.heightPct}%`,
+              backgroundColor: topChrome.tabTitle.fill,
+              color: topChrome.tabTitle.textColor,
+              fontSize:
+                browserFitted != null
+                  ? `${Math.max(
+                      7,
+                      browserFitted.chromeH * (9 / 79)
+                    )}px`
+                  : undefined,
+            }}
+          >
+            <span className="block w-full truncate pl-[3%] pr-[6%] text-left font-sans leading-none">
+              {topChrome.tabTitleLabel}
+            </span>
+          </div>
+        ) : null}
+        {topChrome.favicon && topChrome.faviconSrc ? (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute overflow-hidden"
+            style={{
+              left: `${topChrome.favicon.leftPct}%`,
+              top: `${topChrome.favicon.topPct}%`,
+              width: `${topChrome.favicon.widthPct}%`,
+              height: `${topChrome.favicon.heightPct}%`,
+              backgroundColor: topChrome.favicon.containerFill,
+              borderRadius: `${topChrome.favicon.borderRadiusPct}%`,
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- user favicon */}
+            <img
+              alt=""
+              draggable={false}
+              src={topChrome.faviconSrc}
+              className="block size-full object-cover"
+            />
+          </div>
+        ) : null}
+      </div>
     ) : null;
 
   const mediaShellInner =
@@ -550,6 +668,8 @@ export function MockupWorkspaceStage() {
     canvasOverlayShadowOpacity,
     canvasOverlayShadowPlacement,
     deviceTemplateId,
+    browserUrl,
+    browserFaviconUrl,
     screenshotStyle,
     screenshotBorderColor,
     screenshotBorderColorOpacity,
@@ -741,8 +861,14 @@ export function MockupWorkspaceStage() {
       src: browserTemplate.chromeSrc,
       heightRatio: browserChromeHeightRatio(browserTemplate),
       backdropColor: browserTemplate.chromeBackdrop,
+      addressBar: browserTemplate.addressBar,
+      urlLabel: displayBrowserUrl(browserUrl),
+      favicon: browserTemplate.favicon,
+      faviconSrc: browserFaviconUrl,
+      tabTitle: browserTemplate.tabTitle,
+      tabTitleLabel: browserTabTitleFromUrl(browserUrl),
     };
-  }, [browserTemplate]);
+  }, [browserTemplate, browserUrl, browserFaviconUrl]);
 
   /**
    * Blur on a layer that is then clipped to rounded rect can look like a vignette
