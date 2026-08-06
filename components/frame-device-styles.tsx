@@ -47,7 +47,10 @@ import {
 } from "@/components/ui/tooltip";
 import {
   IPHONE_17_PRO_MAX_STYLES,
+  IPHONE_17_STYLES,
   isIphone17ProMaxTemplateId,
+  isIphone17TemplateId,
+  type DeviceStyleOption,
 } from "@/lib/mockup-device-templates";
 import {
   DEFAULT_BROWSER_URL,
@@ -962,7 +965,11 @@ function BrowserStyleControls() {
   );
 }
 
-function IphoneProMaxStyleControls() {
+function DeviceFinishStyleControls({
+  styles,
+}: {
+  styles: readonly DeviceStyleOption[];
+}) {
   const { deviceTemplateId, setDeviceTemplateId } = useMockupFrame();
   return (
     <div className="flex flex-col gap-6">
@@ -979,52 +986,58 @@ function IphoneProMaxStyleControls() {
             aria-labelledby="frame-styles-label"
             className="grid min-w-0 grid-cols-5 gap-2"
           >
-            {IPHONE_17_PRO_MAX_STYLES.map(
-              ({ templateId, shortLabel, coverSrc }) => {
-                const selected = deviceTemplateId === templateId;
-                return (
-                  <Tooltip key={templateId}>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        role="radio"
-                        aria-checked={selected}
-                        aria-label={shortLabel}
-                        onClick={() => setDeviceTemplateId(templateId)}
-                        className={cn(
-                          "flex aspect-square w-full min-w-0 shrink-0 items-center justify-center overflow-hidden rounded-xl border p-1.5 transition-colors",
-                          selected
-                            ? "border-zinc-500 bg-zinc-800 text-white shadow-sm"
-                            : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:bg-zinc-900 hover:text-zinc-200"
-                        )}
-                      >
-                        <div className="relative size-6 shrink-0 overflow-hidden rounded-xl ring-2 ring-inset ring-zinc-600/40">
-                          {/* eslint-disable-next-line @next/next/no-img-element -- style thumbnail */}
-                          <img
-                            src={coverSrc}
-                            alt=""
-                            width={24}
-                            height={24}
-                            loading="lazy"
-                            decoding="async"
-                            className="absolute inset-0 size-full rounded-xl object-cover"
-                            draggable={false}
-                          />
-                        </div>
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" sideOffset={6}>
-                      {shortLabel}
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              }
-            )}
+            {styles.map(({ templateId, shortLabel, coverSrc }) => {
+              const selected = deviceTemplateId === templateId;
+              return (
+                <Tooltip key={templateId}>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      aria-label={shortLabel}
+                      onClick={() => setDeviceTemplateId(templateId)}
+                      className={cn(
+                        "flex aspect-square w-full min-w-0 shrink-0 items-center justify-center overflow-hidden rounded-xl border p-1.5 transition-colors",
+                        selected
+                          ? "border-zinc-500 bg-zinc-800 text-white shadow-sm"
+                          : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:bg-zinc-900 hover:text-zinc-200"
+                      )}
+                    >
+                      <div className="relative size-6 shrink-0 overflow-hidden rounded-xl ring-2 ring-inset ring-zinc-600/40">
+                        {/* eslint-disable-next-line @next/next/no-img-element -- style thumbnail */}
+                        <img
+                          src={coverSrc}
+                          alt=""
+                          width={24}
+                          height={24}
+                          loading="lazy"
+                          decoding="async"
+                          className="absolute inset-0 size-full rounded-xl object-cover"
+                          draggable={false}
+                        />
+                      </div>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" sideOffset={6}>
+                    {shortLabel}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
           </div>
         </TooltipProvider>
       </div>
     </div>
   );
+}
+
+function IphoneProMaxStyleControls() {
+  return <DeviceFinishStyleControls styles={IPHONE_17_PRO_MAX_STYLES} />;
+}
+
+function Iphone17StyleControls() {
+  return <DeviceFinishStyleControls styles={IPHONE_17_STYLES} />;
 }
 
 export function FrameDeviceStyles() {
@@ -1035,6 +1048,9 @@ export function FrameDeviceStyles() {
   }
   if (isBrowserTemplateId(deviceTemplateId)) {
     return <BrowserStyleControls />;
+  }
+  if (isIphone17TemplateId(deviceTemplateId)) {
+    return <Iphone17StyleControls />;
   }
   if (isIphone17ProMaxTemplateId(deviceTemplateId)) {
     return <IphoneProMaxStyleControls />;

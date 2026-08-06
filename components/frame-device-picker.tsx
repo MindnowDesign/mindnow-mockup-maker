@@ -28,6 +28,7 @@ import {
   isBrowserTemplateId,
   MOCKUP_BROWSER_TEMPLATES,
 } from "@/lib/mockup-browser-templates";
+import { IPHONE_17_PRO_MAX_STYLES, IPHONE_17_STYLES, isIphone17TemplateId } from "@/lib/mockup-device-templates";
 
 export type FrameDeviceValue =
   | "screenshot"
@@ -66,9 +67,17 @@ type TemplatePick = {
   detail?: string;
 };
 
-function TemplateFooterHint() {
+function TemplateStyleCountHint({
+  options,
+}: {
+  options: readonly unknown[];
+}) {
+  const count = options.length;
+  if (count === 0) return null;
   return (
-    <span className="text-xs font-medium leading-snug text-zinc-500">6 styles</span>
+    <span className="text-xs font-medium leading-snug text-zinc-500">
+      {count} {count === 1 ? "style" : "styles"}
+    </span>
   );
 }
 
@@ -124,7 +133,7 @@ function TemplateTile({
             </div>
           ) : null}
         </div>
-        {footer ?? <TemplateFooterHint />}
+        {footer ?? null}
       </div>
     </button>
   );
@@ -160,7 +169,7 @@ export function FrameDevicePicker() {
       setFilterTab("screenshot");
       return;
     }
-    if (deviceTemplateId === "iphone-17-black") {
+    if (isIphone17TemplateId(deviceTemplateId)) {
       setSelection({
         preset: "phone",
         headline: "iPhone 17",
@@ -400,6 +409,9 @@ export function FrameDevicePicker() {
                     <TemplateTile
                       title="iPhone 17"
                       resolution="402 × 874"
+                      footer={
+                        <TemplateStyleCountHint options={IPHONE_17_STYLES} />
+                      }
                       preview={
                         <PreviewPlate>
                           <div className={TILE_PREVIEW_INNER} />
@@ -417,6 +429,11 @@ export function FrameDevicePicker() {
                     <TemplateTile
                       title="iPhone 17 Pro Max"
                       resolution="440 × 956"
+                      footer={
+                        <TemplateStyleCountHint
+                          options={IPHONE_17_PRO_MAX_STYLES}
+                        />
+                      }
                       preview={
                         <PreviewPlate>
                           <div className={TILE_PREVIEW_INNER} />

@@ -42,6 +42,27 @@ export type MockupDeviceTemplate = {
   fitScale?: number;
 };
 
+/** Shared geometry for all iPhone 17 finish variants (swap PNG per color). */
+const IPHONE_17_SCREEN: MockupDeviceScreenInset = {
+  leftPct: 3.86,
+  topPct: 1.55,
+  /** 100 − left − right; right assumed = left */
+  widthPct: 92.28,
+  /** 100 − top − bottom; bottom assumed = top */
+  heightPct: 96.9,
+};
+
+/** Color finish assets ship at 2×; black asset is 1× with the same proportions. */
+const IPHONE_17_COLOR_DIMS = {
+  framePixelWidth: 2620,
+  framePixelHeight: 5420,
+} as const;
+
+const IPHONE_17_BLACK_DIMS = {
+  framePixelWidth: 1310,
+  framePixelHeight: 2710,
+} as const;
+
 /** Shared geometry for all iPhone 17 Pro Max finish variants (swap PNG per finish). */
 const IPHONE_17_PRO_MAX_SCREEN: MockupDeviceScreenInset = {
   leftPct: 3.65,
@@ -61,6 +82,14 @@ function mockupDeviceFile(filename: string): string {
 }
 
 /** Full-frame mockups under `public/mockup-devices/` — keys are internal `templateId`s. */
+const IPHONE_17_FRAME_SRC: Record<string, string> = {
+  "iphone-17-black": mockupDeviceFile("iphone-17-black.png"),
+  "iphone-17-white": mockupDeviceFile("iphone-17-white.png"),
+  "iphone-17-lavender": mockupDeviceFile("iphone-17-lavender.png"),
+  "iphone-17-mist-blue": mockupDeviceFile("iphone-17-mist blue.png"),
+  "iphone-17-sage": mockupDeviceFile("iphone-17-sage.png"),
+};
+
 const IPHONE_17_PRO_MAX_FRAME_SRC: Record<string, string> = {
   "iphone-17-pro-max-silver": mockupDeviceFile(
     "iphone-17-pro-max-silver.png"
@@ -91,7 +120,36 @@ function deviceStyleCover(filename: string): string {
   return `/images/device-styles-cover/${encodeURIComponent(filename)}`;
 }
 
-/** Finish presets for iPhone 17 Pro Max (canvas frame only). */
+/** Finish presets for iPhone 17 — picker footer + sidebar Styles row. */
+export const IPHONE_17_STYLES: DeviceStyleOption[] = [
+  {
+    templateId: "iphone-17-black",
+    shortLabel: "Black",
+    coverSrc: deviceStyleCover("iphone 17-color-black.png"),
+  },
+  {
+    templateId: "iphone-17-white",
+    shortLabel: "White",
+    coverSrc: deviceStyleCover("iphone 17-color-white.png"),
+  },
+  {
+    templateId: "iphone-17-lavender",
+    shortLabel: "Lavender",
+    coverSrc: deviceStyleCover("iphone 17-color-lavender.png"),
+  },
+  {
+    templateId: "iphone-17-mist-blue",
+    shortLabel: "Mist Blue",
+    coverSrc: deviceStyleCover("iphone 17-color-mist blue.png"),
+  },
+  {
+    templateId: "iphone-17-sage",
+    shortLabel: "Sage",
+    coverSrc: deviceStyleCover("iphone 17-color-sage.png"),
+  },
+];
+
+/** Finish presets for iPhone 17 Pro Max — picker footer + sidebar Styles row. */
 export const IPHONE_17_PRO_MAX_STYLES: DeviceStyleOption[] = [
   {
     templateId: "iphone-17-pro-max-silver",
@@ -120,27 +178,31 @@ export const IPHONE_17_PRO_MAX_STYLES: DeviceStyleOption[] = [
   },
 ];
 
+export function isIphone17TemplateId(id: string | null): boolean {
+  if (!id) return false;
+  return IPHONE_17_STYLES.some((s) => s.templateId === id);
+}
+
 export function isIphone17ProMaxTemplateId(id: string | null): boolean {
   if (!id) return false;
   return IPHONE_17_PRO_MAX_STYLES.some((s) => s.templateId === id);
 }
 
 export const MOCKUP_DEVICE_TEMPLATES: MockupDeviceTemplate[] = [
-  {
-    id: "iphone-17-black",
+  ...IPHONE_17_STYLES.map(({ templateId }) => ({
+    id: templateId,
     label: "iPhone 17",
-    frameSrc: "/mockup-devices/iphone-17-black.png",
-    framePixelWidth: 1310,
-    framePixelHeight: 2710,
-    screen: {
-      leftPct: 3.86,
-      topPct: 1.55,
-      /** 100 − left − right; right assumed = left */
-      widthPct: 92.28,
-      /** 100 − top − bottom; bottom assumed = top */
-      heightPct: 96.9,
-    },
-  },
+    frameSrc: IPHONE_17_FRAME_SRC[templateId]!,
+    framePixelWidth:
+      templateId === "iphone-17-black"
+        ? IPHONE_17_BLACK_DIMS.framePixelWidth
+        : IPHONE_17_COLOR_DIMS.framePixelWidth,
+    framePixelHeight:
+      templateId === "iphone-17-black"
+        ? IPHONE_17_BLACK_DIMS.framePixelHeight
+        : IPHONE_17_COLOR_DIMS.framePixelHeight,
+    screen: { ...IPHONE_17_SCREEN },
+  })),
   {
     id: "iphone-17-pro-max-silver",
     label: "iPhone 17 Pro Max",
