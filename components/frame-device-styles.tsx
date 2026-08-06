@@ -47,6 +47,7 @@ import {
   IPHONE_17_PRO_MAX_STYLES,
   isIphone17ProMaxTemplateId,
 } from "@/lib/mockup-device-templates";
+import { isPlainCanvasTemplateId } from "@/lib/mockup-plain-canvas";
 import {
   DEFAULT_SCREENSHOT_BORDER_COLOR,
   DEFAULT_SCREENSHOT_OUTLINE_COLOR,
@@ -892,7 +893,7 @@ function IphoneProMaxStyleControls() {
 export function FrameDeviceStyles() {
   const { deviceTemplateId } = useMockupFrame();
 
-  if (deviceTemplateId == null) {
+  if (isPlainCanvasTemplateId(deviceTemplateId)) {
     return <ScreenshotStyleControls />;
   }
   if (isIphone17ProMaxTemplateId(deviceTemplateId)) {

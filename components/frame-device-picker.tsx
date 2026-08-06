@@ -21,6 +21,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FrameDeviceStyles } from "@/components/frame-device-styles";
 import { FrameShadowControls } from "@/components/frame-shadow-controls";
+import { BROWSER_DEVICE_TEMPLATE_ID } from "@/lib/mockup-plain-canvas";
 import { scrollbarSubtleClass } from "@/lib/scrollbar-classes";
 import { cn } from "@/lib/utils";
 
@@ -76,6 +77,27 @@ function PreviewPlate({ children }: { children?: ReactNode }) {
 
 const TILE_PREVIEW_INNER =
   "absolute inset-2.5 rounded-md bg-zinc-800";
+
+function BrowserChromePreview({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        "absolute inset-2.5 flex flex-col overflow-hidden rounded-md border border-zinc-700/70 bg-zinc-900",
+        className
+      )}
+    >
+      <div className="flex h-5 shrink-0 items-center gap-1.5 border-b border-zinc-800 bg-zinc-950 px-1.5">
+        <div className="flex gap-0.5" aria-hidden>
+          <span className="size-1.5 rounded-full bg-zinc-600" />
+          <span className="size-1.5 rounded-full bg-zinc-600" />
+          <span className="size-1.5 rounded-full bg-zinc-600" />
+        </div>
+        <div className="h-2.5 min-w-0 flex-1 rounded-sm bg-zinc-800" />
+      </div>
+      <div className="min-h-0 flex-1 bg-zinc-800/80" />
+    </div>
+  );
+}
 
 function TemplateTile({
   title,
@@ -208,6 +230,15 @@ export function FrameDevicePicker() {
       setFilterTab("laptop");
       return;
     }
+    if (deviceTemplateId === BROWSER_DEVICE_TEMPLATE_ID) {
+      setSelection({
+        preset: "screenshot",
+        headline: "Browser",
+        detail: undefined,
+      });
+      setFilterTab("screenshot");
+      return;
+    }
     setSelection({
       preset: "screenshot",
       headline: TRIGGER_META.screenshot.label,
@@ -309,31 +340,51 @@ export function FrameDevicePicker() {
                 )}
               >
                 <TabsContent value="screenshot" className="m-0 outline-none">
-                  <div className="flex justify-start">
-                    <div className="w-full min-w-0 max-w-[calc((100%-0.5rem)/2)]">
-                      <TemplateTile
-                        title="Screenshot"
-                        subtitle="Adapts to media"
-                        footer={
-                          <span className="text-xs font-medium leading-snug text-zinc-500">
-                            Plain canvas
-                          </span>
-                        }
-                        preview={
-                          <PreviewPlate>
-                            <div className={TILE_PREVIEW_INNER} />
-                          </PreviewPlate>
-                        }
-                        onPick={() => {
-                          setDeviceTemplateId(null);
-                          pickTemplate({
-                            preset: "screenshot",
-                            headline: "Screenshot",
-                            detail: undefined,
-                          });
-                        }}
-                      />
-                    </div>
+                  <div className="grid grid-cols-2 items-stretch gap-2">
+                    <TemplateTile
+                      title="Screenshot"
+                      subtitle="Adapts to media"
+                      footer={
+                        <span className="text-xs font-medium leading-snug text-zinc-500">
+                          Plain canvas
+                        </span>
+                      }
+                      preview={
+                        <PreviewPlate>
+                          <div className={TILE_PREVIEW_INNER} />
+                        </PreviewPlate>
+                      }
+                      onPick={() => {
+                        setDeviceTemplateId(null);
+                        pickTemplate({
+                          preset: "screenshot",
+                          headline: "Screenshot",
+                          detail: undefined,
+                        });
+                      }}
+                    />
+                    <TemplateTile
+                      title="Browser"
+                      subtitle="Adapts to media"
+                      footer={
+                        <span className="text-xs font-medium leading-snug text-zinc-500">
+                          URL bar &amp; tabs
+                        </span>
+                      }
+                      preview={
+                        <PreviewPlate>
+                          <BrowserChromePreview />
+                        </PreviewPlate>
+                      }
+                      onPick={() => {
+                        setDeviceTemplateId(BROWSER_DEVICE_TEMPLATE_ID);
+                        pickTemplate({
+                          preset: "screenshot",
+                          headline: "Browser",
+                          detail: undefined,
+                        });
+                      }}
+                    />
                   </div>
                 </TabsContent>
 
