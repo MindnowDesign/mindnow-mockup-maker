@@ -87,14 +87,10 @@ function screenshotShellRadiusStyle(radiusPx: number): CSSProperties {
   };
 }
 
-/** Browser composite: radius only on the screenshot bottom edge, never the chrome top. */
+/** Browser composite: same outer radius on chrome + screenshot (clip via overflow). */
 function browserShellRadiusStyle(radiusPx: number): CSSProperties {
   if (radiusPx <= 0) return { overflow: "hidden" };
-  return {
-    borderBottomLeftRadius: `${radiusPx}px`,
-    borderBottomRightRadius: `${radiusPx}px`,
-    overflow: "hidden",
-  };
+  return screenshotShellRadiusStyle(radiusPx);
 }
 
 type ScreenshotBorderStyle = {
