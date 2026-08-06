@@ -9,7 +9,6 @@ import {
   useRef,
   useState,
   type CSSProperties,
-  type ReactNode,
 } from "react";
 
 import { useMockupFrame } from "@/components/mockup-frame-context";
@@ -22,6 +21,12 @@ import { CanvasGradientInlineBackground } from "@/components/canvas-gradient-inl
 import { CanvasOrganicBackground } from "@/components/canvas-organic-background";
 import { hexToRgb } from "@/lib/color-hex-hsv";
 import { scaledFramePixelSize } from "@/lib/mockup-aspect";
+import {
+  browserChromeHeightRatio,
+  fitBrowserScreenshotDimensions,
+  isBrowserTemplateId,
+  MOCKUP_BROWSER_BY_ID,
+} from "@/lib/mockup-browser-templates";
 import { MOCKUP_DEVICE_BY_ID } from "@/lib/mockup-device-templates";
 import { buildFrameShadowBoxShadow } from "@/lib/mockup-frame-shadow";
 import {
@@ -53,10 +58,6 @@ import {
   type ScreenshotStyleId,
 } from "@/lib/mockup-screenshot-style";
 import { defaultVisualLabel } from "@/lib/mockup-visual-label";
-import {
-  isBrowserCanvasTemplateId,
-  isPlainCanvasTemplateId,
-} from "@/lib/mockup-plain-canvas";
 import { cn } from "@/lib/utils";
 
 function rgbaFromHex(hex: string, opacityPercent: number): string {
@@ -86,6 +87,16 @@ function screenshotShellRadiusStyle(radiusPx: number): CSSProperties {
   };
 }
 
+/** Browser composite: radius only on the screenshot bottom edge, never the chrome top. */
+function browserShellRadiusStyle(radiusPx: number): CSSProperties {
+  if (radiusPx <= 0) return { overflow: "hidden" };
+  return {
+    borderBottomLeftRadius: `${radiusPx}px`,
+    borderBottomRightRadius: `${radiusPx}px`,
+    overflow: "hidden",
+  };
+}
+
 type ScreenshotBorderStyle = {
   /** Pixel weight; pass 0 to disable. */
   weight: number;
@@ -93,63 +104,6 @@ type ScreenshotBorderStyle = {
   opacity: number;
   position: ScreenshotBorderPosition;
 };
-
-function BrowserWindowFrame({
-  children,
-  cornerRadius = 0,
-  boxShadow,
-}: {
-  children: ReactNode;
-  cornerRadius?: number;
-  boxShadow?: string | null;
-}) {
-  const frameStyle: CSSProperties = {
-    ...screenshotShellRadiusStyle(
-      screenshotEffectiveCornerRadius(cornerRadius)
-    ),
-    ...(boxShadow ? { boxShadow } : {}),
-  };
-
-  return (
-    <div
-      className="flex max-h-full max-w-full min-h-0 min-w-0 flex-col border border-zinc-700/80 bg-zinc-900"
-      style={frameStyle}
-    >
-      <div className="flex h-9 shrink-0 items-center gap-2.5 border-b border-zinc-800 bg-zinc-950 px-3">
-        <div className="flex gap-1.5" aria-hidden>
-          <span className="size-2.5 rounded-full bg-zinc-600" />
-          <span className="size-2.5 rounded-full bg-zinc-600" />
-          <span className="size-2.5 rounded-full bg-zinc-600" />
-        </div>
-        <div className="h-5 min-w-0 flex-1 rounded-md bg-zinc-800" />
-      </div>
-      <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function MaybeBrowserFrame({
-  enabled,
-  cornerRadius = 0,
-  boxShadow,
-  children,
-}: {
-  enabled: boolean;
-  cornerRadius?: number;
-  boxShadow?: string | null;
-  children: ReactNode;
-}) {
-  if (enabled) {
-    return (
-      <BrowserWindowFrame cornerRadius={cornerRadius} boxShadow={boxShadow}>
-        {children}
-      </BrowserWindowFrame>
-    );
-  }
-  return <>{children}</>;
-}
 
 /** Max border-box size for the orange frame (fits main canvas). */
 function useFrameViewportCaps() {
@@ -184,6 +138,7 @@ function UploadedScreenshotImage({
   cornerRadius,
   glassFramePadding,
   mediaBoxShadow,
+  topChrome,
 }: {
   src: string;
   style: ScreenshotStyleId;
@@ -193,8 +148,15 @@ function UploadedScreenshotImage({
   cornerRadius: number;
   glassFramePadding: number;
   mediaBoxShadow?: string | null;
+  /** Browser header SVG stacked above the screenshot (does not cover media). */
+  topChrome?: {
+    src: string;
+    heightRatio: number;
+    backdropColor: string;
+  } | null;
 }) {
   const effectiveCornerRadius = screenshotEffectiveCornerRadius(cornerRadius);
+  const hasBrowserChrome = topChrome != null;
   const stageRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const [viewport, setViewport] = useState({ w: 0, h: 0 });
@@ -225,10 +187,23 @@ function UploadedScreenshotImage({
     return () => ro.disconnect();
   }, []);
 
-  const fitted = useMemo(() => {
-    if (!natural || viewport.w < 1 || viewport.h < 1) return null;
+  const plainFitted = useMemo(() => {
+    if (hasBrowserChrome || !natural || viewport.w < 1 || viewport.h < 1) {
+      return null;
+    }
     return fitScreenshotDimensions(natural, viewport);
-  }, [natural, viewport.w, viewport.h]);
+  }, [hasBrowserChrome, natural, viewport.w, viewport.h]);
+
+  const browserFitted = useMemo(() => {
+    if (!hasBrowserChrome || !topChrome || !natural || viewport.w < 1 || viewport.h < 1) {
+      return null;
+    }
+    return fitBrowserScreenshotDimensions(
+      natural,
+      viewport,
+      topChrome.heightRatio
+    );
+  }, [hasBrowserChrome, topChrome, natural, viewport.w, viewport.h]);
 
   const borderBoxShadow = useMemo(() => {
     if (style !== "border") return null;
@@ -287,8 +262,27 @@ function UploadedScreenshotImage({
   }, [hasStyleWrapper, glassFrameStyle, outlineFrameStyle, mediaBoxShadow]);
 
   const shellStyle = useMemo<CSSProperties>(() => {
-    const base: CSSProperties = fitted
-      ? { width: fitted.w, height: fitted.h }
+    if (hasBrowserChrome) {
+      if (!browserFitted) {
+        return { visibility: "hidden", maxWidth: "100%", maxHeight: "100%" };
+      }
+      const radiusBase = browserShellRadiusStyle(effectiveCornerRadius);
+      const frame: CSSProperties = {
+        width: browserFitted.w,
+        height: browserFitted.h,
+        display: "grid",
+        gridTemplateRows: `${browserFitted.chromeH}px ${browserFitted.imageH}px`,
+        lineHeight: 0,
+        ...radiusBase,
+      };
+      if (mediaBoxShadow) {
+        frame.boxShadow = mediaBoxShadow;
+      }
+      return frame;
+    }
+
+    const base: CSSProperties = plainFitted
+      ? { width: plainFitted.w, height: plainFitted.h }
       : {};
     const radiusBase = screenshotShellRadiusStyle(effectiveCornerRadius);
     const inner: CSSProperties = { ...base, ...radiusBase };
@@ -302,7 +296,9 @@ function UploadedScreenshotImage({
     }
     return inner;
   }, [
-    fitted,
+    hasBrowserChrome,
+    browserFitted,
+    plainFitted,
     style,
     hasStyleWrapper,
     borderBoxShadow,
@@ -317,8 +313,32 @@ function UploadedScreenshotImage({
 
   const shellClassName = cn(
     "relative shrink-0",
-    !fitted && "max-h-full max-w-full"
+    !plainFitted && !browserFitted && "max-h-full max-w-full"
   );
+
+  const browserChromeImgStyle = useMemo<CSSProperties | undefined>(() => {
+    if (!browserFitted || !topChrome) return undefined;
+    return {
+      width: "100%",
+      height: "100%",
+      maxWidth: "none",
+      objectFit: "fill",
+      display: "block",
+      backgroundColor: topChrome.backdropColor,
+    };
+  }, [browserFitted, topChrome]);
+
+  const browserScreenshotImgStyle = useMemo<CSSProperties | undefined>(() => {
+    if (!browserFitted) return undefined;
+    return {
+      width: "100%",
+      height: `calc(100% + 1px)`,
+      marginTop: -1,
+      maxWidth: "none",
+      objectFit: "fill",
+      display: "block",
+    };
+  }, [browserFitted]);
 
   const screenshotImg = (
     /* eslint-disable-next-line @next/next/no-img-element -- user-provided blob URL */
@@ -327,7 +347,7 @@ function UploadedScreenshotImage({
       src={src}
       alt=""
       draggable={false}
-      style={imgClipStyle}
+      style={browserScreenshotImgStyle ?? imgClipStyle}
       onLoad={(e) =>
         setNatural({
           w: e.currentTarget.naturalWidth,
@@ -335,11 +355,39 @@ function UploadedScreenshotImage({
         })
       }
       className={cn(
-        "pointer-events-none block size-full select-none",
-        !fitted && "h-auto w-auto max-h-full max-w-full object-contain"
+        "pointer-events-none select-none",
+        browserFitted
+          ? "block min-h-0 min-w-0 max-w-none"
+          : cn(
+              "block size-full",
+              !plainFitted && "h-auto w-auto max-h-full max-w-full object-contain"
+            )
       )}
     />
   );
+
+  const browserChromeBar =
+    topChrome != null && browserFitted != null && browserChromeImgStyle ? (
+      // eslint-disable-next-line @next/next/no-img-element -- static SVG asset
+      <img
+        aria-hidden
+        alt=""
+        draggable={false}
+        src={topChrome.src}
+        className="pointer-events-none block min-h-0 min-w-0 max-w-none select-none"
+        style={browserChromeImgStyle}
+      />
+    ) : null;
+
+  const mediaShellInner =
+    browserFitted != null ? (
+      <>
+        {browserChromeBar}
+        {screenshotImg}
+      </>
+    ) : (
+      screenshotImg
+    );
 
   return (
     <div
@@ -356,7 +404,7 @@ function UploadedScreenshotImage({
       {styleWrapperStyle ? (
         <div className={shellClassName} style={styleWrapperStyle}>
           <div data-mockup-media-shell className={shellClassName} style={shellStyle}>
-            {screenshotImg}
+            {mediaShellInner}
           </div>
         </div>
       ) : (
@@ -365,7 +413,7 @@ function UploadedScreenshotImage({
           className={shellClassName}
           style={shellStyle}
         >
-          {screenshotImg}
+          {mediaShellInner}
         </div>
       )}
     </div>
@@ -537,8 +585,15 @@ export function MockupWorkspaceStage() {
   const { maxW, maxH } = useFrameViewportCaps();
   const fitDeviceToScreen =
     deviceTemplateId != null &&
+    !isBrowserTemplateId(deviceTemplateId) &&
     MOCKUP_DEVICE_BY_ID[deviceTemplateId]?.fitToScreen === true;
-  const isBrowserMode = isBrowserCanvasTemplateId(deviceTemplateId);
+
+  const browserTemplate = isBrowserTemplateId(deviceTemplateId)
+    ? MOCKUP_BROWSER_BY_ID[deviceTemplateId!]
+    : undefined;
+
+  const isPlainScreenshot = deviceTemplateId == null;
+  const isBrowserScreenshot = browserTemplate != null;
 
   const { width, height } = useMemo(
     () => scaledFramePixelSize(aspectPreset, maxW, maxH),
@@ -641,7 +696,7 @@ export function MockupWorkspaceStage() {
   );
 
   const screenshotBorder = useMemo<ScreenshotBorderStyle | null>(() => {
-    if (!isPlainCanvasTemplateId(deviceTemplateId)) return null;
+    if (!isPlainScreenshot) return null;
     if (screenshotStyle !== "border") return null;
     if (screenshotBorderWeight <= 0) return null;
     return {
@@ -651,7 +706,7 @@ export function MockupWorkspaceStage() {
       position: screenshotBorderPosition,
     };
   }, [
-    deviceTemplateId,
+    isPlainScreenshot,
     screenshotStyle,
     screenshotBorderColor,
     screenshotBorderColorOpacity,
@@ -661,10 +716,10 @@ export function MockupWorkspaceStage() {
 
   /** Glass styling has no inputs — only the `style` flag is needed downstream. */
   const screenshotStyleForCanvas =
-    isPlainCanvasTemplateId(deviceTemplateId) ? screenshotStyle : "default";
+    isPlainScreenshot ? screenshotStyle : "default";
 
   const screenshotMediaBoxShadow = useMemo(() => {
-    if (!isPlainCanvasTemplateId(deviceTemplateId)) return null;
+    if (!isPlainScreenshot && !isBrowserScreenshot) return null;
     return buildFrameShadowBoxShadow({
       offsetX: frameShadowOffsetX,
       offsetY: frameShadowOffsetY,
@@ -674,7 +729,8 @@ export function MockupWorkspaceStage() {
       colorOpacity: frameShadowColorOpacity,
     });
   }, [
-    deviceTemplateId,
+    isPlainScreenshot,
+    isBrowserScreenshot,
     frameShadowOffsetX,
     frameShadowOffsetY,
     frameShadowBlur,
@@ -682,6 +738,15 @@ export function MockupWorkspaceStage() {
     frameShadowColor,
     frameShadowColorOpacity,
   ]);
+
+  const browserTopChrome = useMemo(() => {
+    if (!browserTemplate) return null;
+    return {
+      src: browserTemplate.chromeSrc,
+      heightRatio: browserChromeHeightRatio(browserTemplate),
+      backdropColor: browserTemplate.chromeBackdrop,
+    };
+  }, [browserTemplate]);
 
   /**
    * Blur on a layer that is then clipped to rounded rect can look like a vignette
@@ -799,24 +864,19 @@ export function MockupWorkspaceStage() {
         <div className="relative z-10 flex min-h-0 min-w-0 flex-1 items-center justify-center">
           <MockupDeviceFrame deviceTemplateId={deviceTemplateId}>
             {activeItem?.kind === "image" ? (
-              isPlainCanvasTemplateId(deviceTemplateId) ? (
-                <MaybeBrowserFrame
-                  enabled={isBrowserMode}
+              isPlainScreenshot || isBrowserScreenshot ? (
+                <UploadedScreenshotImage
+                  key={activeItem.url}
+                  src={activeItem.url}
+                  style={screenshotStyleForCanvas}
+                  border={screenshotBorder}
+                  outlineColor={screenshotOutlineColor}
+                  outlineColorOpacity={screenshotOutlineColorOpacity}
                   cornerRadius={screenshotCornerRadius}
-                  boxShadow={isBrowserMode ? screenshotMediaBoxShadow : null}
-                >
-                  <UploadedScreenshotImage
-                    key={activeItem.url}
-                    src={activeItem.url}
-                    style={screenshotStyleForCanvas}
-                    border={screenshotBorder}
-                    outlineColor={screenshotOutlineColor}
-                    outlineColorOpacity={screenshotOutlineColorOpacity}
-                    cornerRadius={isBrowserMode ? 0 : screenshotCornerRadius}
-                    glassFramePadding={screenshotGlassFramePadding}
-                    mediaBoxShadow={isBrowserMode ? null : screenshotMediaBoxShadow}
-                  />
-                </MaybeBrowserFrame>
+                  glassFramePadding={screenshotGlassFramePadding}
+                  mediaBoxShadow={screenshotMediaBoxShadow}
+                  topChrome={browserTopChrome}
+                />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element -- user-provided blob URL
                 <img
@@ -827,69 +887,62 @@ export function MockupWorkspaceStage() {
                 />
               )
             ) : (
-              <MaybeBrowserFrame
-                enabled={isBrowserMode}
-                cornerRadius={screenshotCornerRadius}
-                boxShadow={isBrowserMode ? screenshotMediaBoxShadow : null}
+              <div
+                className={cn(
+                  "flex max-h-full max-w-full min-h-0 min-w-0 flex-col overflow-hidden rounded-[16px]",
+                  deviceTemplateId && !isBrowserTemplateId(deviceTemplateId)
+                    ? "h-full min-h-[140px] w-full"
+                    : "aspect-square",
+                  activeItem
+                    ? "bg-zinc-950"
+                    : "border border-zinc-900/80 bg-zinc-950 shadow-[0_24px_64px_-12px_rgba(0,0,0,0.9)]"
+                )}
               >
-                <div
-                  className={cn(
-                    "flex max-h-full max-w-full min-h-0 min-w-0 flex-col overflow-hidden rounded-[16px]",
-                    deviceTemplateId &&
-                      !isPlainCanvasTemplateId(deviceTemplateId)
-                      ? "h-full min-h-[140px] w-full"
-                      : "aspect-square",
-                    activeItem
-                      ? "bg-zinc-950"
-                      : "border border-zinc-900/80 bg-zinc-950 shadow-[0_24px_64px_-12px_rgba(0,0,0,0.9)]"
-                  )}
-                >
-                  {activeItem ? (
-                    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-                      <video
-                        src={activeItem.url}
-                        controls
-                        playsInline
-                        className="h-full w-full min-h-0 min-w-0 object-contain"
-                      />
-                    </div>
-                  ) : (
-                    <label className="flex min-h-0 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-6 px-6 py-10 text-center outline-none transition-colors hover:bg-white/[0.03] focus-within:ring-2 focus-within:ring-white/25 focus-within:ring-inset">
-                      <span className="sr-only">Upload images or videos</span>
-                      <input
-                        type="file"
-                        accept="image/*,video/*"
-                        multiple
-                        className="sr-only"
-                        onChange={(event) => {
-                          addFromFileList(event.target.files);
-                          event.target.value = "";
-                        }}
-                      />
-                      <div className="relative flex items-center justify-center">
-                        <span
-                          className="flex size-14 shrink-0 items-center justify-center rounded-full border border-dashed border-zinc-500 bg-zinc-900/35 transition-colors group-hover:border-zinc-400"
+                {activeItem ? (
+                  <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+                    <video
+                      src={activeItem.url}
+                      controls
+                      playsInline
+                      className="h-full w-full min-h-0 min-w-0 object-contain"
+                    />
+                  </div>
+                ) : (
+                  <label className="flex min-h-0 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-6 px-6 py-10 text-center outline-none transition-colors hover:bg-white/[0.03] focus-within:ring-2 focus-within:ring-white/25 focus-within:ring-inset">
+                    <span className="sr-only">Upload images or videos</span>
+                    <input
+                      type="file"
+                      accept="image/*,video/*"
+                      multiple
+                      className="sr-only"
+                      onChange={(event) => {
+                        addFromFileList(event.target.files);
+                        event.target.value = "";
+                      }}
+                    />
+                    <div className="relative flex items-center justify-center">
+                      <span
+                        className="flex size-14 shrink-0 items-center justify-center rounded-full border border-dashed border-zinc-500 bg-zinc-900/35 transition-colors group-hover:border-zinc-400"
+                        aria-hidden
+                      >
+                        <Plus
+                          className="size-7 text-foreground transition-transform group-hover:scale-105"
+                          strokeWidth={2}
                           aria-hidden
-                        >
-                          <Plus
-                            className="size-7 text-foreground transition-transform group-hover:scale-105"
-                            strokeWidth={2}
-                            aria-hidden
-                          />
-                        </span>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-xl font-semibold tracking-tight text-white md:text-2xl">
-                          Drop or Paste
-                        </p>
-                        <p className="text-sm font-medium text-zinc-500">
-                          Images &amp; Videos
-                        </p>
-                      </div>
-                    </label>
-                  )}
-                </div>
-              </MaybeBrowserFrame>
+                        />
+                      </span>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xl font-semibold tracking-tight text-white md:text-2xl">
+                        Drop or Paste
+                      </p>
+                      <p className="text-sm font-medium text-zinc-500">
+                        Images &amp; Videos
+                      </p>
+                    </div>
+                  </label>
+                )}
+              </div>
             )}
           </MockupDeviceFrame>
         </div>

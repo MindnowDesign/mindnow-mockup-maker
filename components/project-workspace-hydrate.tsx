@@ -7,6 +7,7 @@ import { useMockupFrame } from "@/components/mockup-frame-context";
 import { useMockupMedia } from "@/components/mockup-media-context";
 import type { VisualWorkspacePrefs } from "@/lib/mockup-workspace-snapshot";
 import { normalizeAspectPreset } from "@/lib/mockup-aspect";
+import { normalizeDeviceTemplateId } from "@/lib/mockup-browser-templates";
 import { getSavedProject } from "@/lib/saved-projects";
 import {
   getProjectsWorkspaceSegment,
@@ -91,14 +92,16 @@ export function ProjectWorkspaceHydrate() {
       const projectFrameSeed: VisualWorkspacePrefs = {
         aspectPreset: saved.aspectPreset,
         canvasBackground: saved.canvasBackground ?? null,
-        deviceTemplateId: null,
+        deviceTemplateId: normalizeDeviceTemplateId(saved.deviceTemplateId),
         screenshotStyle: null,
       };
       const seedForFrame = perVisual ?? projectFrameSeed;
 
       setAspectPreset(normalizeAspectPreset(seedForFrame.aspectPreset));
       hydrateCanvasBackground(seedForFrame.canvasBackground);
-      setDeviceTemplateId(seedForFrame.deviceTemplateId ?? null);
+      setDeviceTemplateId(
+        normalizeDeviceTemplateId(seedForFrame.deviceTemplateId)
+      );
       hydrateScreenshotStyle(seedForFrame.screenshotStyle ?? null);
       hydrateFromSaved({
         mediaItems: saved.mediaItems,

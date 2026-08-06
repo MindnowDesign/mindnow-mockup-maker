@@ -1,3 +1,6 @@
+import {
+  normalizeDeviceTemplateId,
+} from "@/lib/mockup-browser-templates";
 import type { FrameAspectPresetId } from "@/lib/mockup-aspect";
 import { templateSupportsEditableGradientFills } from "@/lib/canvas-gradient-1-fill";
 import type { PersistedCanvasBackground } from "@/lib/mockup-canvas-background";
@@ -280,10 +283,11 @@ export function normalizeVisualWorkspacePrefs(
       partial.canvasBackground !== undefined
         ? partial.canvasBackground
         : d.canvasBackground,
-    deviceTemplateId:
+    deviceTemplateId: normalizeDeviceTemplateId(
       partial.deviceTemplateId !== undefined
         ? partial.deviceTemplateId
-        : d.deviceTemplateId ?? null,
+        : d.deviceTemplateId ?? null
+    ),
     screenshotStyle,
     frameShadow,
     canvasLayers,

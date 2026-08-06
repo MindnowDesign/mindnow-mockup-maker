@@ -33,6 +33,8 @@ export type SavedProject = {
   aspectPreset: FrameAspectPresetId;
   /** Canvas frame fill (transparency preview, solid color, or image). */
   canvasBackground?: PersistedCanvasBackground;
+  /** Last active visual device (`browser-chrome-light`, `iphone-17-black`, etc.). */
+  deviceTemplateId?: string | null;
   visualCount: number;
   /** Serialized media library (pool of assets). */
   mediaItems?: SavedMediaItem[];

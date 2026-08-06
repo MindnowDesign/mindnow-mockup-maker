@@ -47,7 +47,10 @@ import {
   IPHONE_17_PRO_MAX_STYLES,
   isIphone17ProMaxTemplateId,
 } from "@/lib/mockup-device-templates";
-import { isPlainCanvasTemplateId } from "@/lib/mockup-plain-canvas";
+import {
+  isBrowserTemplateId,
+  MOCKUP_BROWSER_TEMPLATES,
+} from "@/lib/mockup-browser-templates";
 import {
   DEFAULT_SCREENSHOT_BORDER_COLOR,
   DEFAULT_SCREENSHOT_OUTLINE_COLOR,
@@ -825,6 +828,64 @@ function ScreenshotStyleControls() {
   );
 }
 
+function BrowserStyleControls() {
+  const { deviceTemplateId, setDeviceTemplateId } = useMockupFrame();
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex min-w-0 flex-col gap-2">
+        <span
+          className="text-xs font-medium text-zinc-400"
+          id="frame-browser-styles-label"
+        >
+          Browser
+        </span>
+        <TooltipProvider delayDuration={300}>
+          <div
+            role="radiogroup"
+            aria-labelledby="frame-browser-styles-label"
+            className="grid min-w-0 grid-cols-2 gap-2"
+          >
+            {MOCKUP_BROWSER_TEMPLATES.map(({ id, label, chromeSrc }) => {
+              const selected = deviceTemplateId === id;
+              return (
+                <Tooltip key={id}>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      aria-label={label}
+                      onClick={() => setDeviceTemplateId(id)}
+                      className={cn(
+                        "flex h-11 w-full min-w-0 items-center justify-center overflow-hidden rounded-lg border px-2 transition-colors",
+                        selected
+                          ? "border-zinc-500 bg-zinc-800 shadow-sm"
+                          : "border-zinc-800 bg-zinc-950 hover:border-zinc-600 hover:bg-zinc-900"
+                      )}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element -- style thumbnail */}
+                      <img
+                        src={chromeSrc}
+                        alt=""
+                        className="h-auto max-h-7 w-full object-contain object-center"
+                        draggable={false}
+                      />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" sideOffset={6}>
+                    {label}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </div>
+        </TooltipProvider>
+      </div>
+      <ScreenshotCornerRadiusControls />
+    </div>
+  );
+}
+
 function IphoneProMaxStyleControls() {
   const { deviceTemplateId, setDeviceTemplateId } = useMockupFrame();
   return (
@@ -893,8 +954,11 @@ function IphoneProMaxStyleControls() {
 export function FrameDeviceStyles() {
   const { deviceTemplateId } = useMockupFrame();
 
-  if (isPlainCanvasTemplateId(deviceTemplateId)) {
+  if (deviceTemplateId == null) {
     return <ScreenshotStyleControls />;
+  }
+  if (isBrowserTemplateId(deviceTemplateId)) {
+    return <BrowserStyleControls />;
   }
   if (isIphone17ProMaxTemplateId(deviceTemplateId)) {
     return <IphoneProMaxStyleControls />;

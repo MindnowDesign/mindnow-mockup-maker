@@ -4,6 +4,7 @@ import type {
 } from "@/components/mockup-media-context";
 import { collectCanvasMediaIdsForSave } from "@/lib/collect-canvas-media-ids";
 import { applyVisualUpdatedAt } from "@/lib/apply-visual-updated-at";
+import { normalizeDeviceTemplateId } from "@/lib/mockup-browser-templates";
 import type { FrameAspectPresetId } from "@/lib/mockup-aspect";
 import type { PersistedCanvasBackground } from "@/lib/mockup-canvas-background";
 import {
@@ -148,6 +149,9 @@ export function persistWorkspaceCore(input: WorkspacePersistCoreInput): boolean 
       aspectPreset: activeResolved?.aspectPreset ?? aspectPreset,
       canvasBackground:
         activeResolved?.canvasBackground ?? canvasBackground ?? disk?.canvasBackground,
+      deviceTemplateId: normalizeDeviceTemplateId(
+        activeResolved?.deviceTemplateId ?? frame.deviceTemplateId
+      ),
       visualCount: visualSlotsWithTimestamps.length,
       mediaItems,
       visualSlots: visualSlotsWithTimestamps,

@@ -28,6 +28,7 @@ import {
   preloadAllCanvasWaveSvgs,
 } from "@/lib/gradient-svg-cache";
 import { isCanvasOrganicTemplateId } from "@/lib/canvas-background-organic-templates";
+import { normalizeDeviceTemplateId } from "@/lib/mockup-browser-templates";
 import { preloadOrganicTemplateId } from "@/lib/organic-image-cache";
 import type { PersistedCanvasBackground } from "@/lib/mockup-canvas-background";
 import {
@@ -494,6 +495,9 @@ export function WorkspaceTopBar({
         activeResolved != null
           ? activeResolved.canvasBackground ?? undefined
           : canvasBackgroundFromFrame;
+      const deviceTemplateIdRoot = normalizeDeviceTemplateId(
+        activeResolved?.deviceTemplateId ?? persistFrame.deviceTemplateId
+      );
 
       const prefsPayload =
         serialized.visualSlots.length > 0
@@ -535,6 +539,7 @@ export function WorkspaceTopBar({
           ...(previewDataUrls.length > 0 ? { previewDataUrls } : {}),
           aspectPreset: aspectPresetRoot,
           canvasBackground: canvasBackgroundRoot,
+          deviceTemplateId: deviceTemplateIdRoot,
           visualCount: visualSlotsWithTimestamps.length,
           mediaItems: serialized.mediaItems,
           visualSlots: visualSlotsWithTimestamps,
@@ -558,6 +563,7 @@ export function WorkspaceTopBar({
               previewDataUrl: "",
               aspectPreset: aspectPresetRoot,
               canvasBackground: canvasBackgroundRoot,
+              deviceTemplateId: deviceTemplateIdRoot,
               visualCount: visualSlotsWithTimestamps.length,
               mediaItems: serialized.mediaItems,
               visualSlots: visualSlotsWithTimestamps,
@@ -575,6 +581,7 @@ export function WorkspaceTopBar({
               updatedAt: savedAt,
               previewDataUrl: "",
               aspectPreset: aspectPresetRoot,
+              deviceTemplateId: deviceTemplateIdRoot,
               visualCount: visualSlotsWithTimestamps.length,
               visualSlots: visualSlotsWithTimestamps,
               activeVisualId: serialized.activeVisualId,

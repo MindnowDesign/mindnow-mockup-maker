@@ -10,9 +10,14 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { usePathname } from "next/navigation";
 
 import { useMockupFrame } from "@/components/mockup-frame-context";
 import { normalizeAspectPreset } from "@/lib/mockup-aspect";
+import {
+  WORKSPACE_HYDRATED_EVENT,
+  type WorkspaceHydratedDetail,
+} from "@/lib/project-workspace";
 import type { SavedMediaItem, SavedVisualSlot } from "@/lib/saved-projects";
 import {
   captureVisualWorkspacePrefs,
@@ -132,9 +137,13 @@ function filesToLibraryItems(files: FileList): MockupLibraryItem[] {
 }
 
 export function MockupMediaProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const frame = useMockupFrame();
   const [{ library, visuals, activeVisualId, visualWorkspacePrefs }, setState] =
     useState<MockupMediaState>(createFreshWorkspaceState);
+
+  /** Wait for `ProjectWorkspaceHydrate` before applying frame prefs (avoids reset race). */
+  const [workspaceHydrated, setWorkspaceHydrated] = useState(false);
 
   const libraryRef = useRef(library);
   libraryRef.current = library;
@@ -143,6 +152,18 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
   visualWorkspacePrefsRef.current = visualWorkspacePrefs;
 
   const skipFramePrefsSyncRef = useRef(false);
+
+  useEffect(() => {
+    setWorkspaceHydrated(false);
+    function onHydrated(ev: Event) {
+      const detail = (ev as CustomEvent<WorkspaceHydratedDetail>).detail;
+      if (detail?.pathname === pathname) {
+        setWorkspaceHydrated(true);
+      }
+    }
+    window.addEventListener(WORKSPACE_HYDRATED_EVENT, onHydrated);
+    return () => window.removeEventListener(WORKSPACE_HYDRATED_EVENT, onHydrated);
+  }, [pathname]);
 
   const activeVisualPrefsKey = useMemo(() => {
     if (!activeVisualId) return "";
@@ -170,7 +191,9 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
   hydrateFrameShadowRef.current = frame.hydrateFrameShadow;
 
   useEffect(() => {
+    if (!workspaceHydrated) return;
     if (!activeVisualId) return;
+    if (activeVisualId === WORKSPACE_PLACEHOLDER_VISUAL_ID) return;
     const raw = visualWorkspacePrefsRef.current[activeVisualId];
     const prefs = raw ?? DEFAULT_NEW_VISUAL_WORKSPACE_PREFS;
     skipFramePrefsSyncRef.current = true;
@@ -188,10 +211,12 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
         },
       }));
     }
-  }, [activeVisualId, activeVisualPrefsKey]);
+  }, [workspaceHydrated, activeVisualId, activeVisualPrefsKey]);
 
   useEffect(() => {
+    if (!workspaceHydrated) return;
     if (!activeVisualId) return;
+    if (activeVisualId === WORKSPACE_PLACEHOLDER_VISUAL_ID) return;
     if (skipFramePrefsSyncRef.current) {
       skipFramePrefsSyncRef.current = false;
       return;
@@ -242,6 +267,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
     frame.frameShadowSpread,
     frame.frameShadowColor,
     frame.frameShadowColorOpacity,
+    workspaceHydrated,
   ]);
 
   const hydrateFromSaved = useCallback((payload: HydrateFromSavedPayload) => {

@@ -3,6 +3,7 @@
 import type { CSSProperties, ReactNode } from "react";
 
 import { MOCKUP_DEVICE_BY_ID } from "@/lib/mockup-device-templates";
+import { isBrowserTemplateId } from "@/lib/mockup-browser-templates";
 import { cn } from "@/lib/utils";
 
 type MockupDeviceFrameProps = {
@@ -20,9 +21,10 @@ export function MockupDeviceFrame({
   className,
   children,
 }: MockupDeviceFrameProps) {
-  const template = deviceTemplateId
-    ? MOCKUP_DEVICE_BY_ID[deviceTemplateId]
-    : undefined;
+  const template =
+    deviceTemplateId && !isBrowserTemplateId(deviceTemplateId)
+      ? MOCKUP_DEVICE_BY_ID[deviceTemplateId]
+      : undefined;
 
   if (!template) {
     return <>{children}</>;
