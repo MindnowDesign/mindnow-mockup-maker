@@ -48,8 +48,10 @@ import {
 import {
   IPHONE_17_PRO_MAX_STYLES,
   IPHONE_17_STYLES,
+  MACBOOK_PRO_16_STYLES,
   isIphone17ProMaxTemplateId,
   isIphone17TemplateId,
+  isMacbookPro16TemplateId,
   type DeviceStyleOption,
 } from "@/lib/mockup-device-templates";
 import {
@@ -1040,6 +1042,10 @@ function Iphone17StyleControls() {
   return <DeviceFinishStyleControls styles={IPHONE_17_STYLES} />;
 }
 
+function MacbookPro16StyleControls() {
+  return <DeviceFinishStyleControls styles={MACBOOK_PRO_16_STYLES} />;
+}
+
 export function FrameDeviceStyles() {
   const { deviceTemplateId } = useMockupFrame();
 
@@ -1054,6 +1060,9 @@ export function FrameDeviceStyles() {
   }
   if (isIphone17ProMaxTemplateId(deviceTemplateId)) {
     return <IphoneProMaxStyleControls />;
+  }
+  if (isMacbookPro16TemplateId(deviceTemplateId)) {
+    return <MacbookPro16StyleControls />;
   }
   return null;
 }

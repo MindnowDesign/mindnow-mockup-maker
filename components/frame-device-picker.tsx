@@ -28,7 +28,7 @@ import {
   isBrowserTemplateId,
   MOCKUP_BROWSER_TEMPLATES,
 } from "@/lib/mockup-browser-templates";
-import { IPHONE_17_PRO_MAX_STYLES, IPHONE_17_STYLES, isIphone17TemplateId } from "@/lib/mockup-device-templates";
+import { IPHONE_17_PRO_MAX_STYLES, IPHONE_17_STYLES, isIphone17TemplateId, MACBOOK_PRO_16_STYLES, isMacbookPro16TemplateId } from "@/lib/mockup-device-templates";
 
 export type FrameDeviceValue =
   | "screenshot"
@@ -223,7 +223,7 @@ export function FrameDevicePicker() {
       setFilterTab("desktop");
       return;
     }
-    if (deviceTemplateId === "macbook-pro-16") {
+    if (isMacbookPro16TemplateId(deviceTemplateId)) {
       setSelection({
         preset: "laptop",
         headline: "MacBook Pro 16″",
@@ -534,13 +534,16 @@ export function FrameDevicePicker() {
                     <TemplateTile
                       title="MacBook Pro 16″"
                       resolution="1728 × 1117"
+                      footer={
+                        <TemplateStyleCountHint options={MACBOOK_PRO_16_STYLES} />
+                      }
                       preview={
                         <PreviewPlate>
                           <div className={TILE_PREVIEW_INNER} />
                         </PreviewPlate>
                       }
                       onPick={() => {
-                        setDeviceTemplateId("macbook-pro-16");
+                        setDeviceTemplateId("macbook-pro-16-silver");
                         pickTemplate({
                           preset: "laptop",
                           headline: "MacBook Pro 16″",

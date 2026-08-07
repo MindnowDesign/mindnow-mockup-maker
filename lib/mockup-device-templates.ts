@@ -40,6 +40,8 @@ export type MockupDeviceTemplate = {
   opticalCenterYPct?: number;
   /** Scale vs contain-fit (1 = fill the padded canvas; ~0.88 leaves presentation margin). */
   fitScale?: number;
+  /** CSS `object-position` for media clipped inside the screen (default `center`). */
+  screenObjectPosition?: string;
 };
 
 /** Shared geometry for all iPhone 17 finish variants (swap PNG per color). */
@@ -188,6 +190,65 @@ export function isIphone17ProMaxTemplateId(id: string | null): boolean {
   return IPHONE_17_PRO_MAX_STYLES.some((s) => s.templateId === id);
 }
 
+/** Shared geometry for MacBook Pro 16″ Apple bezel PNGs — enclosed cutout 402,303 3456×2234; expand 2px. */
+const MACBOOK_PRO_16_FRAME_WIDTH = 4260;
+const MACBOOK_PRO_16_FRAME_HEIGHT = 2840;
+const MACBOOK_PRO_16_SCREEN: MockupDeviceScreenInset = {
+  leftPct: (400 / MACBOOK_PRO_16_FRAME_WIDTH) * 100,
+  topPct: (301 / MACBOOK_PRO_16_FRAME_HEIGHT) * 100,
+  widthPct: (3460 / MACBOOK_PRO_16_FRAME_WIDTH) * 100,
+  heightPct: (2238 / MACBOOK_PRO_16_FRAME_HEIGHT) * 100,
+};
+
+const MACBOOK_PRO_16_SHARED = {
+  framePixelWidth: MACBOOK_PRO_16_FRAME_WIDTH,
+  framePixelHeight: MACBOOK_PRO_16_FRAME_HEIGHT,
+  screen: MACBOOK_PRO_16_SCREEN,
+  screenBorderRadiusPct: {
+    xPct: (45 / 3460) * 100,
+    yPct: (45 / 2238) * 100,
+  },
+  fitToScreen: true,
+  fitScale: 0.9,
+  /** Page screenshots anchor from the top of the screen hole. */
+  screenObjectPosition: "top center",
+} as const;
+
+/** Silver frame — screen hole 400,301 3460×2238 on 4260×2840. */
+const MACBOOK_PRO_16_SILVER: MockupDeviceTemplate = {
+  id: "macbook-pro-16-silver",
+  label: "MacBook Pro 16″",
+  frameSrc: mockupDeviceFile("macbook-pro-16-space-silver.png"),
+  ...MACBOOK_PRO_16_SHARED,
+};
+
+/** Space Black frame — same geometry as silver. */
+const MACBOOK_PRO_16_SPACE_BLACK: MockupDeviceTemplate = {
+  id: "macbook-pro-16-space-black",
+  label: "MacBook Pro 16″",
+  frameSrc: mockupDeviceFile("macbook-pro-16-space-black.png"),
+  ...MACBOOK_PRO_16_SHARED,
+};
+
+/** Finish presets for MacBook Pro 16″ — picker footer + sidebar Styles row. */
+export const MACBOOK_PRO_16_STYLES: DeviceStyleOption[] = [
+  {
+    templateId: "macbook-pro-16-silver",
+    shortLabel: "Silver",
+    coverSrc: deviceStyleCover("macbook space silver.png"),
+  },
+  {
+    templateId: "macbook-pro-16-space-black",
+    shortLabel: "Space Black",
+    coverSrc: deviceStyleCover("macbook space black.png"),
+  },
+];
+
+export function isMacbookPro16TemplateId(id: string | null): boolean {
+  if (!id) return false;
+  return MACBOOK_PRO_16_STYLES.some((s) => s.templateId === id);
+}
+
 export const MOCKUP_DEVICE_TEMPLATES: MockupDeviceTemplate[] = [
   ...IPHONE_17_STYLES.map(({ templateId }) => ({
     id: templateId,
@@ -327,26 +388,8 @@ export const MOCKUP_DEVICE_TEMPLATES: MockupDeviceTemplate[] = [
     fitToScreen: true,
     fitScale: 0.9,
   },
-  {
-    id: "macbook-pro-16",
-    label: "MacBook Pro 16″",
-    frameSrc: mockupDeviceFile("macbook-pro-16.png"),
-    framePixelWidth: 4893,
-    framePixelHeight: 3164,
-    /** Full screen hole incl. notch bay: 818,530 3260×2106; expand 2px under bezel. */
-    screen: {
-      leftPct: (816 / 4893) * 100,
-      topPct: (528 / 3164) * 100,
-      widthPct: (3264 / 4893) * 100,
-      heightPct: (2110 / 3164) * 100,
-    },
-    screenBorderRadiusPct: {
-      xPct: (28 / 3264) * 100,
-      yPct: (28 / 2110) * 100,
-    },
-    fitToScreen: true,
-    fitScale: 0.9,
-  },
+  MACBOOK_PRO_16_SILVER,
+  MACBOOK_PRO_16_SPACE_BLACK,
   {
     id: "macbook-air-13",
     label: "MacBook Air 13″",

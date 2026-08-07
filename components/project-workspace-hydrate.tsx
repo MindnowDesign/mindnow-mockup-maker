@@ -28,6 +28,7 @@ export function ProjectWorkspaceHydrate() {
     hydrateCanvasBackground,
     setDeviceTemplateId,
     hydrateScreenshotStyle,
+    hydrateMockupTransform,
   } = useMockupFrame();
   const { hydrateFromSaved } = useMockupMedia();
 
@@ -103,6 +104,11 @@ export function ProjectWorkspaceHydrate() {
         normalizeDeviceTemplateId(seedForFrame.deviceTemplateId)
       );
       hydrateScreenshotStyle(seedForFrame.screenshotStyle ?? null);
+      hydrateMockupTransform(
+        seedForFrame.mockupOffsetX ?? 0,
+        seedForFrame.mockupOffsetY ?? 0,
+        seedForFrame.mockupScale ?? 1
+      );
       hydrateFromSaved({
         mediaItems: saved.mediaItems,
         visualSlots: saved.visualSlots,
@@ -123,6 +129,7 @@ export function ProjectWorkspaceHydrate() {
     hydrateCanvasBackground,
     setDeviceTemplateId,
     hydrateScreenshotStyle,
+    hydrateMockupTransform,
     hydrateFromSaved,
   ]);
 

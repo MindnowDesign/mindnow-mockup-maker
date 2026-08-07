@@ -1,3 +1,6 @@
+/** Stable until `ProjectWorkspaceHydrate` runs — must not be persisted as a canvas slot id. */
+export const WORKSPACE_PLACEHOLDER_VISUAL_ID = "workspace-pending-visual";
+
 /** Dispatched after `ProjectWorkspaceHydrate` applies saved state (or resets `/projects/new`). */
 export const WORKSPACE_HYDRATED_EVENT = "mindnow:workspace-hydrated";
 

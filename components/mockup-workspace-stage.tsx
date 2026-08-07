@@ -728,6 +728,11 @@ export function MockupWorkspaceStage() {
   const isPhysicalDevice =
     deviceTemplateId != null && !isBrowserTemplateId(deviceTemplateId);
 
+  const deviceScreenObjectPosition =
+    isPhysicalDevice && deviceTemplateId
+      ? MOCKUP_DEVICE_BY_ID[deviceTemplateId]?.screenObjectPosition
+      : undefined;
+
   const { width, height } = useMemo(
     () => scaledFramePixelSize(aspectPreset, maxW, maxH),
     [aspectPreset, maxW, maxH]
@@ -1067,6 +1072,7 @@ export function MockupWorkspaceStage() {
             {isSelected && bounds ? (
               <MockupSelectionHandles
                 bounds={bounds}
+                mockupScale={mockupScale}
                 onResizeHandlePointerDown={onResizeHandlePointerDown}
               />
             ) : null}
@@ -1095,6 +1101,11 @@ export function MockupWorkspaceStage() {
                   alt=""
                   draggable={false}
                   className="pointer-events-none block h-full w-full select-none object-cover"
+                  style={
+                    deviceScreenObjectPosition
+                      ? { objectPosition: deviceScreenObjectPosition }
+                      : undefined
+                  }
                 />
               )
             ) : (

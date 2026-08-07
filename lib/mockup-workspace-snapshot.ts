@@ -409,6 +409,9 @@ export function resolveVisualPrefsForSave(
           browserFaviconUrl: live.browserFaviconUrl,
           screenshotStyle: live.screenshotStyle,
           frameShadow: live.frameShadow,
+          mockupOffsetX: live.mockupOffsetX,
+          mockupOffsetY: live.mockupOffsetY,
+          mockupScale: live.mockupScale,
         });
       }
     }

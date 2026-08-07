@@ -95,6 +95,7 @@ export function MockupDeviceFrame({
       >
         <div
           className="absolute z-0 overflow-hidden bg-black"
+          data-mockup-screen-clip
           style={clipStyle}
         >
           <div className="h-full w-full [&_img]:h-full [&_img]:w-full [&_img]:object-cover [&_video]:h-full [&_video]:w-full [&_video]:object-cover">

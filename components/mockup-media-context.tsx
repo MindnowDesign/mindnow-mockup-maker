@@ -16,6 +16,7 @@ import { useMockupFrame } from "@/components/mockup-frame-context";
 import { normalizeAspectPreset } from "@/lib/mockup-aspect";
 import {
   WORKSPACE_HYDRATED_EVENT,
+  WORKSPACE_PLACEHOLDER_VISUAL_ID,
   type WorkspaceHydratedDetail,
 } from "@/lib/project-workspace";
 import type { SavedMediaItem, SavedVisualSlot } from "@/lib/saved-projects";
@@ -63,8 +64,36 @@ export type HydrateFromSavedPayload = {
   visualWorkspacePrefs?: Record<string, VisualWorkspacePrefs> | null;
 } | null;
 
-/** Stable until `ProjectWorkspaceHydrate` runs — random ids break SSR hydration. */
-const WORKSPACE_PLACEHOLDER_VISUAL_ID = "workspace-pending-visual";
+function replacePlaceholderVisualIds(
+  visuals: MockupVisualSlot[],
+  prefs: Record<string, VisualWorkspacePrefs>,
+  activeVisualId: string | null
+): {
+  visuals: MockupVisualSlot[];
+  prefs: Record<string, VisualWorkspacePrefs>;
+  activeVisualId: string | null;
+} {
+  if (!visuals.some((v) => v.id === WORKSPACE_PLACEHOLDER_VISUAL_ID)) {
+    return { visuals, prefs, activeVisualId };
+  }
+
+  const newId = crypto.randomUUID();
+  const nextVisuals = visuals.map((v) =>
+    v.id === WORKSPACE_PLACEHOLDER_VISUAL_ID ? { ...v, id: newId } : v
+  );
+  const nextPrefs = { ...prefs };
+  if (nextPrefs[WORKSPACE_PLACEHOLDER_VISUAL_ID]) {
+    nextPrefs[newId] = nextPrefs[WORKSPACE_PLACEHOLDER_VISUAL_ID]!;
+    delete nextPrefs[WORKSPACE_PLACEHOLDER_VISUAL_ID];
+  }
+  const nextActive =
+    activeVisualId === WORKSPACE_PLACEHOLDER_VISUAL_ID ? newId : activeVisualId;
+  return {
+    visuals: nextVisuals,
+    prefs: nextPrefs,
+    activeVisualId: nextActive,
+  };
+}
 
 function createFreshWorkspaceState(): MockupMediaState {
   return {
@@ -199,7 +228,6 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!workspaceHydrated) return;
     if (!activeVisualId) return;
-    if (activeVisualId === WORKSPACE_PLACEHOLDER_VISUAL_ID) return;
     const raw = visualWorkspacePrefsRef.current[activeVisualId];
     const prefs = raw ?? DEFAULT_NEW_VISUAL_WORKSPACE_PREFS;
     skipFramePrefsSyncRef.current = true;
@@ -229,7 +257,6 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!workspaceHydrated) return;
     if (!activeVisualId) return;
-    if (activeVisualId === WORKSPACE_PLACEHOLDER_VISUAL_ID) return;
     if (skipFramePrefsSyncRef.current) {
       skipFramePrefsSyncRef.current = false;
       return;
@@ -371,11 +398,17 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
         }
       }
 
+      const migrated = replacePlaceholderVisualIds(
+        nextVisuals,
+        nextVisualWorkspacePrefs,
+        nextActive
+      );
+
       return {
         library: nextLibrary,
-        visuals: nextVisuals,
-        activeVisualId: nextActive,
-        visualWorkspacePrefs: nextVisualWorkspacePrefs,
+        visuals: migrated.visuals,
+        activeVisualId: migrated.activeVisualId,
+        visualWorkspacePrefs: migrated.prefs,
       };
     });
   }, []);
@@ -402,6 +435,24 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
         const activeId = s.activeVisualId;
         if (additions.length === 1 && activeId) {
           const lib = additions[0]!;
+          if (activeId === WORKSPACE_PLACEHOLDER_VISUAL_ID) {
+            const nextActiveId = crypto.randomUUID();
+            const prefsMap = { ...s.visualWorkspacePrefs };
+            if (prefsMap[activeId]) {
+              prefsMap[nextActiveId] = prefsMap[activeId]!;
+              delete prefsMap[activeId];
+            }
+            return {
+              library: [...s.library, lib],
+              visuals: s.visuals.map((v) =>
+                v.id === activeId
+                  ? { id: nextActiveId, mediaId: lib.id }
+                  : v
+              ),
+              activeVisualId: nextActiveId,
+              visualWorkspacePrefs: prefsMap,
+            };
+          }
           return {
             library: [...s.library, lib],
             visuals: s.visuals.map((v) =>
