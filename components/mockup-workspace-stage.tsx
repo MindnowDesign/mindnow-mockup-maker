@@ -514,9 +514,8 @@ function UploadedScreenshotImage({
       data-mockup-canvas-stage
       /**
        * No `overflow-hidden`: outside borders / glass frames need to bleed past
-       * the stage when the screenshot fills it on one axis. The outer
-       * `[data-mockup-capture-target]` keeps the rounded canvas clip, so any
-       * bleed still stops at the visible canvas edge.
+       * the stage. Background layers clip themselves; device `drop-shadow()` needs
+       * the canvas to stay `overflow-visible` with extra padding (see below).
        */
       className="grid h-full min-h-0 w-full min-w-0 grid-cols-1 grid-rows-1 place-content-center place-items-center"
     >
@@ -909,6 +908,18 @@ export function MockupWorkspaceStage() {
     return buildFrameShadowDropShadow(frameShadowNumbers);
   }, [isPhysicalDevice, frameShadowNumbers]);
 
+  /** Room for `drop-shadow()` on device PNGs — avoids clipping at the canvas edge. */
+  const deviceShadowBleedPx = useMemo(() => {
+    if (!deviceFrameDropShadow) return 0;
+    const { offsetX, offsetY, blur } = frameShadowNumbers;
+    return Math.max(Math.abs(offsetX), Math.abs(offsetY)) + blur + 12;
+  }, [deviceFrameDropShadow, frameShadowNumbers]);
+
+  const canvasPaddingPx = useMemo(() => {
+    const base = fitDeviceToScreen ? 24 : 32;
+    return Math.max(base, deviceShadowBleedPx);
+  }, [fitDeviceToScreen, deviceShadowBleedPx]);
+
   const browserTopChrome = useMemo(() => {
     if (!browserTemplate) return null;
     return {
@@ -981,7 +992,7 @@ export function MockupWorkspaceStage() {
         key={aspectPreset}
         data-mockup-capture-target
         data-active-visual-id={activeVisual?.id ?? ""}
-        style={{ width: "100%", height }}
+        style={{ width: "100%", height, padding: canvasPaddingPx }}
         role="region"
         aria-label="Mockup canvas"
         tabIndex={0}
@@ -1002,8 +1013,7 @@ export function MockupWorkspaceStage() {
           }
         }}
         className={cn(
-          "group relative box-border grid shrink-0 grid-rows-[minmax(0,1fr)] overflow-hidden rounded-[16px] shadow-[0_32px_80px_-20px_rgba(0,0,0,0.75)]",
-          fitDeviceToScreen ? "p-6 md:p-8" : "p-8 md:p-12",
+          "group relative box-border grid shrink-0 grid-rows-[minmax(0,1fr)] overflow-visible rounded-[16px] shadow-[0_32px_80px_-20px_rgba(0,0,0,0.75)]",
           "min-h-0 min-w-0 outline-none focus-visible:ring-2 focus-visible:ring-white/20"
         )}
       >
@@ -1050,7 +1060,7 @@ export function MockupWorkspaceStage() {
           />
         ) : null}
         <div
-          className="relative z-10 flex min-h-0 min-w-0 flex-1 items-center justify-center"
+          className="relative z-10 flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-visible"
           onPointerDown={onCanvasPointerDown}
         >
           <div

@@ -235,12 +235,12 @@ export const MACBOOK_PRO_16_STYLES: DeviceStyleOption[] = [
   {
     templateId: "macbook-pro-16-silver",
     shortLabel: "Silver",
-    coverSrc: deviceStyleCover("macbook space silver.png"),
+    coverSrc: deviceStyleCover("macbook pro-color-silver.png"),
   },
   {
     templateId: "macbook-pro-16-space-black",
     shortLabel: "Space Black",
-    coverSrc: deviceStyleCover("macbook space black.png"),
+    coverSrc: deviceStyleCover("macbook pro-color-space black.png"),
   },
 ];
 
