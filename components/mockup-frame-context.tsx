@@ -94,6 +94,10 @@ import {
   parseScreenshotStyle,
 } from "@/lib/mockup-screenshot-style";
 import { normalizeBrowserUrl } from "@/lib/mockup-browser-templates";
+import {
+  MOCKUP_SCALE_DEFAULT,
+  clampMockupScale,
+} from "@/lib/mockup-canvas-transform";
 
 function clampPercent(n: number | undefined): number {
   if (n == null || Number.isNaN(n)) return 0;
@@ -205,8 +209,10 @@ type MockupFrameContextValue = {
   /** Mockup content offset from canvas center (px). */
   mockupOffsetX: number;
   mockupOffsetY: number;
+  mockupScale: number;
   setMockupOffset: (x: number, y: number) => void;
-  hydrateMockupOffset: (x: number, y: number) => void;
+  setMockupScale: (scale: number) => void;
+  hydrateMockupTransform: (x: number, y: number, scale: number) => void;
   /** Free-form image layers on the canvas (empty until canvas-image editor ships). */
   canvasLayers: PersistedCanvasImageLayer[];
   selectedCanvasLayerId: string | null;
@@ -368,6 +374,7 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
   );
   const [mockupOffsetX, setMockupOffsetXState] = useState(0);
   const [mockupOffsetY, setMockupOffsetYState] = useState(0);
+  const [mockupScale, setMockupScaleState] = useState(MOCKUP_SCALE_DEFAULT);
 
   const setScreenshotStyle = useCallback((id: ScreenshotStyleId) => {
     setScreenshotStyleState(parseScreenshotStyle(id));
@@ -467,10 +474,18 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
     setMockupOffsetYState(Math.round(y));
   }, []);
 
-  const hydrateMockupOffset = useCallback((x: number, y: number) => {
-    setMockupOffsetXState(Math.round(x));
-    setMockupOffsetYState(Math.round(y));
+  const setMockupScale = useCallback((scale: number) => {
+    setMockupScaleState(clampMockupScale(scale));
   }, []);
+
+  const hydrateMockupTransform = useCallback(
+    (x: number, y: number, scale: number) => {
+      setMockupOffsetXState(Math.round(x));
+      setMockupOffsetYState(Math.round(y));
+      setMockupScaleState(clampMockupScale(scale));
+    },
+    []
+  );
 
   const hydrateFrameShadow = useCallback(
     (payload: PersistedFrameShadow | null | undefined) => {
@@ -864,8 +879,10 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       hydrateFrameShadow,
       mockupOffsetX,
       mockupOffsetY,
+      mockupScale,
       setMockupOffset,
-      hydrateMockupOffset,
+      setMockupScale,
+      hydrateMockupTransform,
       canvasLayers: [],
       selectedCanvasLayerId: null,
       canvasImageRect: null,
@@ -942,8 +959,10 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       hydrateFrameShadow,
       mockupOffsetX,
       mockupOffsetY,
+      mockupScale,
       setMockupOffset,
-      hydrateMockupOffset,
+      setMockupScale,
+      hydrateMockupTransform,
     ]
   );
 

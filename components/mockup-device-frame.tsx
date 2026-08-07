@@ -89,6 +89,7 @@ export function MockupDeviceFrame({
       style={{ containerType: "size" }}
     >
       <div
+        data-mockup-bounds-target
         className="relative isolate"
         style={{ ...frameBoxStyle, ...frameBoxFilterStyle }}
       >

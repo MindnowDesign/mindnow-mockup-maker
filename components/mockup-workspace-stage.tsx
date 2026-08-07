@@ -66,7 +66,8 @@ import {
   type ScreenshotStyleId,
 } from "@/lib/mockup-screenshot-style";
 import { defaultVisualLabel } from "@/lib/mockup-visual-label";
-import { useMockupCanvasDrag } from "@/lib/use-mockup-canvas-drag";
+import { useMockupCanvasTransform } from "@/lib/use-mockup-canvas-transform";
+import { MockupSelectionHandles } from "@/components/mockup-selection-handles";
 import { cn } from "@/lib/utils";
 
 function rgbaFromHex(hex: string, opacityPercent: number): string {
@@ -520,13 +521,18 @@ function UploadedScreenshotImage({
       className="grid h-full min-h-0 w-full min-w-0 grid-cols-1 grid-rows-1 place-content-center place-items-center"
     >
       {styleWrapperStyle ? (
-        <div className={shellClassName} style={styleWrapperStyle}>
+        <div
+          data-mockup-bounds-target
+          className={shellClassName}
+          style={styleWrapperStyle}
+        >
           <div data-mockup-media-shell className={shellClassName} style={shellStyle}>
             {mediaShellInner}
           </div>
         </div>
       ) : (
         <div
+          data-mockup-bounds-target
           data-mockup-media-shell
           className={shellClassName}
           style={shellStyle}
@@ -691,7 +697,9 @@ export function MockupWorkspaceStage() {
     frameShadowColorOpacity,
     mockupOffsetX,
     mockupOffsetY,
+    mockupScale,
     setMockupOffset,
+    setMockupScale,
   } = useMockupFrame();
   const canvasNoiseFilterId = `canvas-noise-${useId().replace(/:/g, "")}`;
   const noiseBlendModeEffective =
@@ -725,15 +733,29 @@ export function MockupWorkspaceStage() {
     [aspectPreset, maxW, maxH]
   );
 
-  const canDragMockup = activeItem != null;
+  const canTransformMockup = activeItem != null;
 
-  const { isDragging, isSnappedX, isSnappedY, onPointerDown, dragStyle } =
-    useMockupCanvasDrag({
-      offsetX: mockupOffsetX,
-      offsetY: mockupOffsetY,
-      setOffset: setMockupOffset,
-      enabled: canDragMockup,
-    });
+  const {
+    transformRootRef,
+    isSelected,
+    isDragging,
+    isResizing,
+    isSnappedX,
+    isSnappedY,
+    bounds,
+    onTransformPointerDown,
+    onResizeHandlePointerDown,
+    onCanvasPointerDown,
+    transformStyle,
+  } = useMockupCanvasTransform({
+    offsetX: mockupOffsetX,
+    offsetY: mockupOffsetY,
+    scale: mockupScale,
+    setOffset: setMockupOffset,
+    setScale: setMockupScale,
+    enabled: canTransformMockup,
+    resetKey: activeVisual?.id ?? null,
+  });
 
   const activeGradientTemplateId =
     canvasBackgroundMode === "template" ? canvasGradientTemplateId : null;
@@ -1022,17 +1044,32 @@ export function MockupWorkspaceStage() {
             className="pointer-events-none absolute inset-y-0 left-1/2 z-20 w-px -translate-x-1/2 bg-sky-400/70"
           />
         ) : null}
-        <div className="relative z-10 flex min-h-0 min-w-0 flex-1 items-center justify-center">
+        <div
+          className="relative z-10 flex min-h-0 min-w-0 flex-1 items-center justify-center"
+          onPointerDown={onCanvasPointerDown}
+        >
           <div
+            ref={transformRootRef}
+            data-mockup-transform-root
             data-mockup-draggable
-            onPointerDown={onPointerDown}
-            style={dragStyle}
+            onPointerDown={onTransformPointerDown}
+            style={transformStyle}
             className={cn(
               "relative flex h-full w-full min-h-0 min-w-0 items-center justify-center touch-none",
-              canDragMockup &&
-                (isDragging ? "cursor-grabbing" : "cursor-grab")
+              canTransformMockup &&
+                (isSelected
+                  ? isDragging || isResizing
+                    ? "cursor-grabbing"
+                    : "cursor-grab"
+                  : "cursor-pointer")
             )}
           >
+            {isSelected && bounds ? (
+              <MockupSelectionHandles
+                bounds={bounds}
+                onResizeHandlePointerDown={onResizeHandlePointerDown}
+              />
+            ) : null}
           <MockupDeviceFrame
             deviceTemplateId={deviceTemplateId}
             frameDropShadow={deviceFrameDropShadow}
@@ -1062,6 +1099,7 @@ export function MockupWorkspaceStage() {
               )
             ) : (
               <div
+                data-mockup-bounds-target
                 className={cn(
                   "flex max-h-full max-w-full min-h-0 min-w-0 flex-col overflow-hidden rounded-[16px]",
                   deviceTemplateId && !isBrowserTemplateId(deviceTemplateId)

@@ -186,7 +186,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
   const setBrowserFaviconUrlRef = useRef(frame.setBrowserFaviconUrl);
   const hydrateScreenshotStyleRef = useRef(frame.hydrateScreenshotStyle);
   const hydrateFrameShadowRef = useRef(frame.hydrateFrameShadow);
-  const hydrateMockupOffsetRef = useRef(frame.hydrateMockupOffset);
+  const hydrateMockupTransformRef = useRef(frame.hydrateMockupTransform);
   setAspectPresetRef.current = frame.setAspectPreset;
   hydrateCanvasBackgroundRef.current = frame.hydrateCanvasBackground;
   setDeviceTemplateIdRef.current = frame.setDeviceTemplateId;
@@ -194,7 +194,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
   setBrowserFaviconUrlRef.current = frame.setBrowserFaviconUrl;
   hydrateScreenshotStyleRef.current = frame.hydrateScreenshotStyle;
   hydrateFrameShadowRef.current = frame.hydrateFrameShadow;
-  hydrateMockupOffsetRef.current = frame.hydrateMockupOffset;
+  hydrateMockupTransformRef.current = frame.hydrateMockupTransform;
 
   useEffect(() => {
     if (!workspaceHydrated) return;
@@ -210,9 +210,10 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
     setBrowserFaviconUrlRef.current(prefs.browserFaviconUrl ?? null);
     hydrateScreenshotStyleRef.current(prefs.screenshotStyle ?? null);
     hydrateFrameShadowRef.current(prefs.frameShadow ?? null);
-    hydrateMockupOffsetRef.current(
+    hydrateMockupTransformRef.current(
       prefs.mockupOffsetX ?? 0,
-      prefs.mockupOffsetY ?? 0
+      prefs.mockupOffsetY ?? 0,
+      prefs.mockupScale ?? 1
     );
     if (raw === undefined) {
       setState((s) => ({
@@ -283,6 +284,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
     frame.frameShadowColorOpacity,
     frame.mockupOffsetX,
     frame.mockupOffsetY,
+    frame.mockupScale,
     workspaceHydrated,
   ]);
 

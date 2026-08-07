@@ -130,6 +130,7 @@ export type FrameLike = {
   frameShadowColorOpacity: number;
   mockupOffsetX: number;
   mockupOffsetY: number;
+  mockupScale: number;
   canvasLayers: PersistedCanvasImageLayer[];
   canvasImageRect: PersistedCanvasImageRect | null;
   canvasImageBaseline: PersistedCanvasImageBaseline | null;
@@ -158,6 +159,8 @@ export type VisualWorkspacePrefs = {
   /** Mockup content offset from canvas center (px). */
   mockupOffsetX?: number;
   mockupOffsetY?: number;
+  /** Uniform scale applied to mockup content (`1` = default). */
+  mockupScale?: number;
   /** Free-form image layers on the canvas. */
   canvasLayers?: PersistedCanvasImageLayer[];
   /** @deprecated Legacy single-image rect — use `canvasLayers`. */
@@ -203,6 +206,7 @@ export function captureVisualWorkspacePrefs(f: FrameLike): VisualWorkspacePrefs 
     frameShadow: frameShadowToPersisted(f.frameShadowPreset, shadowNums),
     mockupOffsetX: f.mockupOffsetX,
     mockupOffsetY: f.mockupOffsetY,
+    mockupScale: f.mockupScale,
     canvasLayers: (f.canvasLayers ?? []).map((layer) => ({
       id: layer.id,
       mediaId: layer.mediaId,
@@ -243,6 +247,7 @@ export const DEFAULT_NEW_VISUAL_WORKSPACE_PREFS: VisualWorkspacePrefs = {
   ),
   mockupOffsetX: 0,
   mockupOffsetY: 0,
+  mockupScale: 1,
   canvasLayers: [],
   selectedCanvasLayerId: null,
 };
@@ -266,6 +271,7 @@ export function normalizeVisualWorkspacePrefs(
       frameShadow: d.frameShadow ? { ...d.frameShadow } : null,
       mockupOffsetX: d.mockupOffsetX ?? 0,
       mockupOffsetY: d.mockupOffsetY ?? 0,
+      mockupScale: d.mockupScale ?? 1,
       canvasLayers: d.canvasLayers ? [...d.canvasLayers] : [],
       canvasImageRect: d.canvasImageRect ? { ...d.canvasImageRect } : null,
       canvasImageBaseline: d.canvasImageBaseline
@@ -323,6 +329,7 @@ export function normalizeVisualWorkspacePrefs(
     frameShadow,
     mockupOffsetX: partial.mockupOffsetX ?? d.mockupOffsetX ?? 0,
     mockupOffsetY: partial.mockupOffsetY ?? d.mockupOffsetY ?? 0,
+    mockupScale: partial.mockupScale ?? d.mockupScale ?? 1,
     canvasLayers,
     canvasImageRect:
       partial.canvasImageRect !== undefined
@@ -362,6 +369,7 @@ export function cloneVisualWorkspacePrefsForSave(
     frameShadow: n.frameShadow ? { ...n.frameShadow } : null,
     mockupOffsetX: n.mockupOffsetX ?? 0,
     mockupOffsetY: n.mockupOffsetY ?? 0,
+    mockupScale: n.mockupScale ?? 1,
     canvasImageRect: n.canvasImageRect ? { ...n.canvasImageRect } : null,
     canvasImageBaseline: n.canvasImageBaseline
       ? { ...n.canvasImageBaseline }
