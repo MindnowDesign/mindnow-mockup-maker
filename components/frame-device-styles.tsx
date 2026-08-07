@@ -48,7 +48,9 @@ import {
 import {
   IPHONE_17_PRO_MAX_STYLES,
   IPHONE_17_STYLES,
+  IMAC_24_STYLES,
   MACBOOK_PRO_16_STYLES,
+  isImac24TemplateId,
   isIphone17ProMaxTemplateId,
   isIphone17TemplateId,
   isMacbookPro16TemplateId,
@@ -1046,6 +1048,10 @@ function MacbookPro16StyleControls() {
   return <DeviceFinishStyleControls styles={MACBOOK_PRO_16_STYLES} />;
 }
 
+function Imac24StyleControls() {
+  return <DeviceFinishStyleControls styles={IMAC_24_STYLES} />;
+}
+
 export function FrameDeviceStyles() {
   const { deviceTemplateId } = useMockupFrame();
 
@@ -1063,6 +1069,9 @@ export function FrameDeviceStyles() {
   }
   if (isMacbookPro16TemplateId(deviceTemplateId)) {
     return <MacbookPro16StyleControls />;
+  }
+  if (isImac24TemplateId(deviceTemplateId)) {
+    return <Imac24StyleControls />;
   }
   return null;
 }

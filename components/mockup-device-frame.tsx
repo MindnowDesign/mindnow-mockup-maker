@@ -11,6 +11,8 @@ type MockupDeviceFrameProps = {
   className?: string;
   /** CSS `filter` value (e.g. `drop-shadow(...)`) on the whole device stack (screen + bezel). */
   frameDropShadow?: string | null;
+  /** Frame PNG only — shadow pass behind the clipped device (same geometry, no bounds target). */
+  shadowCastOnly?: boolean;
   children: ReactNode;
 };
 
@@ -22,6 +24,7 @@ export function MockupDeviceFrame({
   deviceTemplateId,
   className,
   frameDropShadow,
+  shadowCastOnly = false,
   children,
 }: MockupDeviceFrameProps) {
   const template =
@@ -80,6 +83,42 @@ export function MockupDeviceFrame({
     ? { filter: frameDropShadow }
     : {};
 
+  if (shadowCastOnly) {
+    return (
+      <div
+        aria-hidden
+        className={cn(
+          "relative flex h-full w-full min-h-0 min-w-0 items-center justify-center",
+          className
+        )}
+        style={{ containerType: "size" }}
+      >
+        {/*
+         * Filter on the full-size wrapper — not on the device-sized box. When
+         * `drop-shadow()` sits on the transformed frame rect, browsers clip the
+         * shadow to that box and it looks cut off on the right/bottom.
+         */}
+        <div
+          className="relative flex h-full w-full min-h-0 min-w-0 items-center justify-center"
+          style={frameBoxFilterStyle}
+        >
+          <div className="relative isolate" style={frameBoxStyle}>
+            {/* eslint-disable-next-line @next/next/no-img-element -- static public asset */}
+            <img
+              src={template.frameSrc}
+              alt=""
+              width={fw}
+              height={fh}
+              decoding="async"
+              draggable={false}
+              className="pointer-events-none relative block h-full w-full select-none object-fill"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
@@ -91,7 +130,7 @@ export function MockupDeviceFrame({
       <div
         data-mockup-bounds-target
         className="relative isolate"
-        style={{ ...frameBoxStyle, ...frameBoxFilterStyle }}
+        style={frameBoxStyle}
       >
         <div
           className="absolute z-0 overflow-hidden bg-black"

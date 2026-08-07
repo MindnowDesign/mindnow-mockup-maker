@@ -139,3 +139,18 @@ export function buildFrameShadowDropShadow(n: FrameShadowNumbers): string {
   const color = rgbaFromHex(n.color, n.colorOpacity);
   return `drop-shadow(${n.offsetX}px ${n.offsetY}px ${n.blur}px ${color})`;
 }
+
+/** Inset from the canvas clip so `drop-shadow()` can fall off before hitting `overflow: hidden`. */
+export function computeDeviceShadowBleedPx(
+  n: FrameShadowNumbers,
+  mockupScale = 1
+): number {
+  const spread = Math.max(0, n.spread);
+  const scale = Math.max(1, mockupScale);
+  const blurReach = Math.ceil(n.blur * 3 * scale);
+  const right = Math.max(0, n.offsetX) * scale + blurReach + spread + 24;
+  const left = Math.max(0, -n.offsetX) * scale + blurReach + spread + 24;
+  const bottom = Math.max(0, n.offsetY) * scale + blurReach + spread + 28;
+  const top = Math.max(0, -n.offsetY) * scale + blurReach + spread + 24;
+  return Math.max(right, left, bottom, top);
+}

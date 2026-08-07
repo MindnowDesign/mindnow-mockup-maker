@@ -36,6 +36,7 @@ import { MOCKUP_DEVICE_BY_ID } from "@/lib/mockup-device-templates";
 import {
   buildFrameShadowBoxShadow,
   buildFrameShadowDropShadow,
+  computeDeviceShadowBleedPx,
 } from "@/lib/mockup-frame-shadow";
 import {
   canvasGradientTemplateToCaptureStyle,
@@ -713,10 +714,6 @@ export function MockupWorkspaceStage() {
 
   const visualForTitle = activeVisual ?? visuals[0] ?? null;
   const { maxW, maxH } = useFrameViewportCaps();
-  const fitDeviceToScreen =
-    deviceTemplateId != null &&
-    !isBrowserTemplateId(deviceTemplateId) &&
-    MOCKUP_DEVICE_BY_ID[deviceTemplateId]?.fitToScreen === true;
 
   const browserTemplate = isBrowserTemplateId(deviceTemplateId)
     ? MOCKUP_BROWSER_BY_ID[deviceTemplateId!]
@@ -908,17 +905,21 @@ export function MockupWorkspaceStage() {
     return buildFrameShadowDropShadow(frameShadowNumbers);
   }, [isPhysicalDevice, frameShadowNumbers]);
 
-  /** Room for `drop-shadow()` on device PNGs — avoids clipping at the canvas edge. */
+  /** Keep mockup inset from the canvas clip so device `drop-shadow()` can fall off naturally. */
   const deviceShadowBleedPx = useMemo(() => {
     if (!deviceFrameDropShadow) return 0;
-    const { offsetX, offsetY, blur } = frameShadowNumbers;
-    return Math.max(Math.abs(offsetX), Math.abs(offsetY)) + blur + 12;
-  }, [deviceFrameDropShadow, frameShadowNumbers]);
+    return computeDeviceShadowBleedPx(frameShadowNumbers, mockupScale);
+  }, [deviceFrameDropShadow, frameShadowNumbers, mockupScale]);
 
-  const canvasPaddingPx = useMemo(() => {
-    const base = fitDeviceToScreen ? 24 : 32;
-    return Math.max(base, deviceShadowBleedPx);
-  }, [fitDeviceToScreen, deviceShadowBleedPx]);
+  const mockupLayerInsetStyle = useMemo((): CSSProperties | undefined => {
+    if (deviceShadowBleedPx <= 0) return undefined;
+    return {
+      top: deviceShadowBleedPx,
+      right: deviceShadowBleedPx,
+      bottom: deviceShadowBleedPx,
+      left: deviceShadowBleedPx,
+    };
+  }, [deviceShadowBleedPx]);
 
   const browserTopChrome = useMemo(() => {
     if (!browserTemplate) return null;
@@ -992,7 +993,7 @@ export function MockupWorkspaceStage() {
         key={aspectPreset}
         data-mockup-capture-target
         data-active-visual-id={activeVisual?.id ?? ""}
-        style={{ width: "100%", height, padding: canvasPaddingPx }}
+        style={{ width: "100%", height }}
         role="region"
         aria-label="Mockup canvas"
         tabIndex={0}
@@ -1013,7 +1014,7 @@ export function MockupWorkspaceStage() {
           }
         }}
         className={cn(
-          "group relative box-border grid shrink-0 grid-rows-[minmax(0,1fr)] overflow-visible rounded-[16px] shadow-[0_32px_80px_-20px_rgba(0,0,0,0.75)]",
+          "group relative box-border grid shrink-0 grid-rows-[minmax(0,1fr)] overflow-hidden rounded-[16px] shadow-[0_32px_80px_-20px_rgba(0,0,0,0.75)]",
           "min-h-0 min-w-0 outline-none focus-visible:ring-2 focus-visible:ring-white/20"
         )}
       >
@@ -1060,7 +1061,8 @@ export function MockupWorkspaceStage() {
           />
         ) : null}
         <div
-          className="relative z-10 flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-visible"
+          className="absolute inset-0 z-10 min-h-0 min-w-0 overflow-visible"
+          style={mockupLayerInsetStyle}
           onPointerDown={onCanvasPointerDown}
         >
           <div
@@ -1086,98 +1088,114 @@ export function MockupWorkspaceStage() {
                 onResizeHandlePointerDown={onResizeHandlePointerDown}
               />
             ) : null}
-          <MockupDeviceFrame
-            deviceTemplateId={deviceTemplateId}
-            frameDropShadow={deviceFrameDropShadow}
-          >
-            {activeItem?.kind === "image" ? (
-              isPlainScreenshot || isBrowserScreenshot ? (
-                <UploadedScreenshotImage
-                  key={activeItem.url}
-                  src={activeItem.url}
-                  style={screenshotStyleForCanvas}
-                  border={screenshotBorder}
-                  outlineColor={screenshotOutlineColor}
-                  outlineColorOpacity={screenshotOutlineColorOpacity}
-                  cornerRadius={screenshotCornerRadius}
-                  glassFramePadding={screenshotGlassFramePadding}
-                  mediaBoxShadow={screenshotMediaBoxShadow}
-                  topChrome={browserTopChrome}
-                />
-              ) : (
-                // eslint-disable-next-line @next/next/no-img-element -- user-provided blob URL
-                <img
-                  src={activeItem.url}
-                  alt=""
-                  draggable={false}
-                  className="pointer-events-none block h-full w-full select-none object-cover"
-                  style={
-                    deviceScreenObjectPosition
-                      ? { objectPosition: deviceScreenObjectPosition }
-                      : undefined
-                  }
-                />
-              )
-            ) : (
+            {deviceFrameDropShadow && isPhysicalDevice ? (
               <div
-                data-mockup-bounds-target
-                className={cn(
-                  "flex max-h-full max-w-full min-h-0 min-w-0 flex-col overflow-hidden rounded-[16px]",
-                  deviceTemplateId && !isBrowserTemplateId(deviceTemplateId)
-                    ? "h-full min-h-[140px] w-full"
-                    : "aspect-square",
-                  activeItem
-                    ? "bg-zinc-950"
-                    : "border border-zinc-900/80 bg-zinc-950 shadow-[0_24px_64px_-12px_rgba(0,0,0,0.9)]"
-                )}
+                aria-hidden
+                className="pointer-events-none absolute inset-0 z-0 overflow-visible"
               >
-                {activeItem ? (
-                  <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-                    <video
-                      src={activeItem.url}
-                      controls
-                      playsInline
-                      className="h-full w-full min-h-0 min-w-0 object-contain"
-                    />
-                  </div>
-                ) : (
-                  <label className="flex min-h-0 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-6 px-6 py-10 text-center outline-none transition-colors hover:bg-white/[0.03] focus-within:ring-2 focus-within:ring-white/25 focus-within:ring-inset">
-                    <span className="sr-only">Upload images or videos</span>
-                    <input
-                      type="file"
-                      accept="image/*,video/*"
-                      multiple
-                      className="sr-only"
-                      onChange={(event) => {
-                        addFromFileList(event.target.files);
-                        event.target.value = "";
-                      }}
-                    />
-                    <div className="relative flex items-center justify-center">
-                      <span
-                        className="flex size-14 shrink-0 items-center justify-center rounded-full border border-dashed border-zinc-500 bg-zinc-900/35 transition-colors group-hover:border-zinc-400"
-                        aria-hidden
-                      >
-                        <Plus
-                          className="size-7 text-foreground transition-transform group-hover:scale-105"
-                          strokeWidth={2}
-                          aria-hidden
-                        />
-                      </span>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xl font-semibold tracking-tight text-white md:text-2xl">
-                        Drop or Paste
-                      </p>
-                      <p className="text-sm font-medium text-zinc-500">
-                        Images &amp; Videos
-                      </p>
-                    </div>
-                  </label>
-                )}
+                <MockupDeviceFrame
+                  deviceTemplateId={deviceTemplateId}
+                  frameDropShadow={deviceFrameDropShadow}
+                  shadowCastOnly
+                >
+                  {null}
+                </MockupDeviceFrame>
               </div>
-            )}
-          </MockupDeviceFrame>
+            ) : null}
+            <div className="absolute inset-0 z-[1] min-h-0 min-w-0">
+              <MockupDeviceFrame
+                deviceTemplateId={deviceTemplateId}
+                frameDropShadow={null}
+              >
+                {activeItem?.kind === "image" ? (
+                  isPlainScreenshot || isBrowserScreenshot ? (
+                    <UploadedScreenshotImage
+                      key={activeItem.url}
+                      src={activeItem.url}
+                      style={screenshotStyleForCanvas}
+                      border={screenshotBorder}
+                      outlineColor={screenshotOutlineColor}
+                      outlineColorOpacity={screenshotOutlineColorOpacity}
+                      cornerRadius={screenshotCornerRadius}
+                      glassFramePadding={screenshotGlassFramePadding}
+                      mediaBoxShadow={screenshotMediaBoxShadow}
+                      topChrome={browserTopChrome}
+                    />
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element -- user-provided blob URL
+                    <img
+                      src={activeItem.url}
+                      alt=""
+                      draggable={false}
+                      className="pointer-events-none block h-full w-full select-none object-cover"
+                      style={
+                        deviceScreenObjectPosition
+                          ? { objectPosition: deviceScreenObjectPosition }
+                          : undefined
+                      }
+                    />
+                  )
+                ) : (
+                  <div
+                    data-mockup-bounds-target
+                    className={cn(
+                      "flex max-h-full max-w-full min-h-0 min-w-0 flex-col overflow-hidden rounded-[16px]",
+                      deviceTemplateId && !isBrowserTemplateId(deviceTemplateId)
+                        ? "h-full min-h-[140px] w-full"
+                        : "aspect-square",
+                      activeItem
+                        ? "bg-zinc-950"
+                        : "border border-zinc-900/80 bg-zinc-950 shadow-[0_24px_64px_-12px_rgba(0,0,0,0.9)]"
+                    )}
+                  >
+                    {activeItem ? (
+                      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+                        <video
+                          src={activeItem.url}
+                          controls
+                          playsInline
+                          className="h-full w-full min-h-0 min-w-0 object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <label className="flex min-h-0 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-6 px-6 py-10 text-center outline-none transition-colors hover:bg-white/[0.03] focus-within:ring-2 focus-within:ring-white/25 focus-within:ring-inset">
+                        <span className="sr-only">Upload images or videos</span>
+                        <input
+                          type="file"
+                          accept="image/*,video/*"
+                          multiple
+                          className="sr-only"
+                          onChange={(event) => {
+                            addFromFileList(event.target.files);
+                            event.target.value = "";
+                          }}
+                        />
+                        <div className="relative flex items-center justify-center">
+                          <span
+                            className="flex size-14 shrink-0 items-center justify-center rounded-full border border-dashed border-zinc-500 bg-zinc-900/35 transition-colors group-hover:border-zinc-400"
+                            aria-hidden
+                          >
+                            <Plus
+                              className="size-7 text-foreground transition-transform group-hover:scale-105"
+                              strokeWidth={2}
+                              aria-hidden
+                            />
+                          </span>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xl font-semibold tracking-tight text-white md:text-2xl">
+                            Drop or Paste
+                          </p>
+                          <p className="text-sm font-medium text-zinc-500">
+                            Images &amp; Videos
+                          </p>
+                        </div>
+                      </label>
+                    )}
+                  </div>
+                )}
+              </MockupDeviceFrame>
+            </div>
           </div>
         </div>
         {canvasOverlayShadowPlacement === "overlay" ? (

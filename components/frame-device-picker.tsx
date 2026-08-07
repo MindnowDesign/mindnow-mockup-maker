@@ -28,7 +28,7 @@ import {
   isBrowserTemplateId,
   MOCKUP_BROWSER_TEMPLATES,
 } from "@/lib/mockup-browser-templates";
-import { IPHONE_17_PRO_MAX_STYLES, IPHONE_17_STYLES, isIphone17TemplateId, MACBOOK_PRO_16_STYLES, isMacbookPro16TemplateId } from "@/lib/mockup-device-templates";
+import { IPHONE_17_PRO_MAX_STYLES, IPHONE_17_STYLES, IMAC_24_STYLES, isIphone17TemplateId, MACBOOK_PRO_16_STYLES, isMacbookPro16TemplateId, isImac24TemplateId } from "@/lib/mockup-device-templates";
 
 export type FrameDeviceValue =
   | "screenshot"
@@ -205,7 +205,7 @@ export function FrameDevicePicker() {
       setFilterTab("tablet");
       return;
     }
-    if (deviceTemplateId === "imac-24") {
+    if (isImac24TemplateId(deviceTemplateId)) {
       setSelection({
         preset: "desktop",
         headline: "iMac 24",
@@ -495,13 +495,16 @@ export function FrameDevicePicker() {
                     <TemplateTile
                       title="iMac 24"
                       resolution="4480 × 2520"
+                      footer={
+                        <TemplateStyleCountHint options={IMAC_24_STYLES} />
+                      }
                       preview={
                         <PreviewPlate>
                           <div className={TILE_PREVIEW_INNER} />
                         </PreviewPlate>
                       }
                       onPick={() => {
-                        setDeviceTemplateId("imac-24");
+                        setDeviceTemplateId("imac-24-silver");
                         pickTemplate({
                           preset: "desktop",
                           headline: "iMac 24",

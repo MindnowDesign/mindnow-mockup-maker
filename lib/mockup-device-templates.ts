@@ -249,6 +249,83 @@ export function isMacbookPro16TemplateId(id: string | null): boolean {
   return MACBOOK_PRO_16_STYLES.some((s) => s.templateId === id);
 }
 
+/** Shared geometry for iMac 24″ Apple bezel PNGs — enclosed cutout 140,150 4480×2520; expand 2px. */
+const IMAC_24_FRAME_WIDTH = 4760;
+const IMAC_24_FRAME_HEIGHT = 4050;
+const IMAC_24_SCREEN: MockupDeviceScreenInset = {
+  leftPct: (138 / IMAC_24_FRAME_WIDTH) * 100,
+  topPct: (148 / IMAC_24_FRAME_HEIGHT) * 100,
+  widthPct: (4484 / IMAC_24_FRAME_WIDTH) * 100,
+  heightPct: (2524 / IMAC_24_FRAME_HEIGHT) * 100,
+};
+
+const IMAC_24_SHARED = {
+  framePixelWidth: IMAC_24_FRAME_WIDTH,
+  framePixelHeight: IMAC_24_FRAME_HEIGHT,
+  screen: IMAC_24_SCREEN,
+  screenBorderRadiusPct: {
+    xPct: (8 / 4484) * 100,
+    yPct: (8 / 2524) * 100,
+  },
+  fitToScreen: true,
+  fitScale: 0.9,
+} as const;
+
+const IMAC_24_FRAME_SRC: Record<string, string> = {
+  "imac-24-silver": mockupDeviceFile("imac-24-silver.png"),
+  "imac-24-blue": mockupDeviceFile("imac-24-blue.png"),
+  "imac-24-green": mockupDeviceFile("imac-24-green.png"),
+  "imac-24-orange": mockupDeviceFile("imac-24-orange.png"),
+  "imac-24-pink": mockupDeviceFile("imac-24-pink.png"),
+  "imac-24-purple": mockupDeviceFile("imac-24-purple.png"),
+  "imac-24-yellow": mockupDeviceFile("imac-24-yellow.png"),
+};
+
+/** Finish presets for iMac 24″ — picker footer + sidebar Styles row. */
+export const IMAC_24_STYLES: DeviceStyleOption[] = [
+  {
+    templateId: "imac-24-silver",
+    shortLabel: "Silver",
+    coverSrc: deviceStyleCover("imac 24-color-silver.png"),
+  },
+  {
+    templateId: "imac-24-blue",
+    shortLabel: "Blue",
+    coverSrc: deviceStyleCover("imac 24-color-blue.png"),
+  },
+  {
+    templateId: "imac-24-green",
+    shortLabel: "Green",
+    coverSrc: deviceStyleCover("imac 24-color-green.png"),
+  },
+  {
+    templateId: "imac-24-orange",
+    shortLabel: "Orange",
+    coverSrc: deviceStyleCover("imac 24-color-orange.png"),
+  },
+  {
+    templateId: "imac-24-pink",
+    shortLabel: "Pink",
+    coverSrc: deviceStyleCover("imac 24-color-pink.png"),
+  },
+  {
+    templateId: "imac-24-purple",
+    shortLabel: "Purple",
+    coverSrc: deviceStyleCover("imac 24-color-purple.png"),
+  },
+  {
+    templateId: "imac-24-yellow",
+    shortLabel: "Yellow",
+    coverSrc: deviceStyleCover("imac 24-color-yellow.png"),
+  },
+];
+
+export function isImac24TemplateId(id: string | null): boolean {
+  if (!id) return false;
+  if (id === "imac-24") return true;
+  return IMAC_24_STYLES.some((s) => s.templateId === id);
+}
+
 export const MOCKUP_DEVICE_TEMPLATES: MockupDeviceTemplate[] = [
   ...IPHONE_17_STYLES.map(({ templateId }) => ({
     id: templateId,
@@ -344,30 +421,12 @@ export const MOCKUP_DEVICE_TEMPLATES: MockupDeviceTemplate[] = [
       yPct: (70 / 2756) * 100,
     },
   },
-  {
-    id: "imac-24",
+  ...IMAC_24_STYLES.map(({ templateId }) => ({
+    id: templateId,
     label: "iMac 24",
-    frameSrc: mockupDeviceFile("imac-24.png"),
-    framePixelWidth: 4880,
-    framePixelHeight: 5720,
-    /** Hole is 200,1600 4480×2520; expand 2px under bezel. */
-    screen: {
-      leftPct: (198 / 4880) * 100,
-      topPct: (1598 / 5720) * 100,
-      widthPct: (4484 / 4880) * 100,
-      heightPct: (2524 / 5720) * 100,
-    },
-    screenBorderRadiusPct: {
-      xPct: (8 / 4484) * 100,
-      yPct: (8 / 2524) * 100,
-    },
-    /**
-     * Size by the display (not the tall stand asset) so landscape canvases
-     * still get a large mockup; stand may clip slightly at the edges.
-     */
-    fitToScreen: true,
-    fitScale: 0.9,
-  },
+    frameSrc: IMAC_24_FRAME_SRC[templateId]!,
+    ...IMAC_24_SHARED,
+  })),
   {
     id: "imac-pro",
     label: "iMac Pro",
@@ -412,5 +471,12 @@ export const MOCKUP_DEVICE_TEMPLATES: MockupDeviceTemplate[] = [
   },
 ];
 
+const _deviceById = Object.fromEntries(
+  MOCKUP_DEVICE_TEMPLATES.map((t) => [t.id, t])
+);
+
+/** Legacy persisted id before color finishes shipped. */
+_deviceById["imac-24"] = _deviceById["imac-24-silver"]!;
+
 export const MOCKUP_DEVICE_BY_ID: Record<string, MockupDeviceTemplate> =
-  Object.fromEntries(MOCKUP_DEVICE_TEMPLATES.map((t) => [t.id, t]));
+  _deviceById;
