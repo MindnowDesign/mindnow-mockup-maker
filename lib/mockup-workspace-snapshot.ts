@@ -128,6 +128,8 @@ export type FrameLike = {
   frameShadowSpread: number;
   frameShadowColor: string;
   frameShadowColorOpacity: number;
+  mockupOffsetX: number;
+  mockupOffsetY: number;
   canvasLayers: PersistedCanvasImageLayer[];
   canvasImageRect: PersistedCanvasImageRect | null;
   canvasImageBaseline: PersistedCanvasImageBaseline | null;
@@ -153,6 +155,9 @@ export type VisualWorkspacePrefs = {
   screenshotStyle?: PersistedScreenshotStyle | null;
   /** Drop shadow on plain screenshot media (`deviceTemplateId` null). */
   frameShadow?: PersistedFrameShadow | null;
+  /** Mockup content offset from canvas center (px). */
+  mockupOffsetX?: number;
+  mockupOffsetY?: number;
   /** Free-form image layers on the canvas. */
   canvasLayers?: PersistedCanvasImageLayer[];
   /** @deprecated Legacy single-image rect — use `canvasLayers`. */
@@ -196,6 +201,8 @@ export function captureVisualWorkspacePrefs(f: FrameLike): VisualWorkspacePrefs 
     browserFaviconUrl: f.browserFaviconUrl,
     screenshotStyle: frameLikeToPersistedScreenshotStyle(f),
     frameShadow: frameShadowToPersisted(f.frameShadowPreset, shadowNums),
+    mockupOffsetX: f.mockupOffsetX,
+    mockupOffsetY: f.mockupOffsetY,
     canvasLayers: (f.canvasLayers ?? []).map((layer) => ({
       id: layer.id,
       mediaId: layer.mediaId,
@@ -234,6 +241,8 @@ export const DEFAULT_NEW_VISUAL_WORKSPACE_PREFS: VisualWorkspacePrefs = {
     DEFAULT_FRAME_SHADOW_PRESET,
     defaultFrameShadowNumbers()
   ),
+  mockupOffsetX: 0,
+  mockupOffsetY: 0,
   canvasLayers: [],
   selectedCanvasLayerId: null,
 };
@@ -255,6 +264,8 @@ export function normalizeVisualWorkspacePrefs(
       browserFaviconUrl: d.browserFaviconUrl ?? null,
       screenshotStyle: d.screenshotStyle ? { ...d.screenshotStyle } : null,
       frameShadow: d.frameShadow ? { ...d.frameShadow } : null,
+      mockupOffsetX: d.mockupOffsetX ?? 0,
+      mockupOffsetY: d.mockupOffsetY ?? 0,
       canvasLayers: d.canvasLayers ? [...d.canvasLayers] : [],
       canvasImageRect: d.canvasImageRect ? { ...d.canvasImageRect } : null,
       canvasImageBaseline: d.canvasImageBaseline
@@ -310,6 +321,8 @@ export function normalizeVisualWorkspacePrefs(
         : d.browserFaviconUrl ?? null,
     screenshotStyle,
     frameShadow,
+    mockupOffsetX: partial.mockupOffsetX ?? d.mockupOffsetX ?? 0,
+    mockupOffsetY: partial.mockupOffsetY ?? d.mockupOffsetY ?? 0,
     canvasLayers,
     canvasImageRect:
       partial.canvasImageRect !== undefined
@@ -347,6 +360,8 @@ export function cloneVisualWorkspacePrefsForSave(
     canvasBackground: n.canvasBackground ? { ...n.canvasBackground } : null,
     screenshotStyle: n.screenshotStyle ? { ...n.screenshotStyle } : null,
     frameShadow: n.frameShadow ? { ...n.frameShadow } : null,
+    mockupOffsetX: n.mockupOffsetX ?? 0,
+    mockupOffsetY: n.mockupOffsetY ?? 0,
     canvasImageRect: n.canvasImageRect ? { ...n.canvasImageRect } : null,
     canvasImageBaseline: n.canvasImageBaseline
       ? { ...n.canvasImageBaseline }

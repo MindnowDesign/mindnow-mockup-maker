@@ -66,6 +66,7 @@ import {
   type ScreenshotStyleId,
 } from "@/lib/mockup-screenshot-style";
 import { defaultVisualLabel } from "@/lib/mockup-visual-label";
+import { useMockupCanvasDrag } from "@/lib/use-mockup-canvas-drag";
 import { cn } from "@/lib/utils";
 
 function rgbaFromHex(hex: string, opacityPercent: number): string {
@@ -688,6 +689,9 @@ export function MockupWorkspaceStage() {
     frameShadowSpread,
     frameShadowColor,
     frameShadowColorOpacity,
+    mockupOffsetX,
+    mockupOffsetY,
+    setMockupOffset,
   } = useMockupFrame();
   const canvasNoiseFilterId = `canvas-noise-${useId().replace(/:/g, "")}`;
   const noiseBlendModeEffective =
@@ -720,6 +724,16 @@ export function MockupWorkspaceStage() {
     () => scaledFramePixelSize(aspectPreset, maxW, maxH),
     [aspectPreset, maxW, maxH]
   );
+
+  const canDragMockup = activeItem != null;
+
+  const { isDragging, isSnappedX, isSnappedY, onPointerDown, dragStyle } =
+    useMockupCanvasDrag({
+      offsetX: mockupOffsetX,
+      offsetY: mockupOffsetY,
+      setOffset: setMockupOffset,
+      enabled: canDragMockup,
+    });
 
   const activeGradientTemplateId =
     canvasBackgroundMode === "template" ? canvasGradientTemplateId : null;
@@ -996,7 +1010,29 @@ export function MockupWorkspaceStage() {
             placement="underlay"
           />
         ) : null}
+        {isDragging && isSnappedY ? (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-1/2 z-20 h-px -translate-y-1/2 bg-sky-400/70"
+          />
+        ) : null}
+        {isDragging && isSnappedX ? (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 left-1/2 z-20 w-px -translate-x-1/2 bg-sky-400/70"
+          />
+        ) : null}
         <div className="relative z-10 flex min-h-0 min-w-0 flex-1 items-center justify-center">
+          <div
+            data-mockup-draggable
+            onPointerDown={onPointerDown}
+            style={dragStyle}
+            className={cn(
+              "relative flex h-full w-full min-h-0 min-w-0 items-center justify-center touch-none",
+              canDragMockup &&
+                (isDragging ? "cursor-grabbing" : "cursor-grab")
+            )}
+          >
           <MockupDeviceFrame
             deviceTemplateId={deviceTemplateId}
             frameDropShadow={deviceFrameDropShadow}
@@ -1083,6 +1119,7 @@ export function MockupWorkspaceStage() {
               </div>
             )}
           </MockupDeviceFrame>
+          </div>
         </div>
         {canvasOverlayShadowPlacement === "overlay" ? (
           <CanvasMoodShadowLayer

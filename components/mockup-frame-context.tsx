@@ -202,6 +202,11 @@ type MockupFrameContextValue = {
   hydrateFrameShadow: (
     payload: PersistedFrameShadow | null | undefined
   ) => void;
+  /** Mockup content offset from canvas center (px). */
+  mockupOffsetX: number;
+  mockupOffsetY: number;
+  setMockupOffset: (x: number, y: number) => void;
+  hydrateMockupOffset: (x: number, y: number) => void;
   /** Free-form image layers on the canvas (empty until canvas-image editor ships). */
   canvasLayers: PersistedCanvasImageLayer[];
   selectedCanvasLayerId: string | null;
@@ -361,6 +366,8 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
   const [frameShadowColorOpacity, setFrameShadowColorOpacityState] = useState(
     initialShadow.colorOpacity
   );
+  const [mockupOffsetX, setMockupOffsetXState] = useState(0);
+  const [mockupOffsetY, setMockupOffsetYState] = useState(0);
 
   const setScreenshotStyle = useCallback((id: ScreenshotStyleId) => {
     setScreenshotStyleState(parseScreenshotStyle(id));
@@ -453,6 +460,16 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
   const setFrameShadowColorOpacity = useCallback((value: number) => {
     setFrameShadowPresetState("custom");
     setFrameShadowColorOpacityState(clampPercent(value));
+  }, []);
+
+  const setMockupOffset = useCallback((x: number, y: number) => {
+    setMockupOffsetXState(Math.round(x));
+    setMockupOffsetYState(Math.round(y));
+  }, []);
+
+  const hydrateMockupOffset = useCallback((x: number, y: number) => {
+    setMockupOffsetXState(Math.round(x));
+    setMockupOffsetYState(Math.round(y));
   }, []);
 
   const hydrateFrameShadow = useCallback(
@@ -845,6 +862,10 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       frameShadowColorOpacity,
       setFrameShadowColorOpacity,
       hydrateFrameShadow,
+      mockupOffsetX,
+      mockupOffsetY,
+      setMockupOffset,
+      hydrateMockupOffset,
       canvasLayers: [],
       selectedCanvasLayerId: null,
       canvasImageRect: null,
@@ -919,6 +940,10 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       frameShadowColorOpacity,
       setFrameShadowColorOpacity,
       hydrateFrameShadow,
+      mockupOffsetX,
+      mockupOffsetY,
+      setMockupOffset,
+      hydrateMockupOffset,
     ]
   );
 
