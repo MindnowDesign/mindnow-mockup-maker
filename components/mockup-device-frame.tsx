@@ -1,18 +1,23 @@
 "use client";
 
+import { useId, useLayoutEffect, useRef } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
 import { MOCKUP_DEVICE_BY_ID } from "@/lib/mockup-device-templates";
 import { isBrowserTemplateId } from "@/lib/mockup-browser-templates";
+import {
+  deviceFrameShadowActive,
+  deviceShadowFloodColor,
+  deviceShadowFloodOpacity,
+  deviceShadowStdDeviation,
+  type FrameShadowNumbers,
+} from "@/lib/mockup-frame-shadow";
 import { cn } from "@/lib/utils";
 
 type MockupDeviceFrameProps = {
   deviceTemplateId: string | null;
   className?: string;
-  /** CSS `filter` value (e.g. `drop-shadow(...)`) on the whole device stack (screen + bezel). */
-  frameDropShadow?: string | null;
-  /** Frame PNG only — shadow pass behind the clipped device (same geometry, no bounds target). */
-  shadowCastOnly?: boolean;
+  deviceShadow?: FrameShadowNumbers | null;
   children: ReactNode;
 };
 
@@ -23,18 +28,41 @@ type MockupDeviceFrameProps = {
 export function MockupDeviceFrame({
   deviceTemplateId,
   className,
-  frameDropShadow,
-  shadowCastOnly = false,
+  deviceShadow,
   children,
 }: MockupDeviceFrameProps) {
+  const shadowFilterId = useId().replace(/:/g, "");
+  const filterRef = useRef<HTMLDivElement>(null);
   const template =
     deviceTemplateId && !isBrowserTemplateId(deviceTemplateId)
       ? MOCKUP_DEVICE_BY_ID[deviceTemplateId]
       : undefined;
 
+  const shadowActive =
+    deviceShadow != null && deviceFrameShadowActive(deviceShadow);
+
+  useLayoutEffect(() => {
+    const el = filterRef.current;
+    if (!el || !shadowActive || !deviceShadow) return;
+    const filter = el.style.filter;
+    el.style.filter = "none";
+    void el.getBoundingClientRect();
+    el.style.filter = filter;
+  }, [
+    deviceShadow?.offsetX,
+    deviceShadow?.offsetY,
+    deviceShadow?.blur,
+    deviceShadow?.color,
+    deviceShadow?.colorOpacity,
+    shadowActive,
+    shadowFilterId,
+  ]);
+
   if (!template) {
     return <>{children}</>;
   }
+
+  const activeShadow = shadowActive ? deviceShadow! : null;
 
   const { framePixelWidth: fw, framePixelHeight: fh, screen: s } = template;
   const radius = template.screenBorderRadiusPct ?? 8.6;
@@ -79,45 +107,12 @@ export function MockupDeviceFrame({
         height: `calc(min(100cqh, calc(100cqw * ${fh} / ${fw})) * ${fitScale})`,
       };
 
-  const frameBoxFilterStyle: CSSProperties = frameDropShadow
-    ? { filter: frameDropShadow }
+  const filterStyle: CSSProperties = shadowActive
+    ? {
+        filter: `url(#${shadowFilterId})`,
+        willChange: "filter",
+      }
     : {};
-
-  if (shadowCastOnly) {
-    return (
-      <div
-        aria-hidden
-        className={cn(
-          "relative flex h-full w-full min-h-0 min-w-0 items-center justify-center",
-          className
-        )}
-        style={{ containerType: "size" }}
-      >
-        {/*
-         * Filter on the full-size wrapper — not on the device-sized box. When
-         * `drop-shadow()` sits on the transformed frame rect, browsers clip the
-         * shadow to that box and it looks cut off on the right/bottom.
-         */}
-        <div
-          className="relative flex h-full w-full min-h-0 min-w-0 items-center justify-center"
-          style={frameBoxFilterStyle}
-        >
-          <div className="relative isolate" style={frameBoxStyle}>
-            {/* eslint-disable-next-line @next/next/no-img-element -- static public asset */}
-            <img
-              src={template.frameSrc}
-              alt=""
-              width={fw}
-              height={fh}
-              decoding="async"
-              draggable={false}
-              className="pointer-events-none relative block h-full w-full select-none object-fill"
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div
@@ -127,30 +122,63 @@ export function MockupDeviceFrame({
       )}
       style={{ containerType: "size" }}
     >
+      {shadowActive && activeShadow ? (
+        <svg
+          aria-hidden
+          className="pointer-events-none absolute h-0 w-0 overflow-hidden"
+        >
+          <defs>
+            <filter
+              id={shadowFilterId}
+              filterUnits="objectBoundingBox"
+              x="-1"
+              y="-1"
+              width="3"
+              height="3"
+              colorInterpolationFilters="sRGB"
+            >
+              <feDropShadow
+                dx={activeShadow.offsetX}
+                dy={activeShadow.offsetY}
+                stdDeviation={deviceShadowStdDeviation(activeShadow.blur)}
+                floodColor={deviceShadowFloodColor(activeShadow)}
+                floodOpacity={deviceShadowFloodOpacity(activeShadow)}
+              />
+            </filter>
+          </defs>
+        </svg>
+      ) : null}
       <div
-        data-mockup-bounds-target
-        className="relative isolate"
-        style={frameBoxStyle}
+        ref={filterRef}
+        data-mockup-shadow-filter
+        className="relative flex h-full w-full min-h-0 min-w-0 items-center justify-center overflow-visible"
+        style={{ ...filterStyle }}
       >
         <div
-          className="absolute z-0 overflow-hidden bg-black"
-          data-mockup-screen-clip
-          style={clipStyle}
+          data-mockup-bounds-target
+          className="relative isolate"
+          style={frameBoxStyle}
         >
-          <div className="h-full w-full [&_img]:h-full [&_img]:w-full [&_img]:object-cover [&_video]:h-full [&_video]:w-full [&_video]:object-cover">
-            {children}
+          <div
+            className="absolute z-0 overflow-hidden bg-black"
+            data-mockup-screen-clip
+            style={clipStyle}
+          >
+            <div className="h-full w-full [&_img]:h-full [&_img]:w-full [&_img]:object-cover [&_video]:h-full [&_video]:w-full [&_video]:object-cover">
+              {children}
+            </div>
           </div>
+          {/* eslint-disable-next-line @next/next/no-img-element -- static public asset */}
+          <img
+            src={template.frameSrc}
+            alt=""
+            width={fw}
+            height={fh}
+            decoding="async"
+            draggable={false}
+            className="pointer-events-none relative z-10 h-full w-full select-none object-fill"
+          />
         </div>
-        {/* eslint-disable-next-line @next/next/no-img-element -- static public asset */}
-        <img
-          src={template.frameSrc}
-          alt=""
-          width={fw}
-          height={fh}
-          decoding="async"
-          draggable={false}
-          className="pointer-events-none relative z-10 h-full w-full select-none object-fill"
-        />
       </div>
     </div>
   );

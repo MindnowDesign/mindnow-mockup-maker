@@ -140,7 +140,26 @@ export function buildFrameShadowDropShadow(n: FrameShadowNumbers): string {
   return `drop-shadow(${n.offsetX}px ${n.offsetY}px ${n.blur}px ${color})`;
 }
 
-/** Inset from the canvas clip so `drop-shadow()` can fall off before hitting `overflow: hidden`. */
+/** Whether device PNG shadow filters should run (non-zero offset or blur). */
+export function deviceFrameShadowActive(n: FrameShadowNumbers): boolean {
+  return n.blur > 0 || n.offsetX !== 0 || n.offsetY !== 0;
+}
+
+/** SVG `feDropShadow` stdDeviation ≈ CSS `drop-shadow()` blur radius / 2. */
+export function deviceShadowStdDeviation(blur: number): number {
+  return Math.max(0, blur) / 2;
+}
+
+export function deviceShadowFloodColor(n: FrameShadowNumbers): string {
+  const rgb = hexToRgb(n.color) ?? { r: 0, g: 0, b: 0 };
+  return `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+}
+
+export function deviceShadowFloodOpacity(n: FrameShadowNumbers): number {
+  return Math.min(1, Math.max(0, n.colorOpacity / 100));
+}
+
+/** Inset from the canvas clip so device shadows can fall off before hitting `overflow: hidden`. */
 export function computeDeviceShadowBleedPx(
   n: FrameShadowNumbers,
   mockupScale = 1
@@ -153,4 +172,28 @@ export function computeDeviceShadowBleedPx(
   const bottom = Math.max(0, n.offsetY) * scale + blurReach + spread + 28;
   const top = Math.max(0, -n.offsetY) * scale + blurReach + spread + 24;
   return Math.max(right, left, bottom, top);
+}
+
+/**
+ * Fixed canvas margin for device shadows — independent of the current shadow sliders
+ * so changing blur/offset does not resize the mockup layer (avoids transient clipping).
+ */
+export function canvasDeviceShadowMarginPx(
+  canvasWidth: number,
+  canvasHeight: number,
+  mockupScale = 1
+): number {
+  const maxBleed = computeDeviceShadowBleedPx(
+    {
+      offsetX: 128,
+      offsetY: 128,
+      blur: 128,
+      spread: 64,
+      color: "#000000",
+      colorOpacity: 100,
+    },
+    mockupScale
+  );
+  const cap = Math.floor(Math.min(canvasWidth, canvasHeight) * 0.24);
+  return Math.min(maxBleed, Math.max(104, cap));
 }

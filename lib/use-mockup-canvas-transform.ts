@@ -45,6 +45,13 @@ function isInteractiveDragTarget(target: EventTarget | null): boolean {
   );
 }
 
+function isMockupInteractionTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false;
+  return Boolean(
+    target.closest("[data-mockup-bounds-target], [data-mockup-resize-handle]")
+  );
+}
+
 function distance(x1: number, y1: number, x2: number, y2: number): number {
   return Math.hypot(x2 - x1, y2 - y1);
 }
@@ -57,6 +64,7 @@ export function useMockupCanvasTransform({
   setScale,
   enabled,
   resetKey,
+  layoutSyncKey,
 }: {
   offsetX: number;
   offsetY: number;
@@ -65,6 +73,8 @@ export function useMockupCanvasTransform({
   setScale: (value: number) => void;
   enabled: boolean;
   resetKey: string | null;
+  /** Bumps bounds remeasurement when canvas layout around the mockup changes. */
+  layoutSyncKey?: string;
 }) {
   const transformRootRef = useRef<HTMLDivElement>(null);
   const [isSelected, setIsSelected] = useState(false);
@@ -77,6 +87,17 @@ export function useMockupCanvasTransform({
   useEffect(() => {
     setIsSelected(false);
   }, [resetKey]);
+
+  useEffect(() => {
+    function onDocumentPointerDown(event: PointerEvent) {
+      if (isMockupInteractionTarget(event.target)) return;
+      setIsSelected(false);
+    }
+
+    document.addEventListener("pointerdown", onDocumentPointerDown);
+    return () =>
+      document.removeEventListener("pointerdown", onDocumentPointerDown);
+  }, []);
 
   const measureBounds = useCallback(() => {
     const root = transformRootRef.current;
@@ -111,7 +132,13 @@ export function useMockupCanvasTransform({
       ro.disconnect();
       window.removeEventListener("resize", measureBounds);
     };
-  }, [measureBounds, enabled, resetKey, scale, offsetX, offsetY]);
+  }, [measureBounds, enabled, resetKey, scale, offsetX, offsetY, layoutSyncKey]);
+
+  useLayoutEffect(() => {
+    const root = transformRootRef.current;
+    if (root) root.getBoundingClientRect();
+    measureBounds();
+  }, [measureBounds, layoutSyncKey]);
 
   const onTransformPointerDown = useCallback(
     (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -120,6 +147,7 @@ export function useMockupCanvasTransform({
         return;
       }
       if (isInteractiveDragTarget(event.target)) return;
+      if (!isMockupInteractionTarget(event.target)) return;
 
       event.preventDefault();
       event.stopPropagation();
@@ -183,16 +211,6 @@ export function useMockupCanvasTransform({
       }
     },
     [enabled, bounds, scale]
-  );
-
-  const onCanvasPointerDown = useCallback(
-    (event: ReactPointerEvent<HTMLDivElement>) => {
-      if (event.target instanceof Element && event.target.closest("[data-mockup-transform-root]")) {
-        return;
-      }
-      setIsSelected(false);
-    },
-    []
   );
 
   useEffect(() => {
@@ -290,7 +308,6 @@ export function useMockupCanvasTransform({
     bounds,
     onTransformPointerDown,
     onResizeHandlePointerDown,
-    onCanvasPointerDown,
     transformStyle,
   };
 }

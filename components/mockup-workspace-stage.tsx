@@ -35,8 +35,8 @@ import {
 import { MOCKUP_DEVICE_BY_ID } from "@/lib/mockup-device-templates";
 import {
   buildFrameShadowBoxShadow,
-  buildFrameShadowDropShadow,
-  computeDeviceShadowBleedPx,
+  canvasDeviceShadowMarginPx,
+  deviceFrameShadowActive,
 } from "@/lib/mockup-frame-shadow";
 import {
   canvasGradientTemplateToCaptureStyle,
@@ -736,6 +736,8 @@ export function MockupWorkspaceStage() {
 
   const canTransformMockup = activeItem != null;
 
+  const canvasLayoutSyncKey = `${deviceTemplateId ?? ""},${width},${height},${mockupScale}`;
+
   const {
     transformRootRef,
     isSelected,
@@ -746,7 +748,6 @@ export function MockupWorkspaceStage() {
     bounds,
     onTransformPointerDown,
     onResizeHandlePointerDown,
-    onCanvasPointerDown,
     transformStyle,
   } = useMockupCanvasTransform({
     offsetX: mockupOffsetX,
@@ -756,6 +757,7 @@ export function MockupWorkspaceStage() {
     setScale: setMockupScale,
     enabled: canTransformMockup,
     resetKey: activeVisual?.id ?? null,
+    layoutSyncKey: canvasLayoutSyncKey,
   });
 
   const activeGradientTemplateId =
@@ -900,26 +902,27 @@ export function MockupWorkspaceStage() {
     return buildFrameShadowBoxShadow(frameShadowNumbers);
   }, [isPlainScreenshot, isBrowserScreenshot, frameShadowNumbers]);
 
-  const deviceFrameDropShadow = useMemo(() => {
+  const deviceShadowForFrame = useMemo(() => {
     if (!isPhysicalDevice) return null;
-    return buildFrameShadowDropShadow(frameShadowNumbers);
+    if (!deviceFrameShadowActive(frameShadowNumbers)) return null;
+    return frameShadowNumbers;
   }, [isPhysicalDevice, frameShadowNumbers]);
 
-  /** Keep mockup inset from the canvas clip so device `drop-shadow()` can fall off naturally. */
-  const deviceShadowBleedPx = useMemo(() => {
-    if (!deviceFrameDropShadow) return 0;
-    return computeDeviceShadowBleedPx(frameShadowNumbers, mockupScale);
-  }, [deviceFrameDropShadow, frameShadowNumbers, mockupScale]);
+  /** Fixed margin — does not track live shadow sliders (prevents layout lag / clipped shadow). */
+  const mockupCanvasShadowMarginPx = useMemo(() => {
+    if (!deviceShadowForFrame) return 0;
+    return canvasDeviceShadowMarginPx(width, height, mockupScale);
+  }, [deviceShadowForFrame, width, height, mockupScale]);
 
   const mockupLayerInsetStyle = useMemo((): CSSProperties | undefined => {
-    if (deviceShadowBleedPx <= 0) return undefined;
+    if (mockupCanvasShadowMarginPx <= 0) return undefined;
     return {
-      top: deviceShadowBleedPx,
-      right: deviceShadowBleedPx,
-      bottom: deviceShadowBleedPx,
-      left: deviceShadowBleedPx,
+      top: mockupCanvasShadowMarginPx,
+      right: mockupCanvasShadowMarginPx,
+      bottom: mockupCanvasShadowMarginPx,
+      left: mockupCanvasShadowMarginPx,
     };
-  }, [deviceShadowBleedPx]);
+  }, [mockupCanvasShadowMarginPx]);
 
   const browserTopChrome = useMemo(() => {
     if (!browserTemplate) return null;
@@ -1032,22 +1035,22 @@ export function MockupWorkspaceStage() {
             templateId={activeOrganicTemplateId}
             blurLayers={canvasBackgroundBlurLayers}
           />
-        </div>
-        <CanvasBackgroundNoiseOverlay
-          strength={canvasNoisePercent / 100}
-          filterId={canvasNoiseFilterId}
-          noiseType={canvasNoiseType}
-          noiseColor={canvasNoiseColor}
-          noiseColorOpacity={canvasNoiseColorOpacity}
-          blendMode={noiseBlendModeEffective}
-        />
-        {canvasOverlayShadowPlacement === "underlay" ? (
-          <CanvasMoodShadowLayer
-            templateId={canvasOverlayShadowId}
-            opacityPercent={canvasOverlayShadowOpacity}
-            placement="underlay"
+          <CanvasBackgroundNoiseOverlay
+            strength={canvasNoisePercent / 100}
+            filterId={canvasNoiseFilterId}
+            noiseType={canvasNoiseType}
+            noiseColor={canvasNoiseColor}
+            noiseColorOpacity={canvasNoiseColorOpacity}
+            blendMode={noiseBlendModeEffective}
           />
-        ) : null}
+          {canvasOverlayShadowPlacement === "underlay" ? (
+            <CanvasMoodShadowLayer
+              templateId={canvasOverlayShadowId}
+              opacityPercent={canvasOverlayShadowOpacity}
+              placement="underlay"
+            />
+          ) : null}
+        </div>
         {isDragging && isSnappedY ? (
           <div
             aria-hidden
@@ -1063,7 +1066,6 @@ export function MockupWorkspaceStage() {
         <div
           className="absolute inset-0 z-10 min-h-0 min-w-0 overflow-visible"
           style={mockupLayerInsetStyle}
-          onPointerDown={onCanvasPointerDown}
         >
           <div
             ref={transformRootRef}
@@ -1088,26 +1090,11 @@ export function MockupWorkspaceStage() {
                 onResizeHandlePointerDown={onResizeHandlePointerDown}
               />
             ) : null}
-            {deviceFrameDropShadow && isPhysicalDevice ? (
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-0 z-0 overflow-visible"
-              >
-                <MockupDeviceFrame
-                  deviceTemplateId={deviceTemplateId}
-                  frameDropShadow={deviceFrameDropShadow}
-                  shadowCastOnly
-                >
-                  {null}
-                </MockupDeviceFrame>
-              </div>
-            ) : null}
-            <div className="absolute inset-0 z-[1] min-h-0 min-w-0">
-              <MockupDeviceFrame
-                deviceTemplateId={deviceTemplateId}
-                frameDropShadow={null}
-              >
-                {activeItem?.kind === "image" ? (
+            <MockupDeviceFrame
+              deviceTemplateId={deviceTemplateId}
+              deviceShadow={deviceShadowForFrame}
+            >
+              {activeItem?.kind === "image" ? (
                   isPlainScreenshot || isBrowserScreenshot ? (
                     <UploadedScreenshotImage
                       key={activeItem.url}
@@ -1194,8 +1181,7 @@ export function MockupWorkspaceStage() {
                     )}
                   </div>
                 )}
-              </MockupDeviceFrame>
-            </div>
+            </MockupDeviceFrame>
           </div>
         </div>
         {canvasOverlayShadowPlacement === "overlay" ? (
