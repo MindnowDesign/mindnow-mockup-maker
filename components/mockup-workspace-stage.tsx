@@ -1056,6 +1056,52 @@ export function MockupWorkspaceStage() {
             templateId={activeOrganicTemplateId}
             blurLayers={canvasBackgroundBlurLayers}
           />
+          {canvasDitherEnabled || canvasHalftoneEnabled ? (
+            <div style={canvasBackgroundBlurLayers.container}>
+              <div style={canvasBackgroundBlurLayers.shell}>
+                <div
+                  className="overflow-hidden [&_canvas]:!h-full [&_canvas]:!w-full [&_canvas]:!max-h-none [&_canvas]:!max-w-none"
+                  style={canvasBackgroundBlurLayers.content}
+                >
+                  <CanvasBackgroundDitherOverlay
+                    enabled={canvasDitherEnabled}
+                    imageUrl={
+                      canvasBackgroundMode === "image"
+                        ? canvasBackgroundImageUrl
+                        : null
+                    }
+                    colorBack={canvasDitherColorBack}
+                    colorFront={canvasDitherColorFront}
+                    colorHighlight={canvasDitherColorHighlight}
+                    originalColors={canvasDitherOriginalColors}
+                    inverted={canvasDitherInverted}
+                    type={canvasDitherType}
+                    size={canvasDitherSize}
+                    colorSteps={canvasDitherColorSteps}
+                    fillParent
+                  />
+                  <CanvasBackgroundHalftoneOverlay
+                    enabled={canvasHalftoneEnabled}
+                    imageUrl={
+                      canvasBackgroundMode === "image"
+                        ? canvasBackgroundImageUrl
+                        : null
+                    }
+                    colorBack={canvasHalftoneColorBack}
+                    colorFront={canvasHalftoneColorFront}
+                    originalColors={canvasHalftoneOriginalColors}
+                    inverted={canvasHalftoneInverted}
+                    type={canvasHalftoneType}
+                    grid={canvasHalftoneGrid}
+                    size={canvasHalftoneSize}
+                    radius={canvasHalftoneRadius}
+                    contrast={canvasHalftoneContrast}
+                    fillParent
+                  />
+                </div>
+              </div>
+            </div>
+          ) : null}
           <CanvasBackgroundNoiseOverlay
             strength={canvasNoisePercent / 100}
             filterId={canvasNoiseFilterId}
@@ -1063,35 +1109,6 @@ export function MockupWorkspaceStage() {
             noiseColor={canvasNoiseColor}
             noiseColorOpacity={canvasNoiseColorOpacity}
             blendMode={noiseBlendModeEffective}
-          />
-          <CanvasBackgroundDitherOverlay
-            enabled={canvasDitherEnabled}
-            imageUrl={
-              canvasBackgroundMode === "image" ? canvasBackgroundImageUrl : null
-            }
-            colorBack={canvasDitherColorBack}
-            colorFront={canvasDitherColorFront}
-            colorHighlight={canvasDitherColorHighlight}
-            originalColors={canvasDitherOriginalColors}
-            inverted={canvasDitherInverted}
-            type={canvasDitherType}
-            size={canvasDitherSize}
-            colorSteps={canvasDitherColorSteps}
-          />
-          <CanvasBackgroundHalftoneOverlay
-            enabled={canvasHalftoneEnabled}
-            imageUrl={
-              canvasBackgroundMode === "image" ? canvasBackgroundImageUrl : null
-            }
-            colorBack={canvasHalftoneColorBack}
-            colorFront={canvasHalftoneColorFront}
-            originalColors={canvasHalftoneOriginalColors}
-            inverted={canvasHalftoneInverted}
-            type={canvasHalftoneType}
-            grid={canvasHalftoneGrid}
-            size={canvasHalftoneSize}
-            radius={canvasHalftoneRadius}
-            contrast={canvasHalftoneContrast}
           />
           {canvasOverlayShadowPlacement === "underlay" ? (
             <CanvasMoodShadowLayer

@@ -19,6 +19,8 @@ export type CanvasBackgroundHalftoneOverlayProps = {
   size: number;
   radius: number;
   contrast: number;
+  /** When true, fill a positioned parent instead of using absolute inset-0. */
+  fillParent?: boolean;
 };
 
 /**
@@ -37,13 +39,18 @@ export function CanvasBackgroundHalftoneOverlay({
   size,
   radius,
   contrast,
+  fillParent = false,
 }: CanvasBackgroundHalftoneOverlayProps) {
   if (!enabled || !imageUrl) return null;
 
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-0 z-[1] overflow-hidden [&_canvas]:!h-full [&_canvas]:!w-full [&_canvas]:!max-h-none [&_canvas]:!max-w-none"
+      className={
+        fillParent
+          ? "pointer-events-none h-full w-full overflow-hidden [&_canvas]:!h-full [&_canvas]:!w-full [&_canvas]:!max-h-none [&_canvas]:!max-w-none"
+          : "pointer-events-none absolute inset-0 z-[1] overflow-hidden [&_canvas]:!h-full [&_canvas]:!w-full [&_canvas]:!max-h-none [&_canvas]:!max-w-none"
+      }
     >
       <HalftoneDots
         image={imageUrl}
