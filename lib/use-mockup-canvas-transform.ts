@@ -173,7 +173,7 @@ export function useMockupCanvasTransform({
 
   const onResizeHandlePointerDown = useCallback(
     (
-      event: ReactPointerEvent<HTMLButtonElement>,
+      event: ReactPointerEvent<HTMLElement>,
       _handle: MockupResizeHandleId
     ) => {
       if (!enabled || event.button !== 0 || !bounds) return;
