@@ -427,26 +427,6 @@ export const MOCKUP_DEVICE_TEMPLATES: MockupDeviceTemplate[] = [
     frameSrc: IMAC_24_FRAME_SRC[templateId]!,
     ...IMAC_24_SHARED,
   })),
-  {
-    id: "imac-pro",
-    label: "iMac Pro",
-    frameSrc: mockupDeviceFile("imac-pro.png"),
-    framePixelWidth: 5520,
-    framePixelHeight: 4316,
-    /** Hole is 200,200 5120×2880; expand 2px under bezel. */
-    screen: {
-      leftPct: (198 / 5520) * 100,
-      topPct: (198 / 4316) * 100,
-      widthPct: (5124 / 5520) * 100,
-      heightPct: (2884 / 4316) * 100,
-    },
-    screenBorderRadiusPct: {
-      xPct: (8 / 5124) * 100,
-      yPct: (8 / 2884) * 100,
-    },
-    fitToScreen: true,
-    fitScale: 0.9,
-  },
   MACBOOK_PRO_16_SILVER,
   MACBOOK_PRO_16_SPACE_BLACK,
   {

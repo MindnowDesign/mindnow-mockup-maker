@@ -214,15 +214,6 @@ export function FrameDevicePicker() {
       setFilterTab("desktop");
       return;
     }
-    if (deviceTemplateId === "imac-pro") {
-      setSelection({
-        preset: "desktop",
-        headline: "iMac Pro",
-        detail: "5120 × 2880",
-      });
-      setFilterTab("desktop");
-      return;
-    }
     if (isMacbookPro16TemplateId(deviceTemplateId)) {
       setSelection({
         preset: "laptop",
@@ -509,23 +500,6 @@ export function FrameDevicePicker() {
                           preset: "desktop",
                           headline: "iMac 24",
                           detail: "4480 × 2520",
-                        });
-                      }}
-                    />
-                    <TemplateTile
-                      title="iMac Pro"
-                      resolution="5120 × 2880"
-                      preview={
-                        <PreviewPlate>
-                          <div className={TILE_PREVIEW_INNER} />
-                        </PreviewPlate>
-                      }
-                      onPick={() => {
-                        setDeviceTemplateId("imac-pro");
-                        pickTemplate({
-                          preset: "desktop",
-                          headline: "iMac Pro",
-                          detail: "5120 × 2880",
                         });
                       }}
                     />
