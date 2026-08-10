@@ -50,6 +50,42 @@ import {
   DEFAULT_CANVAS_OVERLAY_SHADOW_OPACITY,
   DEFAULT_CANVAS_SOLID_COLOR,
 } from "@/lib/mockup-canvas-background";
+import {
+  clampCanvasDitherColorSteps,
+  clampCanvasDitherSize,
+  DEFAULT_CANVAS_DITHER_COLOR_BACK,
+  DEFAULT_CANVAS_DITHER_COLOR_FRONT,
+  DEFAULT_CANVAS_DITHER_COLOR_HIGHLIGHT,
+  DEFAULT_CANVAS_DITHER_COLOR_STEPS,
+  DEFAULT_CANVAS_DITHER_ENABLED,
+  DEFAULT_CANVAS_DITHER_INVERTED,
+  DEFAULT_CANVAS_DITHER_ORIGINAL_COLORS,
+  DEFAULT_CANVAS_DITHER_SIZE,
+  DEFAULT_CANVAS_DITHER_TYPE,
+  normalizeDitherHex,
+  parseCanvasDitherType,
+  type CanvasDitherTypeId,
+} from "@/lib/canvas-dither";
+import {
+  clampCanvasHalftoneContrast,
+  clampCanvasHalftoneRadius,
+  clampCanvasHalftoneSize,
+  DEFAULT_CANVAS_HALFTONE_COLOR_BACK,
+  DEFAULT_CANVAS_HALFTONE_COLOR_FRONT,
+  DEFAULT_CANVAS_HALFTONE_CONTRAST,
+  DEFAULT_CANVAS_HALFTONE_ENABLED,
+  DEFAULT_CANVAS_HALFTONE_GRID,
+  DEFAULT_CANVAS_HALFTONE_INVERTED,
+  DEFAULT_CANVAS_HALFTONE_ORIGINAL_COLORS,
+  DEFAULT_CANVAS_HALFTONE_RADIUS,
+  DEFAULT_CANVAS_HALFTONE_SIZE,
+  DEFAULT_CANVAS_HALFTONE_TYPE,
+  normalizeHalftoneHex,
+  parseCanvasHalftoneGrid,
+  parseCanvasHalftoneType,
+  type CanvasHalftoneGridId,
+  type CanvasHalftoneTypeId,
+} from "@/lib/canvas-halftone";
 import type { CanvasNoiseBlendModeId } from "@/lib/mockup-noise-blend";
 import {
   DEFAULT_CANVAS_NOISE_BLEND_MODE,
@@ -152,6 +188,44 @@ type MockupFrameContextValue = {
   setCanvasOverlayShadowOpacity: (value: number) => void;
   canvasOverlayShadowPlacement: CanvasMoodShadowPlacement;
   setCanvasOverlayShadowPlacement: (placement: CanvasMoodShadowPlacement) => void;
+  canvasDitherEnabled: boolean;
+  setCanvasDitherEnabled: (value: boolean) => void;
+  canvasDitherColorBack: string;
+  setCanvasDitherColorBack: (hex: string) => void;
+  canvasDitherColorFront: string;
+  setCanvasDitherColorFront: (hex: string) => void;
+  canvasDitherColorHighlight: string;
+  setCanvasDitherColorHighlight: (hex: string) => void;
+  canvasDitherOriginalColors: boolean;
+  setCanvasDitherOriginalColors: (value: boolean) => void;
+  canvasDitherInverted: boolean;
+  setCanvasDitherInverted: (value: boolean) => void;
+  canvasDitherType: CanvasDitherTypeId;
+  setCanvasDitherType: (id: CanvasDitherTypeId) => void;
+  canvasDitherSize: number;
+  setCanvasDitherSize: (value: number) => void;
+  canvasDitherColorSteps: number;
+  setCanvasDitherColorSteps: (value: number) => void;
+  canvasHalftoneEnabled: boolean;
+  setCanvasHalftoneEnabled: (value: boolean) => void;
+  canvasHalftoneColorBack: string;
+  setCanvasHalftoneColorBack: (hex: string) => void;
+  canvasHalftoneColorFront: string;
+  setCanvasHalftoneColorFront: (hex: string) => void;
+  canvasHalftoneOriginalColors: boolean;
+  setCanvasHalftoneOriginalColors: (value: boolean) => void;
+  canvasHalftoneInverted: boolean;
+  setCanvasHalftoneInverted: (value: boolean) => void;
+  canvasHalftoneType: CanvasHalftoneTypeId;
+  setCanvasHalftoneType: (id: CanvasHalftoneTypeId) => void;
+  canvasHalftoneGrid: CanvasHalftoneGridId;
+  setCanvasHalftoneGrid: (id: CanvasHalftoneGridId) => void;
+  canvasHalftoneSize: number;
+  setCanvasHalftoneSize: (value: number) => void;
+  canvasHalftoneRadius: number;
+  setCanvasHalftoneRadius: (value: number) => void;
+  canvasHalftoneContrast: number;
+  setCanvasHalftoneContrast: (value: number) => void;
   hydrateCanvasBackground: (
     payload: PersistedCanvasBackground | null | undefined
   ) => void;
@@ -294,6 +368,111 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
     useState(DEFAULT_CANVAS_OVERLAY_SHADOW_OPACITY);
   const [canvasOverlayShadowPlacement, setCanvasOverlayShadowPlacementState] =
     useState<CanvasMoodShadowPlacement>(DEFAULT_CANVAS_MOOD_SHADOW_PLACEMENT);
+
+  const [canvasDitherEnabled, setCanvasDitherEnabled] = useState(
+    DEFAULT_CANVAS_DITHER_ENABLED
+  );
+  const [canvasDitherColorBack, setCanvasDitherColorBackState] = useState(
+    DEFAULT_CANVAS_DITHER_COLOR_BACK
+  );
+  const [canvasDitherColorFront, setCanvasDitherColorFrontState] = useState(
+    DEFAULT_CANVAS_DITHER_COLOR_FRONT
+  );
+  const [canvasDitherColorHighlight, setCanvasDitherColorHighlightState] =
+    useState(DEFAULT_CANVAS_DITHER_COLOR_HIGHLIGHT);
+  const [canvasDitherOriginalColors, setCanvasDitherOriginalColors] = useState(
+    DEFAULT_CANVAS_DITHER_ORIGINAL_COLORS
+  );
+  const [canvasDitherInverted, setCanvasDitherInverted] = useState(
+    DEFAULT_CANVAS_DITHER_INVERTED
+  );
+  const [canvasDitherType, setCanvasDitherTypeState] =
+    useState<CanvasDitherTypeId>(DEFAULT_CANVAS_DITHER_TYPE);
+  const [canvasDitherSize, setCanvasDitherSizeState] = useState(
+    DEFAULT_CANVAS_DITHER_SIZE
+  );
+  const [canvasDitherColorSteps, setCanvasDitherColorStepsState] = useState(
+    DEFAULT_CANVAS_DITHER_COLOR_STEPS
+  );
+
+  const setCanvasDitherColorBack = useCallback((hex: string) => {
+    setCanvasDitherColorBackState(
+      normalizeDitherHex(hex, DEFAULT_CANVAS_DITHER_COLOR_BACK)
+    );
+  }, []);
+  const setCanvasDitherColorFront = useCallback((hex: string) => {
+    setCanvasDitherColorFrontState(
+      normalizeDitherHex(hex, DEFAULT_CANVAS_DITHER_COLOR_FRONT)
+    );
+  }, []);
+  const setCanvasDitherColorHighlight = useCallback((hex: string) => {
+    setCanvasDitherColorHighlightState(
+      normalizeDitherHex(hex, DEFAULT_CANVAS_DITHER_COLOR_HIGHLIGHT)
+    );
+  }, []);
+  const setCanvasDitherType = useCallback((id: CanvasDitherTypeId) => {
+    setCanvasDitherTypeState(parseCanvasDitherType(id));
+  }, []);
+  const setCanvasDitherSize = useCallback((value: number) => {
+    setCanvasDitherSizeState(clampCanvasDitherSize(value));
+  }, []);
+  const setCanvasDitherColorSteps = useCallback((value: number) => {
+    setCanvasDitherColorStepsState(clampCanvasDitherColorSteps(value));
+  }, []);
+
+  const [canvasHalftoneEnabled, setCanvasHalftoneEnabled] = useState(
+    DEFAULT_CANVAS_HALFTONE_ENABLED
+  );
+  const [canvasHalftoneColorBack, setCanvasHalftoneColorBackState] = useState(
+    DEFAULT_CANVAS_HALFTONE_COLOR_BACK
+  );
+  const [canvasHalftoneColorFront, setCanvasHalftoneColorFrontState] = useState(
+    DEFAULT_CANVAS_HALFTONE_COLOR_FRONT
+  );
+  const [canvasHalftoneOriginalColors, setCanvasHalftoneOriginalColors] =
+    useState(DEFAULT_CANVAS_HALFTONE_ORIGINAL_COLORS);
+  const [canvasHalftoneInverted, setCanvasHalftoneInverted] = useState(
+    DEFAULT_CANVAS_HALFTONE_INVERTED
+  );
+  const [canvasHalftoneType, setCanvasHalftoneTypeState] =
+    useState<CanvasHalftoneTypeId>(DEFAULT_CANVAS_HALFTONE_TYPE);
+  const [canvasHalftoneGrid, setCanvasHalftoneGridState] =
+    useState<CanvasHalftoneGridId>(DEFAULT_CANVAS_HALFTONE_GRID);
+  const [canvasHalftoneSize, setCanvasHalftoneSizeState] = useState(
+    DEFAULT_CANVAS_HALFTONE_SIZE
+  );
+  const [canvasHalftoneRadius, setCanvasHalftoneRadiusState] = useState(
+    DEFAULT_CANVAS_HALFTONE_RADIUS
+  );
+  const [canvasHalftoneContrast, setCanvasHalftoneContrastState] = useState(
+    DEFAULT_CANVAS_HALFTONE_CONTRAST
+  );
+
+  const setCanvasHalftoneColorBack = useCallback((hex: string) => {
+    setCanvasHalftoneColorBackState(
+      normalizeHalftoneHex(hex, DEFAULT_CANVAS_HALFTONE_COLOR_BACK)
+    );
+  }, []);
+  const setCanvasHalftoneColorFront = useCallback((hex: string) => {
+    setCanvasHalftoneColorFrontState(
+      normalizeHalftoneHex(hex, DEFAULT_CANVAS_HALFTONE_COLOR_FRONT)
+    );
+  }, []);
+  const setCanvasHalftoneType = useCallback((id: CanvasHalftoneTypeId) => {
+    setCanvasHalftoneTypeState(parseCanvasHalftoneType(id));
+  }, []);
+  const setCanvasHalftoneGrid = useCallback((id: CanvasHalftoneGridId) => {
+    setCanvasHalftoneGridState(parseCanvasHalftoneGrid(id));
+  }, []);
+  const setCanvasHalftoneSize = useCallback((value: number) => {
+    setCanvasHalftoneSizeState(clampCanvasHalftoneSize(value));
+  }, []);
+  const setCanvasHalftoneRadius = useCallback((value: number) => {
+    setCanvasHalftoneRadiusState(clampCanvasHalftoneRadius(value));
+  }, []);
+  const setCanvasHalftoneContrast = useCallback((value: number) => {
+    setCanvasHalftoneContrastState(clampCanvasHalftoneContrast(value));
+  }, []);
 
   const [deviceTemplateId, setDeviceTemplateId] = useState<string | null>(null);
   const [browserUrl, setBrowserUrlState] = useState("");
@@ -713,6 +892,15 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
         setCanvasOverlayShadowIdState(null);
         setCanvasOverlayShadowOpacityState(DEFAULT_CANVAS_OVERLAY_SHADOW_OPACITY);
         setCanvasOverlayShadowPlacementState(DEFAULT_CANVAS_MOOD_SHADOW_PLACEMENT);
+        setCanvasDitherEnabled(DEFAULT_CANVAS_DITHER_ENABLED);
+        setCanvasDitherColorBackState(DEFAULT_CANVAS_DITHER_COLOR_BACK);
+        setCanvasDitherColorFrontState(DEFAULT_CANVAS_DITHER_COLOR_FRONT);
+        setCanvasDitherColorHighlightState(DEFAULT_CANVAS_DITHER_COLOR_HIGHLIGHT);
+        setCanvasDitherOriginalColors(DEFAULT_CANVAS_DITHER_ORIGINAL_COLORS);
+        setCanvasDitherInverted(DEFAULT_CANVAS_DITHER_INVERTED);
+        setCanvasDitherTypeState(DEFAULT_CANVAS_DITHER_TYPE);
+        setCanvasDitherSizeState(DEFAULT_CANVAS_DITHER_SIZE);
+        setCanvasDitherColorStepsState(DEFAULT_CANVAS_DITHER_COLOR_STEPS);
         return;
       }
       setCanvasBackgroundMode(payload.mode);
@@ -751,6 +939,70 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       setCanvasOverlayShadowPlacementState(
         parseCanvasMoodShadowPlacement(payload.overlayShadowPlacement)
       );
+      {
+        const dither = payload.dither;
+        setCanvasDitherEnabled(Boolean(dither?.enabled));
+        setCanvasDitherColorBackState(
+          normalizeDitherHex(
+            dither?.colorBack,
+            DEFAULT_CANVAS_DITHER_COLOR_BACK
+          )
+        );
+        setCanvasDitherColorFrontState(
+          normalizeDitherHex(
+            dither?.colorFront,
+            DEFAULT_CANVAS_DITHER_COLOR_FRONT
+          )
+        );
+        setCanvasDitherColorHighlightState(
+          normalizeDitherHex(
+            dither?.colorHighlight,
+            DEFAULT_CANVAS_DITHER_COLOR_HIGHLIGHT
+          )
+        );
+        setCanvasDitherOriginalColors(
+          dither?.originalColors ?? DEFAULT_CANVAS_DITHER_ORIGINAL_COLORS
+        );
+        setCanvasDitherInverted(
+          dither?.inverted ?? DEFAULT_CANVAS_DITHER_INVERTED
+        );
+        setCanvasDitherTypeState(parseCanvasDitherType(dither?.type));
+        setCanvasDitherSizeState(clampCanvasDitherSize(dither?.size));
+        setCanvasDitherColorStepsState(
+          clampCanvasDitherColorSteps(dither?.colorSteps)
+        );
+      }
+      {
+        const halftone = payload.halftone;
+        setCanvasHalftoneEnabled(Boolean(halftone?.enabled));
+        setCanvasHalftoneColorBackState(
+          normalizeHalftoneHex(
+            halftone?.colorBack,
+            DEFAULT_CANVAS_HALFTONE_COLOR_BACK
+          )
+        );
+        setCanvasHalftoneColorFrontState(
+          normalizeHalftoneHex(
+            halftone?.colorFront,
+            DEFAULT_CANVAS_HALFTONE_COLOR_FRONT
+          )
+        );
+        setCanvasHalftoneOriginalColors(
+          halftone?.originalColors ?? DEFAULT_CANVAS_HALFTONE_ORIGINAL_COLORS
+        );
+        setCanvasHalftoneInverted(
+          halftone?.inverted ?? DEFAULT_CANVAS_HALFTONE_INVERTED
+        );
+        setCanvasHalftoneTypeState(parseCanvasHalftoneType(halftone?.type));
+        setCanvasHalftoneGridState(parseCanvasHalftoneGrid(halftone?.grid));
+        setCanvasHalftoneSizeState(clampCanvasHalftoneSize(halftone?.size));
+        setCanvasHalftoneRadiusState(
+          clampCanvasHalftoneRadius(halftone?.radius)
+        );
+        setCanvasHalftoneContrastState(
+          clampCanvasHalftoneContrast(halftone?.contrast)
+        );
+      }
       {
         const rawG = payload.gradientTemplateId?.trim();
         setCanvasGradientTemplateIdState(
@@ -833,6 +1085,44 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       setCanvasOverlayShadowOpacity,
       canvasOverlayShadowPlacement,
       setCanvasOverlayShadowPlacement,
+      canvasDitherEnabled,
+      setCanvasDitherEnabled,
+      canvasDitherColorBack,
+      setCanvasDitherColorBack,
+      canvasDitherColorFront,
+      setCanvasDitherColorFront,
+      canvasDitherColorHighlight,
+      setCanvasDitherColorHighlight,
+      canvasDitherOriginalColors,
+      setCanvasDitherOriginalColors,
+      canvasDitherInverted,
+      setCanvasDitherInverted,
+      canvasDitherType,
+      setCanvasDitherType,
+      canvasDitherSize,
+      setCanvasDitherSize,
+      canvasDitherColorSteps,
+      setCanvasDitherColorSteps,
+      canvasHalftoneEnabled,
+      setCanvasHalftoneEnabled,
+      canvasHalftoneColorBack,
+      setCanvasHalftoneColorBack,
+      canvasHalftoneColorFront,
+      setCanvasHalftoneColorFront,
+      canvasHalftoneOriginalColors,
+      setCanvasHalftoneOriginalColors,
+      canvasHalftoneInverted,
+      setCanvasHalftoneInverted,
+      canvasHalftoneType,
+      setCanvasHalftoneType,
+      canvasHalftoneGrid,
+      setCanvasHalftoneGrid,
+      canvasHalftoneSize,
+      setCanvasHalftoneSize,
+      canvasHalftoneRadius,
+      setCanvasHalftoneRadius,
+      canvasHalftoneContrast,
+      setCanvasHalftoneContrast,
       hydrateCanvasBackground,
       deviceTemplateId,
       setDeviceTemplateId,
@@ -909,6 +1199,44 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       canvasOverlayShadowId,
       canvasOverlayShadowOpacity,
       canvasOverlayShadowPlacement,
+      canvasDitherEnabled,
+      setCanvasDitherEnabled,
+      canvasDitherColorBack,
+      setCanvasDitherColorBack,
+      canvasDitherColorFront,
+      setCanvasDitherColorFront,
+      canvasDitherColorHighlight,
+      setCanvasDitherColorHighlight,
+      canvasDitherOriginalColors,
+      setCanvasDitherOriginalColors,
+      canvasDitherInverted,
+      setCanvasDitherInverted,
+      canvasDitherType,
+      setCanvasDitherType,
+      canvasDitherSize,
+      setCanvasDitherSize,
+      canvasDitherColorSteps,
+      setCanvasDitherColorSteps,
+      canvasHalftoneEnabled,
+      setCanvasHalftoneEnabled,
+      canvasHalftoneColorBack,
+      setCanvasHalftoneColorBack,
+      canvasHalftoneColorFront,
+      setCanvasHalftoneColorFront,
+      canvasHalftoneOriginalColors,
+      setCanvasHalftoneOriginalColors,
+      canvasHalftoneInverted,
+      setCanvasHalftoneInverted,
+      canvasHalftoneType,
+      setCanvasHalftoneType,
+      canvasHalftoneGrid,
+      setCanvasHalftoneGrid,
+      canvasHalftoneSize,
+      setCanvasHalftoneSize,
+      canvasHalftoneRadius,
+      setCanvasHalftoneRadius,
+      canvasHalftoneContrast,
+      setCanvasHalftoneContrast,
       deviceTemplateId,
       browserUrl,
       browserFaviconUrl,

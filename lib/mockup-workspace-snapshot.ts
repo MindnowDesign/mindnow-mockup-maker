@@ -108,6 +108,25 @@ export type FrameLike = {
   canvasOverlayShadowId: string | null;
   canvasOverlayShadowOpacity: number;
   canvasOverlayShadowPlacement: CanvasMoodShadowPlacement;
+  canvasDitherEnabled: boolean;
+  canvasDitherColorBack: string;
+  canvasDitherColorFront: string;
+  canvasDitherColorHighlight: string;
+  canvasDitherOriginalColors: boolean;
+  canvasDitherInverted: boolean;
+  canvasDitherType: import("@/lib/canvas-dither").CanvasDitherTypeId;
+  canvasDitherSize: number;
+  canvasDitherColorSteps: number;
+  canvasHalftoneEnabled: boolean;
+  canvasHalftoneColorBack: string;
+  canvasHalftoneColorFront: string;
+  canvasHalftoneOriginalColors: boolean;
+  canvasHalftoneInverted: boolean;
+  canvasHalftoneType: import("@/lib/canvas-halftone").CanvasHalftoneTypeId;
+  canvasHalftoneGrid: import("@/lib/canvas-halftone").CanvasHalftoneGridId;
+  canvasHalftoneSize: number;
+  canvasHalftoneRadius: number;
+  canvasHalftoneContrast: number;
   deviceTemplateId: string | null;
   browserUrl: string;
   browserFaviconUrl: string | null;
@@ -437,6 +456,29 @@ export function frameLikeToPersistedCanvasBackground(
     overlayShadowId: f.canvasOverlayShadowId,
     overlayShadowOpacity: f.canvasOverlayShadowOpacity,
     overlayShadowPlacement: f.canvasOverlayShadowPlacement,
+    dither: {
+      enabled: f.canvasDitherEnabled,
+      colorBack: f.canvasDitherColorBack.trim().toUpperCase(),
+      colorFront: f.canvasDitherColorFront.trim().toUpperCase(),
+      colorHighlight: f.canvasDitherColorHighlight.trim().toUpperCase(),
+      originalColors: f.canvasDitherOriginalColors,
+      inverted: f.canvasDitherInverted,
+      type: f.canvasDitherType,
+      size: f.canvasDitherSize,
+      colorSteps: f.canvasDitherColorSteps,
+    },
+    halftone: {
+      enabled: f.canvasHalftoneEnabled,
+      colorBack: f.canvasHalftoneColorBack.trim().toUpperCase(),
+      colorFront: f.canvasHalftoneColorFront.trim().toUpperCase(),
+      originalColors: f.canvasHalftoneOriginalColors,
+      inverted: f.canvasHalftoneInverted,
+      type: f.canvasHalftoneType,
+      grid: f.canvasHalftoneGrid,
+      size: f.canvasHalftoneSize,
+      radius: f.canvasHalftoneRadius,
+      contrast: f.canvasHalftoneContrast,
+    },
   };
   const gradientTemplateId =
     f.canvasBackgroundMode === "template"

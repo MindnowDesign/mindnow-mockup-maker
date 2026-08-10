@@ -8,6 +8,8 @@ import { canvasWaveTemplateToPeekBackgroundStyle } from "@/lib/canvas-background
 import type { CanvasMoodShadowPlacement } from "@/lib/canvas-mood-shadow-templates";
 import type { CanvasNoiseBlendModeId } from "./mockup-noise-blend";
 import type { CanvasNoiseTypeId } from "./mockup-noise";
+import type { PersistedCanvasDither } from "./canvas-dither";
+import type { PersistedCanvasHalftone } from "./canvas-halftone";
 
 export type CanvasBackgroundMode =
   | "transparent"
@@ -66,6 +68,10 @@ export type PersistedCanvasBackground = {
   overlayShadowOpacity?: number;
   /** Whether the shadow sits behind or on top of the screenshot. */
   overlayShadowPlacement?: CanvasMoodShadowPlacement;
+  /** Paper Design image dithering over the canvas background image. */
+  dither?: PersistedCanvasDither | null;
+  /** Paper Design HalftoneDots over the canvas background image. */
+  halftone?: PersistedCanvasHalftone | null;
 };
 
 export const DEFAULT_CANVAS_OVERLAY_SHADOW_OPACITY = 100;

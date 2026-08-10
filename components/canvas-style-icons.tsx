@@ -145,3 +145,50 @@ export function StyleBlurIcon({
     </svg>
   );
 }
+
+/** Bayer / ordered-dither style mark for the Shaders accordion. */
+export function StyleDitherIcon({
+  className,
+  ...rest
+}: CanvasStyleIconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={cn("shrink-0", className)}
+      {...rest}
+    >
+      <path
+        d="M4 4h3v3H4V4Zm6.5 0h3v3h-3V4ZM17 4h3v3h-3V4ZM4 10.5h3v3H4v-3Zm13 0h3v3h-3v-3ZM7.5 14h3v3h-3v-3Zm6.5 0h3v3h-3v-3ZM4 17h3v3H4v-3Zm6.5 0h3v3h-3v-3ZM17 17h3v3h-3v-3Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+/** Halftone dots mark for the Shaders accordion. */
+export function StyleHalftoneIcon({
+  className,
+  ...rest
+}: CanvasStyleIconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={cn("shrink-0", className)}
+      {...rest}
+    >
+      <circle cx="6" cy="6" r="2.2" fill="currentColor" />
+      <circle cx="12" cy="6" r="1.5" fill="currentColor" />
+      <circle cx="18" cy="6" r="2.2" fill="currentColor" />
+      <circle cx="6" cy="12" r="1.5" fill="currentColor" />
+      <circle cx="12" cy="12" r="2.4" fill="currentColor" />
+      <circle cx="18" cy="12" r="1.5" fill="currentColor" />
+      <circle cx="6" cy="18" r="2.2" fill="currentColor" />
+      <circle cx="12" cy="18" r="1.5" fill="currentColor" />
+      <circle cx="18" cy="18" r="2.2" fill="currentColor" />
+    </svg>
+  );
+}

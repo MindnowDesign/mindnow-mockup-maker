@@ -22,9 +22,13 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { CanvasBackgroundTemplatesSection } from "@/components/canvas-background-templates-section";
+import { CanvasDitherControls } from "@/components/canvas-dither-controls";
+import { CanvasHalftoneControls } from "@/components/canvas-halftone-controls";
 import {
   MoodShadowIcon,
   StyleBlurIcon,
+  StyleDitherIcon,
+  StyleHalftoneIcon,
   StyleNoiseIcon,
 } from "@/components/canvas-style-icons";
 import {
@@ -484,17 +488,30 @@ export function CanvasBackgroundControls() {
     setCanvasOverlayShadowOpacity,
     canvasOverlayShadowPlacement,
     setCanvasOverlayShadowPlacement,
+    canvasDitherEnabled,
+    setCanvasDitherEnabled,
+    canvasHalftoneEnabled,
+    setCanvasHalftoneEnabled,
   } = useMockupFrame();
 
   const [openEffectSection, setOpenEffectSection] = useState("");
+  const [openShaderSection, setOpenShaderSection] = useState("");
   const [openMoodSection, setOpenMoodSection] = useState("");
 
   const noiseSectionOpen = openEffectSection === "canvas-effect-noise";
   const blurSectionOpen = openEffectSection === "canvas-effect-blur";
+  const ditherSectionOpen = openShaderSection === "canvas-shader-dither";
+  const halftoneSectionOpen = openShaderSection === "canvas-shader-halftone";
   const shadowSectionOpen = openMoodSection === "canvas-mood-shadow";
 
   function toggleEffectSection(sectionId: string) {
     setOpenEffectSection((current) =>
+      current === sectionId ? "" : sectionId
+    );
+  }
+
+  function toggleShaderSection(sectionId: string) {
+    setOpenShaderSection((current) =>
       current === sectionId ? "" : sectionId
     );
   }
@@ -715,6 +732,62 @@ export function CanvasBackgroundControls() {
             onChange={setCanvasBlurPercent}
             hideLabel
           />
+        </EffectAccordionSection>
+      </div>
+    </div>
+
+    <div className="space-y-2 pt-1">
+      <span className="block text-xs font-medium text-zinc-400">Shaders</span>
+      <div className="space-y-2">
+        <EffectAccordionSection
+          sectionId="canvas-shader-dither"
+          label="Dither"
+          Icon={StyleDitherIcon}
+          open={ditherSectionOpen}
+          onToggle={() => {
+            if (ditherSectionOpen && canvasDitherEnabled) {
+              setCanvasDitherEnabled(false);
+              setOpenShaderSection("");
+              return;
+            }
+            if (!ditherSectionOpen) {
+              setOpenShaderSection("canvas-shader-dither");
+              if (canvasBackgroundImageUrl) {
+                setCanvasHalftoneEnabled(false);
+                setCanvasDitherEnabled(true);
+              }
+              return;
+            }
+            toggleShaderSection("canvas-shader-dither");
+          }}
+          openTrailingIcon={canvasDitherEnabled ? "remove" : "collapse"}
+        >
+          <CanvasDitherControls />
+        </EffectAccordionSection>
+        <EffectAccordionSection
+          sectionId="canvas-shader-halftone"
+          label="Halftone Dots"
+          Icon={StyleHalftoneIcon}
+          open={halftoneSectionOpen}
+          onToggle={() => {
+            if (halftoneSectionOpen && canvasHalftoneEnabled) {
+              setCanvasHalftoneEnabled(false);
+              setOpenShaderSection("");
+              return;
+            }
+            if (!halftoneSectionOpen) {
+              setOpenShaderSection("canvas-shader-halftone");
+              if (canvasBackgroundImageUrl) {
+                setCanvasDitherEnabled(false);
+                setCanvasHalftoneEnabled(true);
+              }
+              return;
+            }
+            toggleShaderSection("canvas-shader-halftone");
+          }}
+          openTrailingIcon={canvasHalftoneEnabled ? "remove" : "collapse"}
+        >
+          <CanvasHalftoneControls />
         </EffectAccordionSection>
       </div>
     </div>

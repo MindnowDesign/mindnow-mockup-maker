@@ -16,6 +16,8 @@ import { MockupDeviceFrame } from "@/components/mockup-device-frame";
 import { CanvasGradientFillPaletteBar } from "@/components/canvas-gradient-fill-palette-bar";
 import { useMockupMedia } from "@/components/mockup-media-context";
 import { CanvasBackgroundNoiseOverlay } from "@/components/canvas-background-noise-overlay";
+import { CanvasBackgroundDitherOverlay } from "@/components/canvas-background-dither-overlay";
+import { CanvasBackgroundHalftoneOverlay } from "@/components/canvas-background-halftone-overlay";
 import { CanvasMoodShadowLayer } from "@/components/canvas-mood-shadow-layer";
 import { CanvasGradientInlineBackground } from "@/components/canvas-gradient-inline-background";
 import { CanvasOrganicBackground } from "@/components/canvas-organic-background";
@@ -677,6 +679,25 @@ export function MockupWorkspaceStage() {
     canvasOverlayShadowId,
     canvasOverlayShadowOpacity,
     canvasOverlayShadowPlacement,
+    canvasDitherEnabled,
+    canvasDitherColorBack,
+    canvasDitherColorFront,
+    canvasDitherColorHighlight,
+    canvasDitherOriginalColors,
+    canvasDitherInverted,
+    canvasDitherType,
+    canvasDitherSize,
+    canvasDitherColorSteps,
+    canvasHalftoneEnabled,
+    canvasHalftoneColorBack,
+    canvasHalftoneColorFront,
+    canvasHalftoneOriginalColors,
+    canvasHalftoneInverted,
+    canvasHalftoneType,
+    canvasHalftoneGrid,
+    canvasHalftoneSize,
+    canvasHalftoneRadius,
+    canvasHalftoneContrast,
     deviceTemplateId,
     browserUrl,
     browserFaviconUrl,
@@ -1042,6 +1063,35 @@ export function MockupWorkspaceStage() {
             noiseColor={canvasNoiseColor}
             noiseColorOpacity={canvasNoiseColorOpacity}
             blendMode={noiseBlendModeEffective}
+          />
+          <CanvasBackgroundDitherOverlay
+            enabled={canvasDitherEnabled}
+            imageUrl={
+              canvasBackgroundMode === "image" ? canvasBackgroundImageUrl : null
+            }
+            colorBack={canvasDitherColorBack}
+            colorFront={canvasDitherColorFront}
+            colorHighlight={canvasDitherColorHighlight}
+            originalColors={canvasDitherOriginalColors}
+            inverted={canvasDitherInverted}
+            type={canvasDitherType}
+            size={canvasDitherSize}
+            colorSteps={canvasDitherColorSteps}
+          />
+          <CanvasBackgroundHalftoneOverlay
+            enabled={canvasHalftoneEnabled}
+            imageUrl={
+              canvasBackgroundMode === "image" ? canvasBackgroundImageUrl : null
+            }
+            colorBack={canvasHalftoneColorBack}
+            colorFront={canvasHalftoneColorFront}
+            originalColors={canvasHalftoneOriginalColors}
+            inverted={canvasHalftoneInverted}
+            type={canvasHalftoneType}
+            grid={canvasHalftoneGrid}
+            size={canvasHalftoneSize}
+            radius={canvasHalftoneRadius}
+            contrast={canvasHalftoneContrast}
           />
           {canvasOverlayShadowPlacement === "underlay" ? (
             <CanvasMoodShadowLayer
