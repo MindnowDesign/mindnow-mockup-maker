@@ -50,6 +50,7 @@ import {
   IPHONE_17_STYLES,
   IMAC_24_STYLES,
   MACBOOK_PRO_16_STYLES,
+  MOCKUP_DEVICE_BY_ID,
   isImac24TemplateId,
   isIphone17ProMaxTemplateId,
   isIphone17TemplateId,
@@ -975,6 +976,17 @@ function DeviceFinishStyleControls({
   styles: readonly DeviceStyleOption[];
 }) {
   const { deviceTemplateId, setDeviceTemplateId } = useMockupFrame();
+
+  useEffect(() => {
+    for (const { templateId } of styles) {
+      const frameSrc = MOCKUP_DEVICE_BY_ID[templateId]?.frameSrc;
+      if (!frameSrc) continue;
+      const img = new Image();
+      img.decoding = "async";
+      img.src = frameSrc;
+    }
+  }, [styles]);
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex min-w-0 flex-col gap-2">

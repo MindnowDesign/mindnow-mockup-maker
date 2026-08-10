@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useLayoutEffect, useRef } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
 import { MOCKUP_DEVICE_BY_ID } from "@/lib/mockup-device-templates";
@@ -21,6 +21,35 @@ type MockupDeviceFrameProps = {
   children: ReactNode;
 };
 
+/** Keep showing the previous decoded frame until the next asset is ready (avoids finish flicker). */
+function useDecodedFrameSrc(src: string): string {
+  const [displayed, setDisplayed] = useState(src);
+
+  useEffect(() => {
+    if (!src || src === displayed) return;
+    let cancelled = false;
+    const img = new Image();
+    img.decoding = "async";
+    const commit = () => {
+      if (!cancelled) setDisplayed(src);
+    };
+    img.onload = () => {
+      if (typeof img.decode === "function") {
+        void img.decode().then(commit).catch(commit);
+      } else {
+        commit();
+      }
+    };
+    img.onerror = commit;
+    img.src = src;
+    return () => {
+      cancelled = true;
+    };
+  }, [src, displayed]);
+
+  return displayed || src;
+}
+
 /**
  * Stacks user media in the screen rect (by %) and draws the frame PNG on top.
  * The frame asset should use a transparent screen area; an opaque black screen will hide the media.
@@ -40,6 +69,8 @@ export function MockupDeviceFrame({
 
   const shadowActive =
     deviceShadow != null && deviceFrameShadowActive(deviceShadow);
+
+  const displayedFrameSrc = useDecodedFrameSrc(template?.frameSrc ?? "");
 
   useLayoutEffect(() => {
     const el = filterRef.current;
@@ -170,7 +201,7 @@ export function MockupDeviceFrame({
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element -- static public asset */}
           <img
-            src={template.frameSrc}
+            src={displayedFrameSrc || template.frameSrc}
             alt=""
             width={fw}
             height={fh}

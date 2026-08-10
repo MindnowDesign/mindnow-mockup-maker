@@ -523,26 +523,23 @@ function UploadedScreenshotImage({
        */
       className="grid h-full min-h-0 w-full min-w-0 grid-cols-1 grid-rows-1 place-content-center place-items-center"
     >
-      {styleWrapperStyle ? (
+      {/*
+        Always keep the same DOM nesting so toggling outline/glass styles does not
+        remount the screenshot <img> (which caused a visible flash).
+      */}
+      <div
+        data-mockup-bounds-target
+        className={shellClassName}
+        style={styleWrapperStyle}
+      >
         <div
-          data-mockup-bounds-target
-          className={shellClassName}
-          style={styleWrapperStyle}
-        >
-          <div data-mockup-media-shell className={shellClassName} style={shellStyle}>
-            {mediaShellInner}
-          </div>
-        </div>
-      ) : (
-        <div
-          data-mockup-bounds-target
           data-mockup-media-shell
           className={shellClassName}
           style={shellStyle}
         >
           {mediaShellInner}
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -771,7 +768,17 @@ export function MockupWorkspaceStage() {
 
   const canTransformMockup = activeItem != null;
 
-  const canvasLayoutSyncKey = `${deviceTemplateId ?? ""},${width},${height},${mockupScale}`;
+  const deviceLayoutSyncKey = useMemo(() => {
+    if (!deviceTemplateId || isBrowserTemplateId(deviceTemplateId)) {
+      return deviceTemplateId ?? "";
+    }
+    const template = MOCKUP_DEVICE_BY_ID[deviceTemplateId];
+    if (!template) return deviceTemplateId;
+    const { framePixelWidth: fw, framePixelHeight: fh, screen: s } = template;
+    return `${fw}x${fh}:${s.leftPct}:${s.topPct}:${s.widthPct}:${s.heightPct}`;
+  }, [deviceTemplateId]);
+
+  const canvasLayoutSyncKey = `${deviceLayoutSyncKey},${width},${height},${mockupScale}`;
 
   const {
     transformRootRef,

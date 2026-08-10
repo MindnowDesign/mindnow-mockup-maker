@@ -181,6 +181,8 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
   visualWorkspacePrefsRef.current = visualWorkspacePrefs;
 
   const skipFramePrefsSyncRef = useRef(false);
+  /** Prefs just written from the live frame — do not push them back via hydrate. */
+  const skipHydrateFromOwnPrefsWriteRef = useRef(false);
 
   useEffect(() => {
     setWorkspaceHydrated(false);
@@ -228,6 +230,10 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!workspaceHydrated) return;
     if (!activeVisualId) return;
+    if (skipHydrateFromOwnPrefsWriteRef.current) {
+      skipHydrateFromOwnPrefsWriteRef.current = false;
+      return;
+    }
     const raw = visualWorkspacePrefsRef.current[activeVisualId];
     const prefs = raw ?? DEFAULT_NEW_VISUAL_WORKSPACE_PREFS;
     skipFramePrefsSyncRef.current = true;
@@ -262,6 +268,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
       return;
     }
     const snap = captureVisualWorkspacePrefs(frame);
+    skipHydrateFromOwnPrefsWriteRef.current = true;
     setState((s) => ({
       ...s,
       visualWorkspacePrefs: {
