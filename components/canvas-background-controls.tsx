@@ -35,6 +35,7 @@ import {
   CANVAS_MOOD_SHADOW_TEMPLATES,
   type CanvasMoodShadowPlacement,
 } from "@/lib/canvas-mood-shadow-templates";
+import { canvasHasShaderableBackground } from "@/lib/canvas-shader-source";
 import { CanvasSolidColorPicker } from "@/components/canvas-solid-color-picker";
 import { EffectAccordionSection } from "@/components/effect-accordion-section";
 import { SolidColorPopoverRow } from "@/components/solid-color-popover-row";
@@ -492,6 +493,7 @@ export function CanvasBackgroundControls() {
     setCanvasDitherEnabled,
     canvasHalftoneEnabled,
     setCanvasHalftoneEnabled,
+    canvasGradientTemplateId,
   } = useMockupFrame();
 
   const [openEffectSection, setOpenEffectSection] = useState("");
@@ -503,6 +505,12 @@ export function CanvasBackgroundControls() {
   const ditherSectionOpen = openShaderSection === "canvas-shader-dither";
   const halftoneSectionOpen = openShaderSection === "canvas-shader-halftone";
   const shadowSectionOpen = openMoodSection === "canvas-mood-shadow";
+
+  const canApplyShader = canvasHasShaderableBackground({
+    mode,
+    imageUrl: canvasBackgroundImageUrl,
+    templateId: canvasGradientTemplateId,
+  });
 
   function toggleEffectSection(sectionId: string) {
     setOpenEffectSection((current) =>
@@ -752,7 +760,7 @@ export function CanvasBackgroundControls() {
             }
             if (!ditherSectionOpen) {
               setOpenShaderSection("canvas-shader-dither");
-              if (canvasBackgroundImageUrl) {
+              if (canApplyShader) {
                 setCanvasHalftoneEnabled(false);
                 setCanvasDitherEnabled(true);
               }
@@ -777,7 +785,7 @@ export function CanvasBackgroundControls() {
             }
             if (!halftoneSectionOpen) {
               setOpenShaderSection("canvas-shader-halftone");
-              if (canvasBackgroundImageUrl) {
+              if (canApplyShader) {
                 setCanvasDitherEnabled(false);
                 setCanvasHalftoneEnabled(true);
               }

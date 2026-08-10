@@ -20,6 +20,7 @@ import {
   type CanvasDitherTypeId,
   normalizeDitherHex,
 } from "@/lib/canvas-dither";
+import { canvasHasShaderableBackground } from "@/lib/canvas-shader-source";
 import { cn } from "@/lib/utils";
 
 function DitherCheckboxRow({
@@ -188,6 +189,7 @@ function DitherTypeDropdown({
 export function CanvasDitherControls() {
   const {
     canvasBackgroundImageUrl,
+    canvasBackgroundMode,
     canvasDitherEnabled,
     setCanvasDitherEnabled,
     canvasDitherColorBack,
@@ -206,6 +208,7 @@ export function CanvasDitherControls() {
     setCanvasDitherSize,
     canvasDitherColorSteps,
     setCanvasDitherColorSteps,
+    canvasGradientTemplateId,
   } = useMockupFrame();
 
   function enableAnd<T>(apply: (value: T) => void) {
@@ -215,11 +218,17 @@ export function CanvasDitherControls() {
     };
   }
 
+  const canApply = canvasHasShaderableBackground({
+    mode: canvasBackgroundMode,
+    imageUrl: canvasBackgroundImageUrl,
+    templateId: canvasGradientTemplateId,
+  });
+
   return (
     <div className="space-y-3">
-      {!canvasBackgroundImageUrl ? (
+      {!canApply ? (
         <p className="text-[11px] leading-relaxed text-zinc-500">
-          Add a background image to apply dithering.
+          Add a background image or choose a template to apply dithering.
         </p>
       ) : null}
       <div className="flex items-center justify-between gap-2">

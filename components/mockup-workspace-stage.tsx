@@ -22,6 +22,7 @@ import { CanvasMoodShadowLayer } from "@/components/canvas-mood-shadow-layer";
 import { CanvasGradientInlineBackground } from "@/components/canvas-gradient-inline-background";
 import { CanvasOrganicBackground } from "@/components/canvas-organic-background";
 import { hexToRgb } from "@/lib/color-hex-hsv";
+import { useCanvasShaderSourceImage } from "@/lib/use-canvas-shader-source-image";
 import { scaledFramePixelSize } from "@/lib/mockup-aspect";
 import {
   browserChromeHeightRatio,
@@ -755,6 +756,19 @@ export function MockupWorkspaceStage() {
     [aspectPreset, maxW, maxH]
   );
 
+  const shaderSourceEnabled = canvasDitherEnabled || canvasHalftoneEnabled;
+  const shaderSourceImageUrl = useCanvasShaderSourceImage({
+    enabled: shaderSourceEnabled,
+    mode: canvasBackgroundMode,
+    imageUrl: canvasBackgroundImageUrl,
+    templateId:
+      canvasBackgroundMode === "template" ? canvasGradientTemplateId : null,
+    fillHex: canvasGradientFillHex,
+    fillOpacity: canvasGradientFillOpacity,
+    canvasWidth: width,
+    canvasHeight: height,
+  });
+
   const canTransformMockup = activeItem != null;
 
   const canvasLayoutSyncKey = `${deviceTemplateId ?? ""},${width},${height},${mockupScale}`;
@@ -1056,7 +1070,7 @@ export function MockupWorkspaceStage() {
             templateId={activeOrganicTemplateId}
             blurLayers={canvasBackgroundBlurLayers}
           />
-          {canvasDitherEnabled || canvasHalftoneEnabled ? (
+          {shaderSourceEnabled && shaderSourceImageUrl ? (
             <div style={canvasBackgroundBlurLayers.container}>
               <div style={canvasBackgroundBlurLayers.shell}>
                 <div
@@ -1065,11 +1079,7 @@ export function MockupWorkspaceStage() {
                 >
                   <CanvasBackgroundDitherOverlay
                     enabled={canvasDitherEnabled}
-                    imageUrl={
-                      canvasBackgroundMode === "image"
-                        ? canvasBackgroundImageUrl
-                        : null
-                    }
+                    imageUrl={shaderSourceImageUrl}
                     colorBack={canvasDitherColorBack}
                     colorFront={canvasDitherColorFront}
                     colorHighlight={canvasDitherColorHighlight}
@@ -1082,11 +1092,7 @@ export function MockupWorkspaceStage() {
                   />
                   <CanvasBackgroundHalftoneOverlay
                     enabled={canvasHalftoneEnabled}
-                    imageUrl={
-                      canvasBackgroundMode === "image"
-                        ? canvasBackgroundImageUrl
-                        : null
-                    }
+                    imageUrl={shaderSourceImageUrl}
                     colorBack={canvasHalftoneColorBack}
                     colorFront={canvasHalftoneColorFront}
                     originalColors={canvasHalftoneOriginalColors}
