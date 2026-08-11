@@ -67,10 +67,57 @@ function DropdownMenuSeparator({
   );
 }
 
+function DropdownMenuLabel({
+  className,
+  ...props
+}: ComponentProps<typeof DropdownMenuPrimitive.Label>) {
+  return (
+    <DropdownMenuPrimitive.Label
+      className={cn(
+        "px-2 py-1.5 text-xs font-medium text-zinc-400",
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+function DropdownMenuRadioGroup(
+  props: ComponentProps<typeof DropdownMenuPrimitive.RadioGroup>
+) {
+  return <DropdownMenuPrimitive.RadioGroup {...props} />;
+}
+
+function DropdownMenuRadioItem({
+  className,
+  children,
+  ...props
+}: ComponentProps<typeof DropdownMenuPrimitive.RadioItem>) {
+  return (
+    <DropdownMenuPrimitive.RadioItem
+      className={cn(
+        "relative flex cursor-pointer select-none items-center rounded-md py-2 pr-2 pl-8 text-sm outline-none focus:bg-white/10 data-disabled:pointer-events-none data-disabled:opacity-40",
+        className
+      )}
+      {...props}
+    >
+      <span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
+        <DropdownMenuPrimitive.ItemIndicator>
+          <span className="size-1.5 rounded-full bg-current" />
+        </DropdownMenuPrimitive.ItemIndicator>
+      </span>
+      {children}
+    </DropdownMenuPrimitive.RadioItem>
+  );
+}
+
 export {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 };

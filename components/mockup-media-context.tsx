@@ -183,9 +183,12 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
   const skipFramePrefsSyncRef = useRef(false);
   /** Prefs just written from the live frame — do not push them back via hydrate. */
   const skipHydrateFromOwnPrefsWriteRef = useRef(false);
+  /** Last visual id that was pushed into the live frame (detect switches). */
+  const lastHydratedVisualIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     setWorkspaceHydrated(false);
+    lastHydratedVisualIdRef.current = null;
     function onHydrated(ev: Event) {
       const detail = (ev as CustomEvent<WorkspaceHydratedDetail>).detail;
       if (detail?.pathname === pathname) {
@@ -230,10 +233,17 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!workspaceHydrated) return;
     if (!activeVisualId) return;
-    if (skipHydrateFromOwnPrefsWriteRef.current) {
+    const visualSwitched =
+      lastHydratedVisualIdRef.current !== activeVisualId;
+    // Only skip when prefs were written from the live frame for the *same*
+    // visual. A visual switch (e.g. “Add visual”) must always hydrate defaults
+    // / saved prefs — otherwise the previous canvas leaks into the new slot.
+    if (!visualSwitched && skipHydrateFromOwnPrefsWriteRef.current) {
       skipHydrateFromOwnPrefsWriteRef.current = false;
       return;
     }
+    skipHydrateFromOwnPrefsWriteRef.current = false;
+    lastHydratedVisualIdRef.current = activeVisualId;
     const raw = visualWorkspacePrefsRef.current[activeVisualId];
     const prefs = raw ?? DEFAULT_NEW_VISUAL_WORKSPACE_PREFS;
     skipFramePrefsSyncRef.current = true;
@@ -532,13 +542,16 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
 
   const addEmptyVisual = useCallback(() => {
     const snap = captureVisualWorkspacePrefs(frame);
+    // Block frame→prefs sync until the hydrate effect applies defaults for the
+    // new slot (avoids copying the previous canvas into the fresh visual).
+    skipFramePrefsSyncRef.current = true;
     setState((s) => {
       const prefsMap = { ...s.visualWorkspacePrefs };
       if (s.activeVisualId) {
         prefsMap[s.activeVisualId] = snap;
       }
       const id = crypto.randomUUID();
-      prefsMap[id] = DEFAULT_NEW_VISUAL_WORKSPACE_PREFS;
+      prefsMap[id] = { ...DEFAULT_NEW_VISUAL_WORKSPACE_PREFS };
       return {
         ...s,
         visualWorkspacePrefs: prefsMap,

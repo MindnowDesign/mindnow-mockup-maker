@@ -901,6 +901,16 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
         setCanvasDitherTypeState(DEFAULT_CANVAS_DITHER_TYPE);
         setCanvasDitherSizeState(DEFAULT_CANVAS_DITHER_SIZE);
         setCanvasDitherColorStepsState(DEFAULT_CANVAS_DITHER_COLOR_STEPS);
+        setCanvasHalftoneEnabled(DEFAULT_CANVAS_HALFTONE_ENABLED);
+        setCanvasHalftoneColorBackState(DEFAULT_CANVAS_HALFTONE_COLOR_BACK);
+        setCanvasHalftoneColorFrontState(DEFAULT_CANVAS_HALFTONE_COLOR_FRONT);
+        setCanvasHalftoneOriginalColors(DEFAULT_CANVAS_HALFTONE_ORIGINAL_COLORS);
+        setCanvasHalftoneInverted(DEFAULT_CANVAS_HALFTONE_INVERTED);
+        setCanvasHalftoneTypeState(DEFAULT_CANVAS_HALFTONE_TYPE);
+        setCanvasHalftoneGridState(DEFAULT_CANVAS_HALFTONE_GRID);
+        setCanvasHalftoneSizeState(DEFAULT_CANVAS_HALFTONE_SIZE);
+        setCanvasHalftoneRadiusState(DEFAULT_CANVAS_HALFTONE_RADIUS);
+        setCanvasHalftoneContrastState(DEFAULT_CANVAS_HALFTONE_CONTRAST);
         return;
       }
       setCanvasBackgroundMode(payload.mode);

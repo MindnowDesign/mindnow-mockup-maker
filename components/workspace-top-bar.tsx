@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Pencil } from "lucide-react";
+import { Pencil } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -9,7 +9,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useMockupFrame } from "@/components/mockup-frame-context";
 import { useMockupMedia } from "@/components/mockup-media-context";
-import { Button } from "@/components/ui/button";
+import { WorkspaceExportButton } from "@/components/workspace-export-button";
 import { useProjectWorkspaceTitle } from "@/components/project-workspace-title-context";
 import {
   clearPendingNewProjectId,
@@ -913,14 +913,7 @@ export function WorkspaceTopBar({
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-2">
-        <Button
-          type="button"
-          variant="default"
-          size="lg"
-        >
-          <Download className="size-4" strokeWidth={1.75} aria-hidden />
-          Export
-        </Button>
+        <WorkspaceExportButton projectTitle={title} />
       </div>
     </header>
   );
