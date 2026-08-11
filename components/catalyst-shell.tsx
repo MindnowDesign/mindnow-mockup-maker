@@ -13,6 +13,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { ProjectWorkspaceTitleProvider } from "@/components/project-workspace-title-context";
+import { UserProfileDialog } from "@/components/user-profile-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   TooltipProvider,
@@ -167,29 +168,38 @@ export function CatalystShell({
       </SidebarBody>
 
       <SidebarFooter>
-        <button
-          type="button"
-          className="flex w-full min-w-0 items-center gap-2 rounded-lg px-2 py-2 text-left outline-none transition-colors hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-white/25"
-          aria-label={`${user.firstName} ${user.lastName} — ${user.email}`}
-          aria-haspopup="menu"
-        >
-          <span className="flex min-w-0 flex-1 items-center gap-3">
-            <Avatar className="size-10 shrink-0 rounded-md after:rounded-md [&_[data-slot=avatar-fallback]]:rounded-md">
-              <AvatarFallback className="rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-600 text-sm font-semibold text-white">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm/5 font-medium text-white">
-                {user.firstName} {user.lastName}
+        <UserProfileDialog
+          user={user}
+          teamLabel={teamLabel}
+          trigger={
+            <button
+              type="button"
+              className="flex w-full min-w-0 items-center gap-2 rounded-lg px-2 py-2 text-left outline-none transition-colors hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-white/25"
+              aria-label={`${user.firstName} ${user.lastName} — ${user.email}`}
+              aria-haspopup="dialog"
+            >
+              <span className="flex min-w-0 flex-1 items-center gap-3">
+                <Avatar className="size-10 shrink-0 rounded-md after:rounded-md [&_[data-slot=avatar-fallback]]:rounded-md">
+                  <AvatarFallback
+                    className="rounded-md text-sm font-semibold text-white"
+                    style={{ backgroundColor: "#D94716" }}
+                  >
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm/5 font-medium text-white">
+                    {user.firstName} {user.lastName}
+                  </span>
+                  <span className="block truncate text-xs/5 font-normal text-zinc-400">
+                    {user.email}
+                  </span>
+                </span>
               </span>
-              <span className="block truncate text-xs/5 font-normal text-zinc-400">
-                {user.email}
-              </span>
-            </span>
-          </span>
-          <ChevronUp className="size-4 shrink-0 text-zinc-500" aria-hidden />
-        </button>
+              <ChevronUp className="size-4 shrink-0 text-zinc-500" aria-hidden />
+            </button>
+          }
+        />
       </SidebarFooter>
     </Sidebar>
   );
@@ -217,7 +227,10 @@ export function CatalystShell({
                   current={isAccount}
                   aria-label="Account"
                 >
-                  <span className="flex size-8 items-center justify-center rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-600 text-xs font-semibold text-white">
+                  <span
+                    className="flex size-8 items-center justify-center rounded-md text-xs font-semibold text-white"
+                    style={{ backgroundColor: "#D94716" }}
+                  >
                     {initials}
                   </span>
                 </NavbarItem>

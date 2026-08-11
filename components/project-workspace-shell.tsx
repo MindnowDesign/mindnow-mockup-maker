@@ -15,6 +15,7 @@ import { MockupFrameProvider } from "@/components/mockup-frame-context";
 import { MockupMediaProvider } from "@/components/mockup-media-context";
 import { MockupWorkspaceHistoryProvider } from "@/components/mockup-workspace-history";
 import { ProjectWorkspaceHydrate } from "@/components/project-workspace-hydrate";
+import { UserProfileDialog } from "@/components/user-profile-dialog";
 import { WorkspaceTopBar } from "@/components/workspace-top-bar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -183,23 +184,32 @@ export function ProjectWorkspaceShell({
       </SidebarBody>
 
       <SidebarFooter className="px-1.5">
-        <button
-          type="button"
-          className={cn(
-            "flex w-full min-w-0 items-center gap-2 rounded-lg px-2 py-2 text-left outline-none transition-colors hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-white/25",
-            SIDEBAR_COMPACT_CONTROL
-          )}
-          aria-label={`${user.firstName} ${user.lastName} — ${user.email}`}
-          aria-haspopup="menu"
-        >
-          <span className="flex min-w-0 flex-none items-center justify-center gap-3">
-            <Avatar className="size-10 shrink-0 rounded-md after:rounded-md [&_[data-slot=avatar-fallback]]:rounded-md">
-              <AvatarFallback className="rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-600 text-sm font-semibold text-white">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-          </span>
-        </button>
+        <UserProfileDialog
+          user={user}
+          teamLabel={teamLabel}
+          trigger={
+            <button
+              type="button"
+              className={cn(
+                "flex w-full min-w-0 items-center gap-2 rounded-lg px-2 py-2 text-left outline-none transition-colors hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-white/25",
+                SIDEBAR_COMPACT_CONTROL
+              )}
+              aria-label={`${user.firstName} ${user.lastName} — ${user.email}`}
+              aria-haspopup="dialog"
+            >
+              <span className="flex min-w-0 flex-none items-center justify-center gap-3">
+                <Avatar className="size-10 shrink-0 rounded-md after:rounded-md [&_[data-slot=avatar-fallback]]:rounded-md">
+                  <AvatarFallback
+                    className="rounded-md text-sm font-semibold text-white"
+                    style={{ backgroundColor: "#D94716" }}
+                  >
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              </span>
+            </button>
+          }
+        />
       </SidebarFooter>
     </Sidebar>
   );

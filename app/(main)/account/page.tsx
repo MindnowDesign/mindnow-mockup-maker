@@ -5,7 +5,8 @@ export default function AccountPage() {
         Account
       </h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Profile and settings (placeholder).
+        Open settings from your avatar in the sidebar to manage profile, account,
+        and team members.
       </p>
     </div>
   );
