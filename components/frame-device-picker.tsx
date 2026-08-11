@@ -82,16 +82,27 @@ function TemplateStyleCountHint({
 }
 
 /** Fixed preview height so every TemplateTile matches across tabs. */
-function PreviewPlate({ children }: { children?: ReactNode }) {
+function thumbnailPreviewSrc(filename: string): string {
+  return `/thumbnail-preview/${encodeURIComponent(filename)}`;
+}
+
+function PreviewPlate({ src }: { src: string }) {
   return (
     <div className="relative h-44 w-full overflow-hidden rounded-lg bg-zinc-900">
-      {children}
+      <div className="absolute inset-2.5 overflow-hidden rounded-md bg-zinc-800">
+        {/* eslint-disable-next-line @next/next/no-img-element -- static tile thumbnail */}
+        <img
+          src={src}
+          alt=""
+          className="absolute inset-0 size-full object-cover"
+          draggable={false}
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
     </div>
   );
 }
-
-const TILE_PREVIEW_INNER =
-  "absolute inset-2.5 rounded-md bg-zinc-800";
 
 function TemplateTile({
   title,
@@ -187,19 +198,10 @@ export function FrameDevicePicker() {
       setFilterTab("phone");
       return;
     }
-    if (deviceTemplateId === "tablet-11-space-black") {
-      setSelection({
-        preset: "tablet",
-        headline: "Tablet 11″",
-        detail: "834 × 1194",
-      });
-      setFilterTab("tablet");
-      return;
-    }
     if (deviceTemplateId === "tablet-13-space-black") {
       setSelection({
         preset: "tablet",
-        headline: "Tablet 13″",
+        headline: "iPad Pro",
         detail: "1024 × 1366",
       });
       setFilterTab("tablet");
@@ -262,7 +264,6 @@ export function FrameDevicePicker() {
     const warmIds = [
       "iphone-17-black",
       "iphone-17-pro-max-silver",
-      "tablet-11-space-black",
       "tablet-13-space-black",
       "imac-24-silver",
       "macbook-pro-16-silver",
@@ -375,9 +376,9 @@ export function FrameDevicePicker() {
                         </span>
                       }
                       preview={
-                        <PreviewPlate>
-                          <div className={TILE_PREVIEW_INNER} />
-                        </PreviewPlate>
+                        <PreviewPlate
+                          src={thumbnailPreviewSrc("thumbnail-screenshot.png")}
+                        />
                       }
                       onPick={() => {
                         setDeviceTemplateId(null);
@@ -397,17 +398,9 @@ export function FrameDevicePicker() {
                         </span>
                       }
                       preview={
-                        <PreviewPlate>
-                          <div className={TILE_PREVIEW_INNER}>
-                            {/* eslint-disable-next-line @next/next/no-img-element -- static preview */}
-                            <img
-                              src={MOCKUP_BROWSER_TEMPLATES[0]!.chromeSrc}
-                              alt=""
-                              className="absolute inset-x-2.5 top-2.5 h-auto w-[calc(100%-1.25rem)] object-contain object-top"
-                              draggable={false}
-                            />
-                          </div>
-                        </PreviewPlate>
+                        <PreviewPlate
+                          src={thumbnailPreviewSrc("thumbnail-browser.png")}
+                        />
                       }
                       onPick={() => {
                         pickBrowser("browser-chrome-light", "Chrome Light");
@@ -425,9 +418,9 @@ export function FrameDevicePicker() {
                         <TemplateStyleCountHint options={IPHONE_17_STYLES} />
                       }
                       preview={
-                        <PreviewPlate>
-                          <div className={TILE_PREVIEW_INNER} />
-                        </PreviewPlate>
+                        <PreviewPlate
+                          src={thumbnailPreviewSrc("thumbnail-iphone 17.png")}
+                        />
                       }
                       onPick={() => {
                         setDeviceTemplateId("iphone-17-black");
@@ -447,9 +440,11 @@ export function FrameDevicePicker() {
                         />
                       }
                       preview={
-                        <PreviewPlate>
-                          <div className={TILE_PREVIEW_INNER} />
-                        </PreviewPlate>
+                        <PreviewPlate
+                          src={thumbnailPreviewSrc(
+                            "thumbnail-iphone 17 pro max.png"
+                          )}
+                        />
                       }
                       onPick={() => {
                         setDeviceTemplateId("iphone-17-pro-max-silver");
@@ -466,35 +461,18 @@ export function FrameDevicePicker() {
                 <TabsContent value="tablet" className="m-0 outline-none">
                   <div className="grid grid-cols-2 items-stretch gap-2">
                     <TemplateTile
-                      title="Tablet 11″"
-                      resolution="834 × 1194"
-                      preview={
-                        <PreviewPlate>
-                          <div className={TILE_PREVIEW_INNER} />
-                        </PreviewPlate>
-                      }
-                      onPick={() => {
-                        setDeviceTemplateId("tablet-11-space-black");
-                        pickTemplate({
-                          preset: "tablet",
-                          headline: "Tablet 11″",
-                          detail: "834 × 1194",
-                        });
-                      }}
-                    />
-                    <TemplateTile
-                      title="Tablet 13″"
+                      title="iPad Pro"
                       resolution="1024 × 1366"
                       preview={
-                        <PreviewPlate>
-                          <div className={TILE_PREVIEW_INNER} />
-                        </PreviewPlate>
+                        <PreviewPlate
+                          src={thumbnailPreviewSrc("thumbnail-ipad pro.png")}
+                        />
                       }
                       onPick={() => {
                         setDeviceTemplateId("tablet-13-space-black");
                         pickTemplate({
                           preset: "tablet",
-                          headline: "Tablet 13″",
+                          headline: "iPad Pro",
                           detail: "1024 × 1366",
                         });
                       }}
@@ -511,9 +489,9 @@ export function FrameDevicePicker() {
                         <TemplateStyleCountHint options={IMAC_24_STYLES} />
                       }
                       preview={
-                        <PreviewPlate>
-                          <div className={TILE_PREVIEW_INNER} />
-                        </PreviewPlate>
+                        <PreviewPlate
+                          src={thumbnailPreviewSrc("thumbnail-imac.png")}
+                        />
                       }
                       onPick={() => {
                         setDeviceTemplateId("imac-24-silver");
@@ -536,9 +514,9 @@ export function FrameDevicePicker() {
                         <TemplateStyleCountHint options={MACBOOK_PRO_16_STYLES} />
                       }
                       preview={
-                        <PreviewPlate>
-                          <div className={TILE_PREVIEW_INNER} />
-                        </PreviewPlate>
+                        <PreviewPlate
+                          src={thumbnailPreviewSrc("thumbnail-macbook pro.png")}
+                        />
                       }
                       onPick={() => {
                         setDeviceTemplateId("macbook-pro-16-silver");
@@ -556,9 +534,9 @@ export function FrameDevicePicker() {
                         <TemplateStyleCountHint options={MACBOOK_AIR_13_STYLES} />
                       }
                       preview={
-                        <PreviewPlate>
-                          <div className={TILE_PREVIEW_INNER} />
-                        </PreviewPlate>
+                        <PreviewPlate
+                          src={thumbnailPreviewSrc("thumbnail-macbook air.png")}
+                        />
                       }
                       onPick={() => {
                         setDeviceTemplateId("macbook-air-13-silver");

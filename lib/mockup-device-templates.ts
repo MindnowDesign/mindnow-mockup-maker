@@ -444,27 +444,8 @@ export const MOCKUP_DEVICE_TEMPLATES: MockupDeviceTemplate[] = [
     screen: { ...IPHONE_17_PRO_MAX_SCREEN },
   },
   {
-    id: "tablet-11-space-black",
-    label: "Tablet 11″",
-    frameSrc: mockupDeviceFile("tablet-11-space-black.png"),
-    framePixelWidth: 1868,
-    framePixelHeight: 2620,
-    /** Hole is 99,100 1668×2420; expand 2px under bezel to avoid canvas bleed. */
-    screen: {
-      leftPct: (97 / 1868) * 100,
-      topPct: (98 / 2620) * 100,
-      widthPct: (1672 / 1868) * 100,
-      heightPct: (2424 / 2620) * 100,
-    },
-    /** ~68px circular corner matching the frame screen hole */
-    screenBorderRadiusPct: {
-      xPct: (70 / 1672) * 100,
-      yPct: (70 / 2424) * 100,
-    },
-  },
-  {
     id: "tablet-13-space-black",
-    label: "Tablet 13″",
+    label: "iPad Pro",
     frameSrc: mockupDeviceFile("tablet-13-space-black.png"),
     framePixelWidth: 2264,
     framePixelHeight: 2952,
