@@ -249,6 +249,66 @@ export function isMacbookPro16TemplateId(id: string | null): boolean {
   return MACBOOK_PRO_16_STYLES.some((s) => s.templateId === id);
 }
 
+/** Shared geometry for MacBook Air 13″ finish PNGs — enclosed cutout 208,35 1634×1062; expand 2px. */
+const MACBOOK_AIR_13_FRAME_WIDTH = 2048;
+const MACBOOK_AIR_13_FRAME_HEIGHT = 1241;
+const MACBOOK_AIR_13_SCREEN: MockupDeviceScreenInset = {
+  leftPct: (206 / MACBOOK_AIR_13_FRAME_WIDTH) * 100,
+  topPct: (33 / MACBOOK_AIR_13_FRAME_HEIGHT) * 100,
+  widthPct: (1638 / MACBOOK_AIR_13_FRAME_WIDTH) * 100,
+  heightPct: (1066 / MACBOOK_AIR_13_FRAME_HEIGHT) * 100,
+};
+
+const MACBOOK_AIR_13_SHARED = {
+  framePixelWidth: MACBOOK_AIR_13_FRAME_WIDTH,
+  framePixelHeight: MACBOOK_AIR_13_FRAME_HEIGHT,
+  screen: MACBOOK_AIR_13_SCREEN,
+  screenBorderRadiusPct: {
+    xPct: (21 / 1638) * 100,
+    yPct: (21 / 1066) * 100,
+  },
+  fitToScreen: true,
+  fitScale: 0.9,
+  /** Page screenshots anchor from the top of the screen hole. */
+  screenObjectPosition: "top center",
+} as const;
+
+const MACBOOK_AIR_13_FRAME_SRC: Record<string, string> = {
+  "macbook-air-13-silver": mockupDeviceFile("macbook air-silver.png"),
+  "macbook-air-13-midnight": mockupDeviceFile("macbook air-midnight.png"),
+  "macbook-air-13-sky-blue": mockupDeviceFile("macbook air-sky blue.png"),
+  "macbook-air-13-starlight": mockupDeviceFile("macbook air-starlight.png"),
+};
+
+/** Finish presets for MacBook Air 13″ — picker footer + sidebar Styles row. */
+export const MACBOOK_AIR_13_STYLES: DeviceStyleOption[] = [
+  {
+    templateId: "macbook-air-13-silver",
+    shortLabel: "Silver",
+    coverSrc: deviceStyleCover("macbook air-color-silver.png"),
+  },
+  {
+    templateId: "macbook-air-13-midnight",
+    shortLabel: "Midnight",
+    coverSrc: deviceStyleCover("macbook air-color-midnight.png"),
+  },
+  {
+    templateId: "macbook-air-13-sky-blue",
+    shortLabel: "Sky Blue",
+    coverSrc: deviceStyleCover("macbook air-color-sky blue.png"),
+  },
+  {
+    templateId: "macbook-air-13-starlight",
+    shortLabel: "Starlight",
+    coverSrc: deviceStyleCover("macbook air-color-starlight.png"),
+  },
+];
+
+export function isMacbookAir13TemplateId(id: string | null): boolean {
+  if (!id) return false;
+  return MACBOOK_AIR_13_STYLES.some((s) => s.templateId === id);
+}
+
 /** Shared geometry for iMac 24″ Apple bezel PNGs — enclosed cutout 140,150 4480×2520; expand 2px. */
 const IMAC_24_FRAME_WIDTH = 4760;
 const IMAC_24_FRAME_HEIGHT = 4050;
@@ -429,26 +489,12 @@ export const MOCKUP_DEVICE_TEMPLATES: MockupDeviceTemplate[] = [
   })),
   MACBOOK_PRO_16_SILVER,
   MACBOOK_PRO_16_SPACE_BLACK,
-  {
-    id: "macbook-air-13",
+  ...MACBOOK_AIR_13_STYLES.map(({ templateId }) => ({
+    id: templateId,
     label: "MacBook Air 13″",
-    frameSrc: mockupDeviceFile("macbook-air-13.png"),
-    framePixelWidth: 3840,
-    framePixelHeight: 2401,
-    /** Hole is 640,401 2560×1599; expand 2px under bezel. */
-    screen: {
-      leftPct: (638 / 3840) * 100,
-      topPct: (399 / 2401) * 100,
-      widthPct: (2564 / 3840) * 100,
-      heightPct: (1603 / 2401) * 100,
-    },
-    screenBorderRadiusPct: {
-      xPct: (24 / 2564) * 100,
-      yPct: (24 / 1603) * 100,
-    },
-    fitToScreen: true,
-    fitScale: 0.9,
-  },
+    frameSrc: MACBOOK_AIR_13_FRAME_SRC[templateId]!,
+    ...MACBOOK_AIR_13_SHARED,
+  })),
 ];
 
 const _deviceById = Object.fromEntries(
@@ -457,6 +503,7 @@ const _deviceById = Object.fromEntries(
 
 /** Legacy persisted id before color finishes shipped. */
 _deviceById["imac-24"] = _deviceById["imac-24-silver"]!;
+_deviceById["macbook-air-13"] = _deviceById["macbook-air-13-silver"]!;
 
 export const MOCKUP_DEVICE_BY_ID: Record<string, MockupDeviceTemplate> =
   _deviceById;

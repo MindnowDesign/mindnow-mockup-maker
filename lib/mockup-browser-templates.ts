@@ -266,6 +266,7 @@ export function normalizeDeviceTemplateId(
 ): string | null {
   if (id === "browser") return "browser-chrome-light";
   if (id === "macbook-pro-16") return "macbook-pro-16-silver";
+  if (id === "macbook-air-13") return "macbook-air-13-silver";
   return id ?? null;
 }
 

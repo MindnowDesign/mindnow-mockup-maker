@@ -49,11 +49,13 @@ import {
   IPHONE_17_PRO_MAX_STYLES,
   IPHONE_17_STYLES,
   IMAC_24_STYLES,
+  MACBOOK_AIR_13_STYLES,
   MACBOOK_PRO_16_STYLES,
   MOCKUP_DEVICE_BY_ID,
   isImac24TemplateId,
   isIphone17ProMaxTemplateId,
   isIphone17TemplateId,
+  isMacbookAir13TemplateId,
   isMacbookPro16TemplateId,
   type DeviceStyleOption,
 } from "@/lib/mockup-device-templates";
@@ -1060,6 +1062,10 @@ function MacbookPro16StyleControls() {
   return <DeviceFinishStyleControls styles={MACBOOK_PRO_16_STYLES} />;
 }
 
+function MacbookAir13StyleControls() {
+  return <DeviceFinishStyleControls styles={MACBOOK_AIR_13_STYLES} />;
+}
+
 function Imac24StyleControls() {
   return <DeviceFinishStyleControls styles={IMAC_24_STYLES} />;
 }
@@ -1081,6 +1087,9 @@ export function FrameDeviceStyles() {
   }
   if (isMacbookPro16TemplateId(deviceTemplateId)) {
     return <MacbookPro16StyleControls />;
+  }
+  if (isMacbookAir13TemplateId(deviceTemplateId)) {
+    return <MacbookAir13StyleControls />;
   }
   if (isImac24TemplateId(deviceTemplateId)) {
     return <Imac24StyleControls />;
