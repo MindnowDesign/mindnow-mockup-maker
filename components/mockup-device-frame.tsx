@@ -3,7 +3,10 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
-import { MOCKUP_DEVICE_BY_ID } from "@/lib/mockup-device-templates";
+import {
+  MOCKUP_DEVICE_BY_ID,
+  type MockupDeviceTemplate,
+} from "@/lib/mockup-device-templates";
 import { isBrowserTemplateId } from "@/lib/mockup-browser-templates";
 import {
   deviceFrameShadowActive,
@@ -21,33 +24,67 @@ type MockupDeviceFrameProps = {
   children: ReactNode;
 };
 
-/** Keep showing the previous decoded frame until the next asset is ready (avoids finish flicker). */
-function useDecodedFrameSrc(src: string): string {
-  const [displayed, setDisplayed] = useState(src);
-
-  useEffect(() => {
-    if (!src || src === displayed) return;
-    let cancelled = false;
+/**
+ * Keep showing the previous device (geometry + frame PNG) until the next asset
+ * is decoded, then swap both together — avoids the stretch/flash from updating
+ * layout before the new bezel image is ready.
+ */
+function preloadFrame(src: string): Promise<void> {
+  return new Promise((resolve) => {
     const img = new Image();
     img.decoding = "async";
-    const commit = () => {
-      if (!cancelled) setDisplayed(src);
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
     };
     img.onload = () => {
       if (typeof img.decode === "function") {
-        void img.decode().then(commit).catch(commit);
+        void img.decode().then(finish).catch(finish);
       } else {
-        commit();
+        finish();
       }
     };
-    img.onerror = commit;
+    img.onerror = finish;
     img.src = src;
+    if (img.complete) finish();
+  });
+}
+
+function useDisplayedDeviceTemplate(
+  target: MockupDeviceTemplate | undefined
+): MockupDeviceTemplate | undefined {
+  const [displayed, setDisplayed] = useState(target);
+  const displayedRef = useRef(displayed);
+  displayedRef.current = displayed;
+
+  useEffect(() => {
+    if (!target) {
+      setDisplayed(undefined);
+      return;
+    }
+
+    const current = displayedRef.current;
+    if (!current) {
+      setDisplayed(target);
+      return;
+    }
+    if (current.id === target.id && current.frameSrc === target.frameSrc) {
+      return;
+    }
+
+    let cancelled = false;
+    void preloadFrame(target.frameSrc).then(() => {
+      if (!cancelled) setDisplayed(target);
+    });
+
     return () => {
       cancelled = true;
     };
-  }, [src, displayed]);
+  }, [target]);
 
-  return displayed || src;
+  return displayed;
 }
 
 /**
@@ -62,7 +99,7 @@ export function MockupDeviceFrame({
 }: MockupDeviceFrameProps) {
   const shadowFilterId = useId().replace(/:/g, "");
   const filterRef = useRef<HTMLDivElement>(null);
-  const template =
+  const targetTemplate =
     deviceTemplateId && !isBrowserTemplateId(deviceTemplateId)
       ? MOCKUP_DEVICE_BY_ID[deviceTemplateId]
       : undefined;
@@ -70,7 +107,7 @@ export function MockupDeviceFrame({
   const shadowActive =
     deviceShadow != null && deviceFrameShadowActive(deviceShadow);
 
-  const displayedFrameSrc = useDecodedFrameSrc(template?.frameSrc ?? "");
+  const template = useDisplayedDeviceTemplate(targetTemplate);
 
   useLayoutEffect(() => {
     const el = filterRef.current;
@@ -201,7 +238,7 @@ export function MockupDeviceFrame({
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element -- static public asset */}
           <img
-            src={displayedFrameSrc || template.frameSrc}
+            src={template.frameSrc}
             alt=""
             width={fw}
             height={fh}

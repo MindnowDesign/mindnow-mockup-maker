@@ -28,7 +28,7 @@ import {
   isBrowserTemplateId,
   MOCKUP_BROWSER_TEMPLATES,
 } from "@/lib/mockup-browser-templates";
-import { IPHONE_17_PRO_MAX_STYLES, IPHONE_17_STYLES, IMAC_24_STYLES, isIphone17TemplateId, MACBOOK_AIR_13_STYLES, MACBOOK_PRO_16_STYLES, isMacbookAir13TemplateId, isMacbookPro16TemplateId, isImac24TemplateId } from "@/lib/mockup-device-templates";
+import { IPHONE_17_PRO_MAX_STYLES, IPHONE_17_STYLES, IMAC_24_STYLES, isIphone17TemplateId, MACBOOK_AIR_13_STYLES, MACBOOK_PRO_16_STYLES, MOCKUP_DEVICE_BY_ID, isMacbookAir13TemplateId, isMacbookPro16TemplateId, isImac24TemplateId } from "@/lib/mockup-device-templates";
 
 export type FrameDeviceValue =
   | "screenshot"
@@ -255,6 +255,27 @@ export function FrameDevicePicker() {
     setSelection(next);
     setOpen(false);
   }
+
+  useEffect(() => {
+    if (!open) return;
+    // Warm default finish frames so cross-device swaps don't flash an unloaded bezel.
+    const warmIds = [
+      "iphone-17-black",
+      "iphone-17-pro-max-silver",
+      "tablet-11-space-black",
+      "tablet-13-space-black",
+      "imac-24-silver",
+      "macbook-pro-16-silver",
+      "macbook-air-13-silver",
+    ] as const;
+    for (const id of warmIds) {
+      const src = MOCKUP_DEVICE_BY_ID[id]?.frameSrc;
+      if (!src) continue;
+      const img = new Image();
+      img.decoding = "async";
+      img.src = src;
+    }
+  }, [open]);
 
   return (
     <div className="space-y-6">
