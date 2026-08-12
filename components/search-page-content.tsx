@@ -209,7 +209,7 @@ export function SearchPageContent() {
             </label>
             <div
               className={cn(
-                "flex h-12 w-full items-center gap-3 rounded-full",
+                "flex h-10 w-full items-center gap-3 rounded-full",
                 "bg-zinc-900 px-4",
                 "ring-1 ring-inset ring-zinc-800",
                 "focus-within:ring-white/20"

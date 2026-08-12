@@ -50,7 +50,7 @@ const changeLinkClass =
   "w-fit self-start text-left text-sm font-medium text-sky-400 transition-colors hover:text-sky-300";
 
 const fieldInputClass =
-  "w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus-visible:ring-2 focus-visible:ring-white/20";
+  "box-border h-10 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 text-sm text-zinc-100 outline-none focus-visible:ring-2 focus-visible:ring-white/20";
 
 function SettingsSection({
   label,
@@ -137,12 +137,11 @@ function ProfilePanel({
               autoFocus
             />
             <div className="flex gap-2">
-              <Button type="button" size="sm" onClick={saveName}>
+              <Button type="button" onClick={saveName}>
                 Save
               </Button>
               <Button
                 type="button"
-                size="sm"
                 variant="ghost"
                 className="text-zinc-300 hover:bg-white/5 hover:text-white"
                 onClick={() => setEditing(null)}
@@ -173,12 +172,11 @@ function ProfilePanel({
               autoFocus
             />
             <div className="flex gap-2">
-              <Button type="button" size="sm" onClick={saveEmail}>
+              <Button type="button" onClick={saveEmail}>
                 Save
               </Button>
               <Button
                 type="button"
-                size="sm"
                 variant="ghost"
                 className="text-zinc-300 hover:bg-white/5 hover:text-white"
                 onClick={() => setEditing(null)}
@@ -361,12 +359,11 @@ function TeamMembersPanel({
               autoFocus
             />
             <div className="flex gap-2">
-              <Button type="button" size="sm" onClick={saveTeamName}>
+              <Button type="button" onClick={saveTeamName}>
                 Save
               </Button>
               <Button
                 type="button"
-                size="sm"
                 variant="ghost"
                 className="text-zinc-300 hover:bg-white/5 hover:text-white"
                 onClick={() => setEditingTeam(false)}
@@ -436,7 +433,7 @@ function TeamMembersPanel({
       </SettingsSection>
 
       <SettingsSection label="Invite member">
-        <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-stretch">
           <input
             aria-label="Invite email"
             type="email"
@@ -453,7 +450,7 @@ function TeamMembersPanel({
           />
           <Button
             type="button"
-            className="w-fit"
+            className="h-10 w-fit py-0"
             disabled={!inviteEmail.trim()}
             onClick={inviteMember}
           >

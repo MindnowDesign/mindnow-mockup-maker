@@ -46,7 +46,7 @@ export function ProjectCardsGrid() {
           Create a project to start building mockups. Your work will show up
           here.
         </p>
-        <Button asChild className="mt-1">
+        <Button asChild className="mt-1 h-10">
           <Link href="/projects/new">
             <Plus data-icon="inline-start" strokeWidth={1.75} aria-hidden />
             Create new project

@@ -962,7 +962,7 @@ function BrowserStyleControls() {
             autoComplete="off"
             className={cn(
               inputChrome,
-              "min-w-0 flex-1 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600"
+              "box-border h-10 min-w-0 flex-1 px-3 text-sm text-zinc-100 placeholder:text-zinc-600"
             )}
           />
         </div>
