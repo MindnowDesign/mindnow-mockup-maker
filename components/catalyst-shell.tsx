@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ChevronDown,
   ChevronUp,
   Folder,
   Home,
@@ -132,21 +131,12 @@ export function CatalystShell({
   const sidebarRail = (
     <Sidebar>
       <SidebarHeader className="px-2">
-        <button
-          type="button"
-          className="mb-2.5 flex w-full min-w-0 items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm/6 font-medium text-white outline-none transition-colors hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-white/25"
-          aria-expanded="false"
-          aria-haspopup="menu"
-        >
+        <div className="mb-2.5 flex w-full min-w-0 items-center gap-3 rounded-lg px-2.5 py-2 text-sm/6 font-medium text-white">
           <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg">
             {logo ?? <DefaultSidebarLogo label={teamLabel} />}
           </span>
           <SidebarLabel className="flex-1">{teamLabel}</SidebarLabel>
-          <ChevronDown
-            className="size-4 shrink-0 text-zinc-500"
-            aria-hidden
-          />
-        </button>
+        </div>
 
         <SidebarSection>
           <SidebarItem href="/search" current={isSearch}>
@@ -185,9 +175,9 @@ export function CatalystShell({
               aria-haspopup="dialog"
             >
               <span className="flex min-w-0 flex-1 items-center gap-3">
-                <Avatar className="size-10 shrink-0 rounded-md after:rounded-md [&_[data-slot=avatar-fallback]]:rounded-md">
+                <Avatar className="size-10 shrink-0 rounded-full after:rounded-full [&_[data-slot=avatar-fallback]]:rounded-full">
                   <AvatarFallback
-                    className="rounded-md text-sm font-semibold text-white"
+                    className="rounded-full text-sm font-semibold text-white"
                     style={{ backgroundColor: "#D94716" }}
                   >
                     {initials}
@@ -234,7 +224,7 @@ export function CatalystShell({
                   aria-label="Account"
                 >
                   <span
-                    className="flex size-8 items-center justify-center rounded-md text-xs font-semibold text-white"
+                    className="flex size-8 items-center justify-center rounded-full text-xs font-semibold text-white"
                     style={{ backgroundColor: "#D94716" }}
                   >
                     {initials}

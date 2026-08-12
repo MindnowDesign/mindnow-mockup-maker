@@ -198,9 +198,9 @@ export function ProjectWorkspaceShell({
               aria-haspopup="dialog"
             >
               <span className="flex min-w-0 flex-none items-center justify-center gap-3">
-                <Avatar className="size-10 shrink-0 rounded-md after:rounded-md [&_[data-slot=avatar-fallback]]:rounded-md">
+                <Avatar className="size-10 shrink-0 rounded-full after:rounded-full [&_[data-slot=avatar-fallback]]:rounded-full">
                   <AvatarFallback
-                    className="rounded-md text-sm font-semibold text-white"
+                    className="rounded-full text-sm font-semibold text-white"
                     style={{ backgroundColor: "#D94716" }}
                   >
                     {initials}

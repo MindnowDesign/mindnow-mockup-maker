@@ -401,9 +401,9 @@ function TeamMembersPanel({
                 key={member.id}
                 className="flex items-center gap-3 px-3 py-3"
               >
-                <Avatar className="size-9 shrink-0 rounded-md after:rounded-md [&_[data-slot=avatar-fallback]]:rounded-md">
+                <Avatar className="size-9 shrink-0 rounded-full after:rounded-full [&_[data-slot=avatar-fallback]]:rounded-full">
                   <AvatarFallback
-                    className="rounded-md text-xs font-semibold text-white"
+                    className="rounded-full text-xs font-semibold text-white"
                     style={{ backgroundColor: "#D94716" }}
                   >
                     {initials}
