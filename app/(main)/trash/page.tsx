@@ -15,10 +15,6 @@ export default function TrashPage() {
             >
               Trash
             </h1>
-            <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
-              Deleted projects stay here until you restore them or delete them
-              permanently.
-            </p>
           </div>
 
           <TrashCardsGrid />

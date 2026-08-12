@@ -58,10 +58,6 @@ export function RecentVisualsSection() {
             >
               Recent visuals
             </h1>
-            <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
-              Screenshots and exports you have worked on recently will show up
-              here.
-            </p>
           </div>
 
           {showNav ? (

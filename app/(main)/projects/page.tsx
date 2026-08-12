@@ -15,10 +15,6 @@ export default function ProjectsPage() {
             >
               Projects
             </h1>
-            <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
-              Organize and open your mockups. New projects will appear here when
-              you create them.
-            </p>
           </div>
 
           <ProjectCardsGrid />

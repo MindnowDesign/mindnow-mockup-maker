@@ -21,12 +21,8 @@ export default function Home() {
               id="projects-heading"
               className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
             >
-              My projects
+              Projects
             </h2>
-            <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
-              Organize and open your mockups. New projects will appear here when you
-              create them.
-            </p>
           </div>
 
           <ProjectCardsGrid />
