@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, MoreHorizontal, Trash2 } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  MoreHorizontal,
+  RotateCcw,
+  Trash2,
+} from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -24,6 +30,8 @@ import type { ProjectCardPreviewSlide } from "@/lib/project-card-preview-slides"
 import {
   deleteSavedProject,
   notifySavedProjectsChanged,
+  restoreProject,
+  trashProject,
 } from "@/lib/saved-projects";
 import { cn } from "@/lib/utils";
 
@@ -44,6 +52,8 @@ export type ProjectProductCardProps = {
   previewSlides?: ProjectCardPreviewSlide[];
   /** When set, shows the overflow menu (e.g. delete). */
   projectId?: string;
+  /** Trash tile: swaps the menu for restore / permanent delete. */
+  trashed?: boolean;
 };
 
 /**
@@ -60,6 +70,7 @@ export function ProjectProductCard({
   previewSrcs,
   previewSlides,
   projectId,
+  trashed = false,
 }: ProjectProductCardProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -195,19 +206,35 @@ export function ProjectProductCard({
                       <MoreHorizontal className="size-4" strokeWidth={2} aria-hidden />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-44">
+                  <DropdownMenuContent align="end" className="w-52">
+                    {trashed ? (
+                      <DropdownMenuItem
+                        className="gap-2"
+                        onSelect={() => {
+                          restoreProject(projectId);
+                          notifySavedProjectsChanged();
+                        }}
+                      >
+                        <RotateCcw className="size-4 shrink-0" strokeWidth={2} aria-hidden />
+                        Restore
+                      </DropdownMenuItem>
+                    ) : null}
                     <DropdownMenuItem
                       className="gap-2 text-red-400 focus:bg-red-500/15 focus:text-red-300"
                       onSelect={() => {
-                        deleteSavedProject(projectId);
+                        if (trashed) {
+                          deleteSavedProject(projectId);
+                        } else {
+                          trashProject(projectId);
+                        }
                         notifySavedProjectsChanged();
-                        if (pathname === `/projects/${projectId}`) {
+                        if (!trashed && pathname === `/projects/${projectId}`) {
                           router.push("/projects");
                         }
                       }}
                     >
                       <Trash2 className="size-4 shrink-0" strokeWidth={2} aria-hidden />
-                      Delete
+                      {trashed ? "Delete permanently" : "Move to Trash"}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
