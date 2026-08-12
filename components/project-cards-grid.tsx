@@ -1,6 +1,6 @@
 "use client";
 
-import { Folder, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -33,9 +33,14 @@ export function ProjectCardsGrid() {
   if (hydrated && projects.length === 0) {
     return (
       <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-zinc-800 px-6 py-16 text-center">
-        <span className="flex size-11 items-center justify-center rounded-full bg-zinc-900 text-zinc-500">
-          <Folder className="size-5" strokeWidth={1.75} aria-hidden />
-        </span>
+        {/* eslint-disable-next-line @next/next/no-img-element -- static empty-state asset */}
+        <img
+          src="/images/empty-states/projects.png"
+          alt=""
+          aria-hidden
+          draggable={false}
+          className="size-[120px] object-contain"
+        />
         <p className="text-sm font-medium text-zinc-200">No projects yet</p>
         <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
           Create a project to start building mockups. Your work will show up

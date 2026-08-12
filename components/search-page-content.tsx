@@ -1,12 +1,13 @@
 "use client";
 
-import { Folder, Search } from "lucide-react";
+import { Folder, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, type FormEvent, type KeyboardEvent } from "react";
 
 import { formatSearchDate } from "@/lib/format-search-date";
 import type { ProjectCardPreviewSlide } from "@/lib/project-card-preview-slides";
 import {
+  clearRecentSearches,
   listRecentSearches,
   MAX_RECENT_SEARCHES,
   recordRecentSearch,
@@ -14,6 +15,7 @@ import {
   type RecentSearch,
 } from "@/lib/recent-searches";
 import { listRecentVisuals, type RecentVisualEntry } from "@/lib/recent-visuals";
+import { resolveOpenHref } from "@/lib/resolve-open-href";
 import { listSavedProjects, type SavedProject } from "@/lib/saved-projects";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +27,7 @@ type SearchHits = {
 const EMPTY_HITS: SearchHits = { visuals: [], projects: [] };
 
 const resultRowClass = cn(
-  "flex items-center gap-3 rounded-lg px-3 py-2.5",
+  "flex w-[calc(100%+1.5rem)] items-center gap-3 rounded-lg -mx-3 px-3 py-2.5",
   "text-sm transition-colors hover:bg-white/5"
 );
 
@@ -150,9 +152,14 @@ export function SearchPageContent() {
     }
     refreshRecent();
     window.addEventListener(RECENT_SEARCHES_CHANGED_EVENT, refreshRecent);
+    window.addEventListener("mindnow:saved-projects-changed", refreshRecent);
     window.addEventListener("storage", refreshRecent);
     return () => {
       window.removeEventListener(RECENT_SEARCHES_CHANGED_EVENT, refreshRecent);
+      window.removeEventListener(
+        "mindnow:saved-projects-changed",
+        refreshRecent
+      );
       window.removeEventListener("storage", refreshRecent);
     };
   }, []);
@@ -183,9 +190,13 @@ export function SearchPageContent() {
 
   function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Escape") {
-      setQuery("");
-      setHits(EMPTY_HITS);
+      clearSearch();
     }
+  }
+
+  function clearSearch() {
+    setQuery("");
+    setHits(EMPTY_HITS);
   }
 
   return (
@@ -225,6 +236,20 @@ export function SearchPageContent() {
                   "[&::-webkit-search-cancel-button]:hidden"
                 )}
               />
+              {trimmed ? (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  aria-label="Clear search"
+                  className={cn(
+                    "flex size-7 shrink-0 items-center justify-center rounded-full",
+                    "text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-200",
+                    "outline-none focus-visible:ring-2 focus-visible:ring-white/25"
+                  )}
+                >
+                  <X className="size-4" strokeWidth={1.75} aria-hidden />
+                </button>
+              ) : null}
             </div>
           </form>
 
@@ -336,41 +361,60 @@ export function SearchPageContent() {
               aria-labelledby="recent-searches-heading"
               className="flex flex-col gap-3"
             >
-              <h2
-                id="recent-searches-heading"
-                className="text-sm font-medium text-zinc-500"
-              >
-                Recent
-              </h2>
+              <div className="flex items-center justify-between gap-3">
+                <h2
+                  id="recent-searches-heading"
+                  className="text-sm font-medium text-zinc-500"
+                >
+                  Recent
+                </h2>
+                {recentRows.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => clearRecentSearches()}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 text-sm font-medium text-zinc-500 transition-colors",
+                      "hover:text-zinc-200",
+                      "outline-none focus-visible:text-zinc-200"
+                    )}
+                  >
+                    <X className="size-3.5" strokeWidth={1.75} aria-hidden />
+                    Clear
+                  </button>
+                ) : null}
+              </div>
               {recentRows.length === 0 ? (
                 <p className="text-sm text-zinc-500">No recent searches</p>
               ) : (
                 <ul className="flex flex-col">
-                  {recentRows.map((item) => (
-                    <li key={item.id}>
-                      <Link
-                        href={item.href}
-                        onClick={() =>
-                          recordRecentSearch({
-                            title: item.title,
-                            href: item.href,
-                            kind: item.kind,
-                          })
-                        }
-                        className={cn(
-                          "flex w-full items-center justify-between gap-4 rounded-lg px-3 py-3",
-                          "text-sm transition-colors hover:bg-white/5"
-                        )}
-                      >
-                        <span className="min-w-0 truncate text-zinc-100">
-                          {item.title}
-                        </span>
-                        <span className="shrink-0 text-zinc-500">
-                          {item.dateLabel}
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
+                  {recentRows.map((item) => {
+                    const href = resolveOpenHref(item.href);
+                    return (
+                      <li key={item.id}>
+                        <Link
+                          href={href}
+                          onClick={() =>
+                            recordRecentSearch({
+                              title: item.title,
+                              href: item.href,
+                              kind: item.kind,
+                            })
+                          }
+                          className={cn(
+                            "flex w-[calc(100%+1.5rem)] items-center justify-between gap-4 rounded-lg -mx-3 px-3 py-3",
+                            "text-sm transition-colors hover:bg-white/5"
+                          )}
+                        >
+                          <span className="min-w-0 truncate text-zinc-100">
+                            {item.title}
+                          </span>
+                          <span className="shrink-0 text-zinc-500">
+                            {item.dateLabel}
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </section>

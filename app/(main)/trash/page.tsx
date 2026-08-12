@@ -1,6 +1,22 @@
 import { TrashCardsGrid } from "@/components/trash-cards-grid";
 
-export default function TrashPage() {
+type TrashPageProps = {
+  searchParams: Promise<{
+    focus?: string | string[];
+    next?: string | string[];
+  }>;
+};
+
+function firstParam(value: string | string[] | undefined): string | undefined {
+  if (Array.isArray(value)) return value[0];
+  return value;
+}
+
+export default async function TrashPage({ searchParams }: TrashPageProps) {
+  const params = await searchParams;
+  const focusProjectId = firstParam(params.focus)?.trim() || undefined;
+  const nextHref = firstParam(params.next)?.trim() || undefined;
+
   return (
     <div className="flex min-h-full flex-col">
       <div className="w-full flex-1 px-[72px] py-10">
@@ -17,7 +33,10 @@ export default function TrashPage() {
             </h1>
           </div>
 
-          <TrashCardsGrid />
+          <TrashCardsGrid
+            focusProjectId={focusProjectId}
+            nextHref={nextHref}
+          />
         </section>
       </div>
     </div>
