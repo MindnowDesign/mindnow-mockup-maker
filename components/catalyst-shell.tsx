@@ -6,6 +6,7 @@ import {
   Folder,
   Home,
   Search,
+  Trash2,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
@@ -108,6 +109,7 @@ export function CatalystShell({
   const isHome = pathname === "/";
   const isSearch = pathname === "/search";
   const isProjects = pathname === "/projects";
+  const isTrash = pathname === "/trash";
   const isAccount = pathname === "/account";
   const initials = getInitials(user.firstName, user.lastName);
 
@@ -163,6 +165,10 @@ export function CatalystShell({
           <SidebarItem href="/projects" current={isProjects}>
             <Folder className="size-5 shrink-0" strokeWidth={1.75} />
             <SidebarLabel>Projects</SidebarLabel>
+          </SidebarItem>
+          <SidebarItem href="/trash" current={isTrash}>
+            <Trash2 className="size-5 shrink-0" strokeWidth={1.75} />
+            <SidebarLabel>Trash</SidebarLabel>
           </SidebarItem>
         </SidebarSection>
       </SidebarBody>
