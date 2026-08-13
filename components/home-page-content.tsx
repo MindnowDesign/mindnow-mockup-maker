@@ -7,11 +7,10 @@ import { useEffect, useState } from "react";
 import { CreateProjectSection } from "@/components/create-project-section";
 import { HomeSearch } from "@/components/home-search";
 import { LastProjectsList } from "@/components/last-projects-list";
-import { ProjectCardsGrid } from "@/components/project-cards-grid";
 import { RecentVisualsSection } from "@/components/recent-visuals-section";
 import { cn } from "@/lib/utils";
 
-/** Home: welcome, search, create project, then recent visuals and projects. */
+/** Home: welcome, search, create project, then recent visuals. */
 export function HomePageContent() {
   const [query, setQuery] = useState("");
   const searching = query.trim().length > 0;
@@ -94,22 +93,6 @@ export function HomePageContent() {
         </div>
 
         <RecentVisualsSection />
-
-        <section
-          aria-labelledby="projects-heading"
-          className="flex flex-col gap-8"
-        >
-          <div className="flex flex-col gap-2">
-            <h2
-              id="projects-heading"
-              className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
-            >
-              Projects
-            </h2>
-          </div>
-
-          <ProjectCardsGrid />
-        </section>
       </div>
     </div>
   );

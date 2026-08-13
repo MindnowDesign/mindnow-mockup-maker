@@ -35,7 +35,7 @@ export function ProjectCardsGrid() {
       <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-neutral-800 px-6 py-16 text-center">
         {/* eslint-disable-next-line @next/next/no-img-element -- static empty-state asset */}
         <img
-          src="/images/empty-states/projects.png"
+          src="/images/empty-states/projects.png?v=2"
           alt=""
           aria-hidden
           draggable={false}
