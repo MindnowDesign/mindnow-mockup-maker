@@ -13,6 +13,7 @@ export type RecentVisualEntry = {
   projectId: string;
   visualId: string;
   title: string;
+  projectTitle: string;
   updatedAt: number;
   href: string;
   previewSlide: ProjectCardPreviewSlide | null;
@@ -40,7 +41,7 @@ function resolveSlots(project: SavedProject): SavedVisualSlot[] {
 }
 
 /** Flatten all visuals across projects, newest edits first. */
-export function listRecentVisuals(limit = 8): RecentVisualEntry[] {
+export function listRecentVisuals(limit = 10): RecentVisualEntry[] {
   const entries: RecentVisualEntry[] = [];
 
   for (const project of listSavedProjects()) {
@@ -58,6 +59,7 @@ export function listRecentVisuals(limit = 8): RecentVisualEntry[] {
         projectId: project.id,
         visualId: slot.id,
         title: resolveSavedVisualTitle(slot, index + 1),
+        projectTitle: project.title,
         updatedAt,
         href: `/projects/${project.id}?visual=${encodeURIComponent(slot.id)}`,
         previewSlide: slideByVisualId.get(slot.id) ?? null,

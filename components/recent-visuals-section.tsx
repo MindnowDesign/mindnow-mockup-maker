@@ -26,7 +26,7 @@ export function RecentVisualsSection() {
 
   useEffect(() => {
     function refresh() {
-      setVisuals(listRecentVisuals());
+      setVisuals(listRecentVisuals(10));
     }
     refresh();
     window.addEventListener("mindnow:saved-projects-changed", refresh);
@@ -52,12 +52,12 @@ export function RecentVisualsSection() {
         <div className="flex flex-col gap-8">
         <div className="flex items-end justify-between gap-4">
           <div className="flex min-w-0 flex-col gap-2">
-            <h1
+            <h2
               id="recent-visuals-heading"
               className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
             >
               Recent visuals
-            </h1>
+            </h2>
           </div>
 
           {showNav ? (
