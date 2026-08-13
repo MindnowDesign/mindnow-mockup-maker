@@ -8,7 +8,7 @@ export function Sidebar({ className, ...props }: ComponentProps<"aside">) {
   return (
     <aside
       className={cn(
-        "hidden h-dvh max-h-dvh min-h-0 w-72 shrink-0 flex-col overflow-hidden border-r border-neutral-800 bg-neutral-900 lg:flex",
+        "hidden h-full min-h-0 w-72 shrink-0 flex-col overflow-hidden rounded-xl bg-neutral-900 lg:flex",
         className
       )}
       {...props}

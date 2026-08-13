@@ -54,7 +54,7 @@ export function LastProjectsList() {
                   href={`/projects/${project.id}`}
                   aria-label={`Open project: ${project.title}`}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg border border-neutral-800 p-3",
+                    "flex items-center gap-3 rounded-lg border border-neutral-800 bg-neutral-950 p-3",
                     "outline-none transition-colors hover:border-neutral-600/90 hover:bg-white/5",
                     "focus-visible:ring-2 focus-visible:ring-white/25"
                   )}

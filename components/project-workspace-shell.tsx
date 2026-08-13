@@ -92,7 +92,7 @@ export function ProjectWorkspaceShell({
 
   const sidebarRail = (
     <Sidebar
-      className="h-full max-h-full w-16 items-stretch"
+      className="h-full max-h-full w-16 items-stretch rounded-none"
       aria-label="Compact workspace navigation"
     >
       <SidebarBody className="px-1.5 pt-4">
@@ -216,11 +216,11 @@ export function ProjectWorkspaceShell({
 
   // Stable wrapper so the rail does not remount when the feature panel opens.
   const workspaceSidebar = (
-    <div className="hidden h-full min-h-0 shrink-0 flex-row overflow-hidden lg:flex">
+    <div className="hidden h-full min-h-0 shrink-0 flex-row overflow-hidden rounded-xl bg-neutral-900 lg:flex">
       {sidebarRail}
       {workspaceFeature ? (
         <aside
-          className="flex h-full min-h-0 w-[304px] min-w-[304px] shrink-0 flex-col overflow-hidden border-r border-neutral-800 bg-neutral-900"
+          className="flex h-full min-h-0 w-[304px] min-w-[304px] shrink-0 flex-col overflow-hidden border-l border-neutral-800 bg-neutral-900"
           aria-label={
             workspaceFeature === "frame"
               ? "Frame tools"
@@ -240,15 +240,15 @@ export function ProjectWorkspaceShell({
       <MockupMediaProvider>
         <MockupWorkspaceHistoryProvider>
           <ProjectWorkspaceHydrate />
-          <div className="flex h-dvh max-h-dvh min-h-0 w-full flex-col overflow-hidden bg-neutral-900">
-            <WorkspaceTopBar
-              teamLabel={teamLabel}
-              logo={logo}
-              className="relative z-10 shrink-0"
-            />
-            <div className="flex min-h-0 min-w-0 flex-1 flex-row overflow-hidden">
-              {workspaceSidebar}
-              <main className="min-h-0 min-w-0 flex-1 overflow-y-auto border-neutral-800 bg-neutral-950 lg:border-l">
+          <div className="flex h-dvh max-h-dvh min-h-0 w-full flex-col gap-2 overflow-hidden bg-shell p-2 lg:flex-row">
+            {workspaceSidebar}
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl bg-neutral-950">
+              <WorkspaceTopBar
+                teamLabel={teamLabel}
+                logo={logo}
+                className="relative z-10 shrink-0"
+              />
+              <main className="no-scrollbar min-h-0 min-w-0 flex-1 overflow-y-auto">
                 {children}
               </main>
             </div>

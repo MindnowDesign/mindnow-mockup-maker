@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Manrope } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
 });
 
@@ -25,9 +25,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full bg-neutral-900 dark antialiased dark:lg:bg-neutral-950`}
+      className={`${manrope.variable} ${geistMono.variable} h-full overflow-hidden bg-shell dark antialiased`}
     >
-      <body className="min-h-full">{children}</body>
+      <body className="h-full overflow-hidden">{children}</body>
     </html>
   );
 }

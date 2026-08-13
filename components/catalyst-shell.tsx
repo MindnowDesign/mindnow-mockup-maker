@@ -43,7 +43,7 @@ const ProjectWorkspaceShell = dynamic(
   {
     loading: () => (
       <div
-        className="h-dvh max-h-dvh w-full bg-neutral-900"
+        className="h-dvh max-h-dvh w-full bg-shell"
         aria-busy
         aria-label="Loading workspace"
       />

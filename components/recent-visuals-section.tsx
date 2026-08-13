@@ -46,15 +46,15 @@ export function RecentVisualsSection() {
   return (
     <section
       aria-labelledby="recent-visuals-heading"
-      className="flex flex-col gap-8 overflow-visible"
+      className="flex flex-col gap-4 overflow-visible"
     >
       <Carousel disableDrag step={4}>
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-4">
         <div className="flex items-end justify-between gap-4">
-          <div className="flex min-w-0 flex-col gap-2">
+          <div className="flex min-w-0 flex-col">
             <h2
               id="recent-visuals-heading"
-              className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
+              className="text-base font-semibold tracking-tight text-foreground"
             >
               Recent visuals
             </h2>
