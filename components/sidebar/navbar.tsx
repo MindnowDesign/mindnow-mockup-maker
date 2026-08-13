@@ -7,7 +7,7 @@ export function Navbar({ className, ...props }: ComponentProps<"nav">) {
   return (
     <nav
       className={cn(
-        "flex shrink-0 items-center gap-2 border-b border-zinc-800 bg-zinc-900 px-4 py-3 lg:hidden",
+        "flex shrink-0 items-center gap-2 border-b border-neutral-800 bg-neutral-900 px-4 py-3 lg:hidden",
         className
       )}
       {...props}
@@ -38,8 +38,8 @@ export function NavbarItem({
     <Link
       aria-current={current ? "page" : undefined}
       className={cn(
-        "flex size-10 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900",
-        current ? "bg-white/5 text-white" : "hover:bg-white/5 hover:text-white",
+        "flex size-10 shrink-0 items-center justify-center rounded-lg text-neutral-400 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900",
+        current ? "bg-white/5 text-neutral-50" : "hover:bg-white/5 hover:text-neutral-50",
         className
       )}
       {...props}

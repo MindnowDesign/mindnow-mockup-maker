@@ -26,15 +26,15 @@ export function StartFromScratchCard({
         href={href}
         {...rest}
         className={cn(
-          "group flex h-full w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-zinc-800/80 px-6 py-10 outline-none transition-[background-color,border-color]",
+          "group flex h-full w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-neutral-800/80 px-6 py-10 outline-none transition-[background-color,border-color]",
           /* Match project card total height: 4:3 block + ~57px header strip at this width */
           "min-h-[calc(75cqw+57px)]",
-          "bg-zinc-800 hover:bg-zinc-700/85 hover:border-zinc-600/90",
-          "focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+          "bg-neutral-800 hover:bg-neutral-700/85 hover:border-neutral-600/90",
+          "focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
         )}
       >
         <span
-          className="flex size-14 shrink-0 items-center justify-center rounded-full border border-dashed border-zinc-500 bg-zinc-900/35 transition-colors group-hover:border-zinc-400"
+          className="flex size-14 shrink-0 items-center justify-center rounded-full border border-dashed border-neutral-500 bg-neutral-900/35 transition-colors group-hover:border-neutral-400"
           aria-hidden
         >
           <Plus

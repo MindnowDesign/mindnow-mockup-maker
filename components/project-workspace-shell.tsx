@@ -45,8 +45,8 @@ const SIDEBAR_COMPACT_CONTROL =
 
 /** Compact sidebar button (no route) — matches inactive `SidebarItem` look. */
 const SIDEBAR_COMPACT_ICON_BUTTON = cn(
-  "flex min-w-0 items-center gap-0 rounded-lg text-sm/6 font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900",
-  "text-zinc-400 hover:bg-white/5 hover:text-white",
+  "flex min-w-0 items-center gap-0 rounded-lg text-sm/6 font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900",
+  "text-neutral-400 hover:bg-white/5 hover:text-neutral-50",
   SIDEBAR_WORKSPACE_RAIL_ITEM
 );
 
@@ -103,7 +103,7 @@ export function ProjectWorkspaceShell({
                 type="button"
                 className={cn(
                   SIDEBAR_COMPACT_ICON_BUTTON,
-                  workspaceFeature === "media" && "bg-white/10 text-white"
+                  workspaceFeature === "media" && "bg-white/10 text-neutral-50"
                 )}
                 aria-label="Media"
                 aria-pressed={workspaceFeature === "media"}
@@ -124,7 +124,7 @@ export function ProjectWorkspaceShell({
                 type="button"
                 className={cn(
                   SIDEBAR_COMPACT_ICON_BUTTON,
-                  workspaceFeature === "frame" && "bg-white/10 text-white"
+                  workspaceFeature === "frame" && "bg-white/10 text-neutral-50"
                 )}
                 aria-label="Frame"
                 aria-pressed={workspaceFeature === "frame"}
@@ -145,7 +145,7 @@ export function ProjectWorkspaceShell({
                 type="button"
                 className={cn(
                   SIDEBAR_COMPACT_ICON_BUTTON,
-                  workspaceFeature === "background" && "bg-white/10 text-white"
+                  workspaceFeature === "background" && "bg-white/10 text-neutral-50"
                 )}
                 aria-label="Canvas"
                 aria-pressed={workspaceFeature === "background"}
@@ -166,7 +166,7 @@ export function ProjectWorkspaceShell({
                 href="/projects"
                 className={cn(
                   SIDEBAR_COMPACT_ICON_BUTTON,
-                  isProjects && "bg-white/10 text-white"
+                  isProjects && "bg-white/10 text-neutral-50"
                 )}
                 aria-label="Projects"
                 aria-current={isProjects ? "page" : undefined}
@@ -200,7 +200,7 @@ export function ProjectWorkspaceShell({
               <span className="flex min-w-0 flex-none items-center justify-center gap-3">
                 <Avatar className="size-10 shrink-0 rounded-full after:rounded-full [&_[data-slot=avatar-fallback]]:rounded-full">
                   <AvatarFallback
-                    className="rounded-full text-sm font-semibold text-white"
+                    className="rounded-full text-sm font-semibold text-neutral-50"
                     style={{ backgroundColor: "#D94716" }}
                   >
                     {initials}
@@ -220,7 +220,7 @@ export function ProjectWorkspaceShell({
       {sidebarRail}
       {workspaceFeature ? (
         <aside
-          className="flex h-full min-h-0 w-[304px] min-w-[304px] shrink-0 flex-col overflow-hidden border-r border-zinc-800 bg-zinc-900"
+          className="flex h-full min-h-0 w-[304px] min-w-[304px] shrink-0 flex-col overflow-hidden border-r border-neutral-800 bg-neutral-900"
           aria-label={
             workspaceFeature === "frame"
               ? "Frame tools"
@@ -240,7 +240,7 @@ export function ProjectWorkspaceShell({
       <MockupMediaProvider>
         <MockupWorkspaceHistoryProvider>
           <ProjectWorkspaceHydrate />
-          <div className="flex h-dvh max-h-dvh min-h-0 w-full flex-col overflow-hidden bg-zinc-900">
+          <div className="flex h-dvh max-h-dvh min-h-0 w-full flex-col overflow-hidden bg-neutral-900">
             <WorkspaceTopBar
               teamLabel={teamLabel}
               logo={logo}
@@ -248,7 +248,7 @@ export function ProjectWorkspaceShell({
             />
             <div className="flex min-h-0 min-w-0 flex-1 flex-row overflow-hidden">
               {workspaceSidebar}
-              <main className="min-h-0 min-w-0 flex-1 overflow-y-auto border-zinc-800 bg-zinc-950 lg:border-l">
+              <main className="min-h-0 min-w-0 flex-1 overflow-y-auto border-neutral-800 bg-neutral-950 lg:border-l">
                 {children}
               </main>
             </div>

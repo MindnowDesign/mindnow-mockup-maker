@@ -90,7 +90,7 @@ export function FrameAspectRatioSelect() {
 
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-xs font-medium text-zinc-400" id="frame-aspect-label">
+      <span className="text-xs font-medium text-neutral-400" id="frame-aspect-label">
         Aspect ratio
       </span>
       <Root
@@ -100,28 +100,28 @@ export function FrameAspectRatioSelect() {
         <Trigger
           aria-labelledby="frame-aspect-label"
           className={cn(
-            "flex h-10 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-left text-sm outline-none transition-colors",
-            "hover:bg-zinc-900 focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 data-[state=open]:border-zinc-600 data-[state=open]:bg-zinc-900"
+            "flex h-10 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-left text-sm outline-none transition-colors",
+            "hover:bg-neutral-900 focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 data-[state=open]:border-neutral-600 data-[state=open]:bg-neutral-900"
           )}
         >
           <span className="flex min-w-0 flex-1 items-center gap-2.5">
             <SelectedIcon
-              className="size-[18px] shrink-0 text-zinc-300"
+              className="size-[18px] shrink-0 text-neutral-300"
               strokeWidth={1.75}
               aria-hidden
             />
             <span className="inline-flex min-w-0 items-center gap-1">
-              <span className="truncate font-semibold text-white">
+              <span className="truncate font-semibold text-neutral-50">
                 {selected.label}
               </span>
-              <span className="shrink-0 whitespace-nowrap text-zinc-500">
+              <span className="shrink-0 whitespace-nowrap text-neutral-500">
                 ({selected.ratio})
               </span>
             </span>
           </span>
           <SelectDropdownIcon asChild>
             <ChevronDown
-              className="size-4 shrink-0 text-zinc-500"
+              className="size-4 shrink-0 text-neutral-500"
               strokeWidth={1.75}
               aria-hidden
             />
@@ -132,7 +132,7 @@ export function FrameAspectRatioSelect() {
             position="popper"
             sideOffset={6}
             align="start"
-            className="z-[200] max-h-[min(320px,var(--radix-select-content-available-height))] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900 py-1 shadow-lg"
+            className="z-[200] max-h-[min(320px,var(--radix-select-content-available-height))] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-lg border border-neutral-700 bg-neutral-900 py-1 shadow-lg"
           >
             <Viewport className="p-1">
               {PRESETS.map((preset) => {
@@ -144,25 +144,25 @@ export function FrameAspectRatioSelect() {
                     textValue={presetEntryLabel(preset)}
                     className={cn(
                       "relative flex cursor-pointer select-none items-center gap-2.5 rounded-md py-2 pl-2 pr-8 text-sm outline-none",
-                      "text-zinc-200 data-highlighted:bg-zinc-800 data-highlighted:text-white data-[state=checked]:bg-zinc-800/90"
+                      "text-neutral-200 data-highlighted:bg-neutral-800 data-highlighted:text-neutral-50 data-[state=checked]:bg-neutral-800/90"
                     )}
                   >
                     <ItemIcon
-                      className="size-[18px] shrink-0 text-zinc-400"
+                      className="size-[18px] shrink-0 text-neutral-400"
                       strokeWidth={1.75}
                       aria-hidden
                     />
                     <span className="inline-flex min-w-0 flex-1 items-center gap-1">
-                      <span className="font-semibold text-white">
+                      <span className="font-semibold text-neutral-50">
                         {preset.label}
                       </span>
-                      <span className="shrink-0 whitespace-nowrap text-zinc-500">
+                      <span className="shrink-0 whitespace-nowrap text-neutral-500">
                         ({preset.ratio})
                       </span>
                     </span>
                     <ItemIndicator className="absolute right-2 flex size-4 items-center justify-center">
                       <Check
-                        className="size-3.5 text-white"
+                        className="size-3.5 text-neutral-50"
                         strokeWidth={2}
                         aria-hidden
                       />

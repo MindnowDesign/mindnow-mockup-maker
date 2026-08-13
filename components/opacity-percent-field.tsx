@@ -75,10 +75,10 @@ export function OpacityPercentField({
           }
           if (e.key === "Enter") e.currentTarget.blur();
         }}
-        className="min-w-0 max-w-[3rem] bg-transparent px-1.5 py-2 text-right font-mono text-[11px] leading-none tabular-nums text-zinc-100 outline-none focus-visible:bg-white/5"
+        className="min-w-0 max-w-[3rem] bg-transparent px-1.5 py-2 text-right font-mono text-[11px] leading-none tabular-nums text-neutral-100 outline-none focus-visible:bg-white/5"
       />
       <span
-        className="flex shrink-0 items-center justify-center pl-0.5 pr-2 font-mono text-[11px] text-zinc-400 tabular-nums"
+        className="flex shrink-0 items-center justify-center pl-0.5 pr-2 font-mono text-[11px] text-neutral-400 tabular-nums"
         aria-hidden
       >
         %

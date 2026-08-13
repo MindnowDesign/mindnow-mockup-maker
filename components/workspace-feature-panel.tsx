@@ -34,11 +34,11 @@ type WorkspaceFeaturePanelProps = {
 export function WorkspaceFeaturePanel({ feature }: WorkspaceFeaturePanelProps) {
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-      <div className="shrink-0 border-b border-zinc-800 px-4 py-3">
-        <h2 className="text-sm font-semibold tracking-tight text-white">
+      <div className="shrink-0 border-b border-neutral-800 px-4 py-3">
+        <h2 className="text-sm font-semibold tracking-tight text-neutral-50">
           {TITLES[feature]}
         </h2>
-        <p className="mt-1 text-xs leading-relaxed text-zinc-400">
+        <p className="mt-1 text-xs leading-relaxed text-neutral-400">
           {DESCRIPTIONS[feature]}
         </p>
       </div>

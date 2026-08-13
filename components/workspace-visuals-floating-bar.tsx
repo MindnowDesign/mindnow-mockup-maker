@@ -48,7 +48,7 @@ function VisualCanvasPeek({
             className="absolute inset-0 z-[2] flex items-center justify-center"
             aria-hidden
           >
-            <Play className="size-6 text-white drop-shadow-md" strokeWidth={2} />
+            <Play className="size-6 text-neutral-50 drop-shadow-md" strokeWidth={2} />
           </div>
         )
       ) : null}

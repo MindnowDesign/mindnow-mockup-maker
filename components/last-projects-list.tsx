@@ -35,12 +35,12 @@ export function LastProjectsList() {
   return (
     <div
       className={cn(
-        "min-h-64 flex-1 overflow-y-auto rounded-xl border border-zinc-800/80 bg-zinc-900 p-4",
+        "min-h-64 flex-1 overflow-y-auto rounded-xl border border-neutral-800/80 bg-neutral-900 p-4",
         scrollbarSubtleClass
       )}
     >
       {hydrated && projects.length === 0 ? (
-        <p className="px-3 py-8 text-center text-sm text-zinc-500">
+        <p className="px-3 py-8 text-center text-sm text-neutral-500">
           No recent projects
         </p>
       ) : (
@@ -54,29 +54,29 @@ export function LastProjectsList() {
                   href={`/projects/${project.id}`}
                   aria-label={`Open project: ${project.title}`}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg border border-zinc-800 p-3",
-                    "outline-none transition-colors hover:border-zinc-600/90 hover:bg-white/5",
+                    "flex items-center gap-3 rounded-lg border border-neutral-800 p-3",
+                    "outline-none transition-colors hover:border-neutral-600/90 hover:bg-white/5",
                     "focus-visible:ring-2 focus-visible:ring-white/25"
                   )}
                 >
                   <SearchResultThumb label={project.title}>
                     <Folder
-                      className="size-4 text-zinc-400"
+                      className="size-4 text-neutral-400"
                       strokeWidth={1.75}
                     />
                   </SearchResultThumb>
                   <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="truncate text-sm font-medium text-zinc-100">
+                    <span className="truncate text-sm font-medium text-neutral-100">
                       {project.title}
                     </span>
-                    <span className="truncate text-xs text-zinc-500">
+                    <span className="truncate text-xs text-neutral-500">
                       {formatEditedAgo(project.updatedAt)}
                     </span>
                   </span>
                   <Badge
                     variant="secondary"
                     aria-label={`${visualLabel} in this project`}
-                    className="h-6 shrink-0 tabular-nums border-zinc-700 bg-zinc-800/90 px-2.5 text-xs font-medium text-zinc-200"
+                    className="h-6 shrink-0 tabular-nums border-neutral-700 bg-neutral-800/90 px-2.5 text-xs font-medium text-neutral-200"
                   >
                     {visualLabel}
                   </Badge>

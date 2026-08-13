@@ -293,7 +293,7 @@ export function canvasGradientTemplateToPeekBackgroundStyle(
       backgroundRepeat: "no-repeat",
     };
   }
-  return { ...base, ...(t.fallbackCanvasStyle ?? { backgroundColor: "#27272a" }) };
+  return { ...base, ...(t.fallbackCanvasStyle ?? { backgroundColor: "#262626" }) };
 }
 
 /** Main capture surface: transparent when inline SVG supplies the art. */
@@ -317,5 +317,5 @@ export function canvasGradientTemplateToCaptureStyle(
       backgroundRepeat: "no-repeat",
     };
   }
-  return { ...base, ...(t.fallbackCanvasStyle ?? { backgroundColor: "#27272a" }) };
+  return { ...base, ...(t.fallbackCanvasStyle ?? { backgroundColor: "#262626" }) };
 }

@@ -838,7 +838,7 @@ export function WorkspaceTopBar({
   return (
     <header
       className={cn(
-        "flex min-h-14 shrink-0 items-center gap-3 border-b border-zinc-800 bg-zinc-950 px-4 py-3",
+        "flex min-h-14 shrink-0 items-center gap-3 border-b border-neutral-800 bg-neutral-950 px-4 py-3",
         className
       )}
     >
@@ -846,7 +846,7 @@ export function WorkspaceTopBar({
         <Link
           href="/"
           aria-label="Home"
-          className="flex size-[40px] shrink-0 flex-none items-center justify-center overflow-hidden rounded-lg text-zinc-400 outline-none transition-colors hover:bg-white/5 hover:text-white focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+          className="flex size-[40px] shrink-0 flex-none items-center justify-center overflow-hidden rounded-lg text-neutral-400 outline-none transition-colors hover:bg-white/5 hover:text-neutral-50 focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
         >
           <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg">
             {logo ?? (
@@ -887,10 +887,10 @@ export function WorkspaceTopBar({
               placeholder="Untitled project"
               maxLength={128}
               className={cn(
-                "max-w-full border-0 bg-transparent px-0 py-0 text-base font-semibold tracking-tight text-white outline-none ring-0 shadow-none",
+                "max-w-full border-0 bg-transparent px-0 py-0 text-base font-semibold tracking-tight text-neutral-50 outline-none ring-0 shadow-none",
                 "min-w-0 [field-sizing:content]",
                 "focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
-                "placeholder:text-zinc-500"
+                "placeholder:text-neutral-500"
               )}
             />
             <span
@@ -904,7 +904,7 @@ export function WorkspaceTopBar({
               }}
             >
               <Pencil
-                className="size-4 text-zinc-500"
+                className="size-4 text-neutral-500"
                 strokeWidth={2}
                 aria-hidden
               />

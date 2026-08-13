@@ -52,19 +52,19 @@ function FormatRadio({
       role="radio"
       aria-checked={selected}
       onClick={onSelect}
-      className="inline-flex items-center gap-2 text-[13px] font-semibold tracking-wide text-zinc-100 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
+      className="inline-flex items-center gap-2 text-[13px] font-semibold tracking-wide text-neutral-100 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
     >
       <span
         aria-hidden
         className={cn(
           "flex size-[18px] shrink-0 items-center justify-center rounded-full border-2 transition-colors",
           selected
-            ? "border-zinc-100 bg-zinc-900"
-            : "border-zinc-600 bg-zinc-950"
+            ? "border-neutral-100 bg-neutral-900"
+            : "border-neutral-600 bg-neutral-950"
         )}
       >
         {selected ? (
-          <span className="size-2 rounded-full bg-zinc-100" />
+          <span className="size-2 rounded-full bg-neutral-100" />
         ) : null}
       </span>
       <span>{label}</span>
@@ -88,10 +88,10 @@ function ScaleChip({
       aria-checked={selected}
       onClick={onSelect}
       className={cn(
-        "inline-flex h-8 min-w-10 flex-1 items-center justify-center rounded-lg border text-[13px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900",
+        "inline-flex h-8 min-w-10 flex-1 items-center justify-center rounded-lg border text-[13px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900",
         selected
-          ? "border-zinc-500 bg-zinc-800 text-white shadow-sm"
-          : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:bg-zinc-900 hover:text-zinc-200"
+          ? "border-neutral-500 bg-neutral-800 text-neutral-50 shadow-sm"
+          : "border-neutral-800 bg-neutral-950 text-neutral-400 hover:border-neutral-600 hover:bg-neutral-900 hover:text-neutral-200"
       )}
     >
       {label}
@@ -301,9 +301,9 @@ export function WorkspaceExportButton({
         <PopoverContent
           align="end"
           sideOffset={8}
-          className="z-[200] w-[min(100vw-2rem,18rem)] max-w-none gap-0 rounded-2xl border border-zinc-700 bg-zinc-900 p-4 text-zinc-100 shadow-xl ring-1 ring-white/5"
+          className="z-[200] w-[min(100vw-2rem,18rem)] max-w-none gap-0 rounded-2xl border border-neutral-700 bg-neutral-900 p-4 text-neutral-100 shadow-xl ring-1 ring-white/5"
         >
-          <h2 className="text-[15px] font-semibold tracking-tight text-zinc-100">
+          <h2 className="text-[15px] font-semibold tracking-tight text-neutral-100">
             Export options
           </h2>
 
@@ -322,12 +322,12 @@ export function WorkspaceExportButton({
             ))}
           </div>
 
-          <p className="mt-3 text-[12px] leading-snug text-zinc-500">
+          <p className="mt-3 text-[12px] leading-snug text-neutral-500">
             {FORMAT_HINTS[format]}
           </p>
 
           <div className="mt-5">
-            <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+            <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-neutral-500">
               Quality
             </p>
             <div role="radiogroup" aria-label="Quality" className="flex gap-1.5">
@@ -361,7 +361,7 @@ export function WorkspaceExportButton({
                 size="lg"
                 disabled={exporting}
                 onClick={() => void exportAll()}
-                className="h-10 w-full border-zinc-700 bg-transparent text-zinc-100 hover:bg-zinc-800 hover:text-zinc-50"
+                className="h-10 w-full border-neutral-700 bg-transparent text-neutral-100 hover:bg-neutral-800 hover:text-neutral-50"
               >
                 Export {visuals.length} visuals
               </Button>

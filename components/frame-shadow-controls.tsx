@@ -20,7 +20,7 @@ import type { FrameShadowPresetId } from "@/lib/mockup-frame-shadow";
 import { cn } from "@/lib/utils";
 
 const inputChrome =
-  "rounded-lg border border-zinc-700 bg-zinc-950 outline-none transition-colors hover:bg-zinc-900 focus-within:ring-2 focus-within:ring-white/25";
+  "rounded-lg border border-neutral-700 bg-neutral-950 outline-none transition-colors hover:bg-neutral-900 focus-within:ring-2 focus-within:ring-white/25";
 
 const PRESET_OPTIONS: { id: FrameShadowPresetId; label: string }[] = [
   { id: "custom", label: "Custom" },
@@ -161,7 +161,7 @@ function ShadowNumericField({
               <span
                 className={cn(
                   helpTriggerClass,
-                  "font-mono text-[11px] text-zinc-500 tabular-nums"
+                  "font-mono text-[11px] text-neutral-500 tabular-nums"
                 )}
                 tabIndex={0}
                 aria-label={`${inputAriaLabel} — more info in tooltip`}
@@ -176,7 +176,7 @@ function ShadowNumericField({
           <Tooltip>
             <TooltipTrigger asChild>
               <span
-                className={cn(helpTriggerClass, "flex text-zinc-500 [&>svg]:size-3.5")}
+                className={cn(helpTriggerClass, "flex text-neutral-500 [&>svg]:size-3.5")}
                 tabIndex={0}
                 aria-label={`${inputAriaLabel} — more info in tooltip`}
               >
@@ -216,7 +216,7 @@ function ShadowNumericField({
             }
             if (e.key === "Enter") e.currentTarget.blur();
           }}
-          className="min-w-0 flex-1 bg-transparent px-0.5 py-0 text-right font-mono text-[11px] leading-none tabular-nums text-zinc-100 outline-none focus-visible:bg-white/5"
+          className="min-w-0 flex-1 bg-transparent px-0.5 py-0 text-right font-mono text-[11px] leading-none tabular-nums text-neutral-100 outline-none focus-visible:bg-white/5"
         />
       </div>
     </TooltipProvider>
@@ -268,7 +268,7 @@ export function FrameShadowControls() {
   return (
     <div className="flex min-w-0 flex-col gap-3">
         <span
-          className="text-xs font-medium text-zinc-400"
+          className="text-xs font-medium text-neutral-400"
           id="frame-shadows-label"
         >
           Shadows
@@ -290,8 +290,8 @@ export function FrameShadowControls() {
                 className={cn(
                   "min-h-9 rounded-lg border px-1 py-1.5 text-center text-[10px] font-semibold leading-tight transition-colors",
                   selected
-                    ? "border-zinc-500 bg-zinc-800 text-white shadow-sm"
-                    : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:bg-zinc-900 hover:text-zinc-200"
+                    ? "border-neutral-500 bg-neutral-800 text-neutral-50 shadow-sm"
+                    : "border-neutral-800 bg-neutral-950 text-neutral-400 hover:border-neutral-600 hover:bg-neutral-900 hover:text-neutral-200"
                 )}
               >
                 {label}
@@ -300,7 +300,7 @@ export function FrameShadowControls() {
           })}
         </div>
 
-        <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-zinc-800 bg-zinc-950 p-3">
+        <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-neutral-800 bg-neutral-950 p-3">
           <div className="grid min-w-0 grid-cols-3 gap-2">
             <div className="min-w-0">
               <ShadowNumericField

@@ -17,16 +17,16 @@ import { hexToRgbaCss } from "@/lib/canvas-gradient-fill-opacity";
 import { cn } from "@/lib/utils";
 
 const rowChrome =
-  "rounded-lg border border-zinc-700 bg-zinc-950 outline-none transition-colors hover:bg-zinc-900 focus-within:ring-2 focus-within:ring-white/25";
+  "rounded-lg border border-neutral-700 bg-neutral-950 outline-none transition-colors hover:bg-neutral-900 focus-within:ring-2 focus-within:ring-white/25";
 
 const triggerButtonClass =
-  "flex min-h-10 min-w-0 flex-1 items-center gap-1.5 px-2 text-left outline-none transition-colors hover:bg-zinc-900 focus-visible:bg-zinc-900";
+  "flex min-h-10 min-w-0 flex-1 items-center gap-1.5 px-2 text-left outline-none transition-colors hover:bg-neutral-900 focus-visible:bg-neutral-900";
 
 const fieldTriggerClass =
-  "box-border flex h-10 min-h-10 w-full min-w-0 items-center gap-1.5 overflow-hidden rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-2 text-left outline-none transition-colors hover:bg-zinc-900 focus-visible:ring-2 focus-visible:ring-white/25";
+  "box-border flex h-10 min-h-10 w-full min-w-0 items-center gap-1.5 overflow-hidden rounded-lg border border-neutral-700 bg-neutral-950 px-2 py-2 text-left outline-none transition-colors hover:bg-neutral-900 focus-visible:ring-2 focus-visible:ring-white/25";
 
 const swatchTriggerClass =
-  "box-border size-6 shrink-0 rounded border border-zinc-600 outline-none transition-colors hover:border-zinc-400 focus-visible:ring-2 focus-visible:ring-white/25";
+  "box-border size-6 shrink-0 rounded border border-neutral-600 outline-none transition-colors hover:border-neutral-400 focus-visible:ring-2 focus-visible:ring-white/25";
 
 export type SolidColorPopoverRowProps = {
   /**
@@ -134,10 +134,10 @@ export function SolidColorPopoverRow({
           {variant === "swatch" ? null : (
             <>
               <span
-                className="block size-5 shrink-0 rounded border border-zinc-600"
+                className="block size-5 shrink-0 rounded border border-neutral-600"
                 style={{ backgroundColor: displayHex }}
               />
-              <span className="min-w-0 truncate font-mono text-[11px] leading-none tabular-nums tracking-tight text-zinc-100">
+              <span className="min-w-0 truncate font-mono text-[11px] leading-none tabular-nums tracking-tight text-neutral-100">
                 {displayHex.slice(1)}
               </span>
             </>
@@ -165,7 +165,7 @@ export function SolidColorPopoverRow({
   return (
     <div
       className={cn(
-        "flex min-h-10 min-w-0 divide-x divide-zinc-700 overflow-hidden",
+        "flex min-h-10 min-w-0 divide-x divide-neutral-700 overflow-hidden",
         rowChrome,
         className
       )}

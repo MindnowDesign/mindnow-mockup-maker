@@ -84,13 +84,13 @@ import {
 import { cn } from "@/lib/utils";
 
 const inputChrome =
-  "rounded-lg border border-zinc-700 bg-zinc-950 outline-none transition-colors hover:bg-zinc-900 focus-within:ring-2 focus-within:ring-white/25";
+  "rounded-lg border border-neutral-700 bg-neutral-950 outline-none transition-colors hover:bg-neutral-900 focus-within:ring-2 focus-within:ring-white/25";
 
 const sliderValueFieldChrome =
-  "rounded-lg border border-zinc-700 bg-zinc-950 outline-none transition-colors hover:bg-zinc-900 focus-within:ring-2 focus-within:ring-white/25";
+  "rounded-lg border border-neutral-700 bg-neutral-950 outline-none transition-colors hover:bg-neutral-900 focus-within:ring-2 focus-within:ring-white/25";
 
 const sliderValueInputClass =
-  "min-w-0 flex-1 bg-transparent px-1.5 py-1 text-center font-mono text-[11px] leading-none tabular-nums text-zinc-100 outline-none focus-visible:bg-white/5";
+  "min-w-0 flex-1 bg-transparent px-1.5 py-1 text-center font-mono text-[11px] leading-none tabular-nums text-neutral-100 outline-none focus-visible:bg-white/5";
 
 function normalizeHex(raw: string): string {
   const t = raw.trim();
@@ -195,14 +195,14 @@ function ScreenshotBorderPositionSelect({
       <SelectTrigger
         aria-label="Border position"
         className={cn(
-          "flex min-h-10 w-full min-w-0 cursor-pointer items-center justify-between gap-2 px-2.5 py-2 text-left text-xs font-medium text-zinc-100",
+          "flex min-h-10 w-full min-w-0 cursor-pointer items-center justify-between gap-2 px-2.5 py-2 text-left text-xs font-medium text-neutral-100",
           inputChrome
         )}
       >
         <SelectValue placeholder="Select…" />
         <SelectDropdownIcon asChild>
           <ChevronDown
-            className="size-3.5 shrink-0 text-zinc-500"
+            className="size-3.5 shrink-0 text-neutral-500"
             strokeWidth={1.75}
             aria-hidden
           />
@@ -213,7 +213,7 @@ function ScreenshotBorderPositionSelect({
           position="popper"
           sideOffset={6}
           align="start"
-          className="z-[250] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900 py-1 shadow-lg"
+          className="z-[250] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-lg border border-neutral-700 bg-neutral-900 py-1 shadow-lg"
         >
           <SelectViewport className="p-1">
             {SCREENSHOT_BORDER_POSITION_OPTIONS.map(({ id, label }) => (
@@ -223,13 +223,13 @@ function ScreenshotBorderPositionSelect({
                 textValue={label}
                 className={cn(
                   "relative flex cursor-pointer select-none items-center rounded-md py-1.5 pl-2 pr-8 text-xs font-medium outline-none",
-                  "text-zinc-200 data-highlighted:bg-zinc-800 data-highlighted:text-white data-[state=checked]:bg-zinc-800/90"
+                  "text-neutral-200 data-highlighted:bg-neutral-800 data-highlighted:text-neutral-50 data-[state=checked]:bg-neutral-800/90"
                 )}
               >
                 <SelectItemText>{label}</SelectItemText>
                 <SelectItemIndicator className="absolute right-2 flex size-4 items-center justify-center">
                   <Check
-                    className="size-3.5 text-white"
+                    className="size-3.5 text-neutral-50"
                     strokeWidth={2}
                     aria-hidden
                   />
@@ -298,7 +298,7 @@ function GlassFramePaddingPxField({
   return (
     <div
       className={cn(
-        "flex min-h-8 min-w-0 max-w-[5rem] shrink-0 divide-x divide-zinc-700 overflow-hidden",
+        "flex min-h-8 min-w-0 max-w-[5rem] shrink-0 divide-x divide-neutral-700 overflow-hidden",
         sliderValueFieldChrome
       )}
     >
@@ -329,7 +329,7 @@ function GlassFramePaddingPxField({
         className={sliderValueInputClass}
       />
       <span
-        className="flex min-w-9 shrink-0 items-center justify-center px-1.5 font-mono text-[11px] text-zinc-400 tabular-nums"
+        className="flex min-w-9 shrink-0 items-center justify-center px-1.5 font-mono text-[11px] text-neutral-400 tabular-nums"
         aria-hidden
       >
         px
@@ -429,7 +429,7 @@ function ScreenshotBorderWeightField({
       )}
     >
       <Rows3
-        className="size-4 shrink-0 text-zinc-300"
+        className="size-4 shrink-0 text-neutral-300"
         strokeWidth={1.75}
         aria-hidden
       />
@@ -462,7 +462,7 @@ function ScreenshotBorderWeightField({
           }
           if (e.key === "Enter") e.currentTarget.blur();
         }}
-        className="min-w-0 flex-1 bg-transparent px-0.5 py-0 font-mono text-[11px] leading-none tabular-nums text-zinc-100 outline-none focus-visible:bg-white/5"
+        className="min-w-0 flex-1 bg-transparent px-0.5 py-0 font-mono text-[11px] leading-none tabular-nums text-neutral-100 outline-none focus-visible:bg-white/5"
       />
     </div>
   );
@@ -573,7 +573,7 @@ function ScreenshotCornerRadiusField({
   }
 
   return (
-    <div className="flex min-w-0 shrink-0 items-center rounded-md border border-zinc-800 bg-zinc-950 px-1.5">
+    <div className="flex min-w-0 shrink-0 items-center rounded-md border border-neutral-800 bg-neutral-950 px-1.5">
       <input
         type="text"
         inputMode="numeric"
@@ -599,7 +599,7 @@ function ScreenshotCornerRadiusField({
           }
           if (e.key === "Enter") e.currentTarget.blur();
         }}
-        className="min-w-0 max-w-[2.5rem] bg-transparent px-1 py-2 text-right font-mono text-[11px] leading-none tabular-nums text-zinc-100 outline-none focus-visible:bg-white/5"
+        className="min-w-0 max-w-[2.5rem] bg-transparent px-1 py-2 text-right font-mono text-[11px] leading-none tabular-nums text-neutral-100 outline-none focus-visible:bg-white/5"
       />
     </div>
   );
@@ -666,12 +666,12 @@ function ScreenshotCornerRadiusControls() {
   return (
     <div className="flex flex-col gap-2 pt-1">
       <span
-        className="text-xs font-medium text-zinc-400"
+        className="text-xs font-medium text-neutral-400"
         id="frame-screenshot-corner-radius-label"
       >
         Corner radius
       </span>
-      <div className="space-y-2 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950 p-3">
+      <div className="space-y-2 overflow-hidden rounded-lg border border-neutral-800 bg-neutral-950 p-3">
         <div
           role="radiogroup"
           aria-labelledby="frame-screenshot-corner-radius-label"
@@ -692,8 +692,8 @@ function ScreenshotCornerRadiusControls() {
                 className={cn(
                   "flex min-h-[44px] flex-col items-center justify-center gap-0.5 rounded-md border px-1 py-1.5 text-[10px] font-medium transition-colors",
                   selected
-                    ? "border-zinc-500 bg-zinc-800 text-white shadow-sm"
-                    : "border-transparent bg-transparent text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
+                    ? "border-neutral-500 bg-neutral-800 text-neutral-50 shadow-sm"
+                    : "border-transparent bg-transparent text-neutral-400 hover:bg-neutral-900 hover:text-neutral-200"
                 )}
               >
                 <Icon className="size-4" />
@@ -703,7 +703,7 @@ function ScreenshotCornerRadiusControls() {
           })}
         </div>
         <div className="flex items-center gap-2 px-1">
-          <span className="shrink-0 text-[11px] font-medium text-zinc-500">
+          <span className="shrink-0 text-[11px] font-medium text-neutral-500">
             Radius
           </span>
           <div className="min-w-0 flex-1">
@@ -742,7 +742,7 @@ function ScreenshotStyleControls() {
     <div className="flex flex-col gap-6">
       <div className="flex min-w-0 flex-col gap-2">
         <span
-          className="text-xs font-medium text-zinc-400"
+          className="text-xs font-medium text-neutral-400"
           id="frame-screenshot-styles-label"
         >
           Styles
@@ -767,8 +767,8 @@ function ScreenshotStyleControls() {
                     className={cn(
                       "flex aspect-square w-full min-w-0 shrink-0 items-center justify-center rounded-lg border p-1.5 transition-colors",
                       selected
-                        ? "border-zinc-500 bg-zinc-800 text-white shadow-sm"
-                        : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:bg-zinc-900 hover:text-zinc-200"
+                        ? "border-neutral-500 bg-neutral-800 text-neutral-50 shadow-sm"
+                        : "border-neutral-800 bg-neutral-950 text-neutral-400 hover:border-neutral-600 hover:bg-neutral-900 hover:text-neutral-200"
                     )}
                   >
                     <span className="flex size-[20px] shrink-0 items-center justify-center [&>svg]:block [&>svg]:size-[20px]">
@@ -827,7 +827,7 @@ function ScreenshotStyleControls() {
 
       {screenshotStyle === "glass" || screenshotStyle === "liquidGlass" ? (
         <div className="pt-1">
-          <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-zinc-800 bg-zinc-950 p-3">
+          <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-neutral-800 bg-neutral-950 p-3">
             <ScreenshotGlassFramePaddingSliderRow
               value={screenshotGlassFramePadding}
               onChange={setScreenshotGlassFramePadding}
@@ -858,7 +858,7 @@ function BrowserStyleControls() {
     <div className="flex flex-col gap-6">
       <div className="flex min-w-0 flex-col gap-2">
         <span
-          className="text-xs font-medium text-zinc-400"
+          className="text-xs font-medium text-neutral-400"
           id="frame-browser-styles-label"
         >
           Browser
@@ -881,10 +881,10 @@ function BrowserStyleControls() {
                       aria-label={label}
                       onClick={() => setDeviceTemplateId(id)}
                       className={cn(
-                        "relative aspect-square w-full min-w-0 overflow-hidden rounded-lg border bg-zinc-950 transition-colors",
+                        "relative aspect-square w-full min-w-0 overflow-hidden rounded-lg border bg-neutral-950 transition-colors",
                         selected
-                          ? "border-zinc-500 shadow-sm ring-1 ring-zinc-500/40"
-                          : "border-zinc-800 hover:border-zinc-600"
+                          ? "border-neutral-500 shadow-sm ring-1 ring-neutral-500/40"
+                          : "border-neutral-800 hover:border-neutral-600"
                       )}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element -- style thumbnail */}
@@ -910,7 +910,7 @@ function BrowserStyleControls() {
       <div className="flex min-w-0 flex-col gap-2">
         <label
           htmlFor="frame-browser-url"
-          className="text-xs font-medium text-zinc-400"
+          className="text-xs font-medium text-neutral-400"
         >
           URL
         </label>
@@ -935,7 +935,7 @@ function BrowserStyleControls() {
                 title="Upload favicon"
                 className={cn(
                   inputChrome,
-                  "flex size-10 shrink-0 items-center justify-center text-zinc-400"
+                  "flex size-10 shrink-0 items-center justify-center text-neutral-400"
                 )}
               >
                 {browserFaviconUrl ? (
@@ -962,7 +962,7 @@ function BrowserStyleControls() {
             autoComplete="off"
             className={cn(
               inputChrome,
-              "box-border h-10 min-w-0 flex-1 px-3 text-sm text-zinc-100 placeholder:text-zinc-600"
+              "box-border h-10 min-w-0 flex-1 px-3 text-sm text-neutral-100 placeholder:text-neutral-600"
             )}
           />
         </div>
@@ -993,7 +993,7 @@ function DeviceFinishStyleControls({
     <div className="flex flex-col gap-6">
       <div className="flex min-w-0 flex-col gap-2">
         <span
-          className="text-xs font-medium text-zinc-400"
+          className="text-xs font-medium text-neutral-400"
           id="frame-styles-label"
         >
           Styles
@@ -1018,11 +1018,11 @@ function DeviceFinishStyleControls({
                       className={cn(
                         "flex aspect-square w-full min-w-0 shrink-0 items-center justify-center overflow-hidden rounded-xl border p-1.5 transition-colors",
                         selected
-                          ? "border-zinc-500 bg-zinc-800 text-white shadow-sm"
-                          : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:bg-zinc-900 hover:text-zinc-200"
+                          ? "border-neutral-500 bg-neutral-800 text-neutral-50 shadow-sm"
+                          : "border-neutral-800 bg-neutral-950 text-neutral-400 hover:border-neutral-600 hover:bg-neutral-900 hover:text-neutral-200"
                       )}
                     >
-                      <div className="relative size-6 shrink-0 overflow-hidden rounded-xl ring-2 ring-inset ring-zinc-600/40">
+                      <div className="relative size-6 shrink-0 overflow-hidden rounded-xl ring-2 ring-inset ring-neutral-600/40">
                         {/* eslint-disable-next-line @next/next/no-img-element -- style thumbnail */}
                         <img
                           src={coverSrc}

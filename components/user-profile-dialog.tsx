@@ -50,7 +50,7 @@ const changeLinkClass =
   "w-fit self-start text-left text-sm font-medium text-sky-400 transition-colors hover:text-sky-300";
 
 const fieldInputClass =
-  "box-border h-10 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 text-sm text-zinc-100 outline-none focus-visible:ring-2 focus-visible:ring-white/20";
+  "box-border h-10 w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 text-sm text-neutral-100 outline-none focus-visible:ring-2 focus-visible:ring-white/20";
 
 function SettingsSection({
   label,
@@ -61,7 +61,7 @@ function SettingsSection({
 }) {
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
-      <p className="text-sm font-semibold text-white">{label}</p>
+      <p className="text-sm font-semibold text-neutral-50">{label}</p>
       {children}
     </div>
   );
@@ -108,7 +108,7 @@ function ProfilePanel({
       <div className="flex items-center gap-4">
         <Avatar className="size-16 shrink-0 rounded-full after:rounded-full [&_[data-slot=avatar-fallback]]:rounded-full">
           <AvatarFallback
-            className="rounded-full text-lg font-semibold text-white"
+            className="rounded-full text-lg font-semibold text-neutral-50"
             style={{ backgroundColor: "#D94716" }}
           >
             {initials}
@@ -117,7 +117,7 @@ function ProfilePanel({
         <Button
           type="button"
           variant="secondary"
-          className="bg-zinc-800 text-zinc-100 hover:bg-zinc-700"
+          className="bg-neutral-800 text-neutral-100 hover:bg-neutral-700"
           onClick={() => {
             // Placeholder until profile photo upload is wired.
           }}
@@ -143,7 +143,7 @@ function ProfilePanel({
               <Button
                 type="button"
                 variant="ghost"
-                className="text-zinc-300 hover:bg-white/5 hover:text-white"
+                className="text-neutral-300 hover:bg-white/5 hover:text-neutral-50"
                 onClick={() => setEditing(null)}
               >
                 Cancel
@@ -152,7 +152,7 @@ function ProfilePanel({
           </div>
         ) : (
           <>
-            <p className="text-sm text-zinc-200">{fullName(user)}</p>
+            <p className="text-sm text-neutral-200">{fullName(user)}</p>
             <button type="button" className={changeLinkClass} onClick={startEditName}>
               Change name
             </button>
@@ -178,7 +178,7 @@ function ProfilePanel({
               <Button
                 type="button"
                 variant="ghost"
-                className="text-zinc-300 hover:bg-white/5 hover:text-white"
+                className="text-neutral-300 hover:bg-white/5 hover:text-neutral-50"
                 onClick={() => setEditing(null)}
               >
                 Cancel
@@ -187,7 +187,7 @@ function ProfilePanel({
           </div>
         ) : (
           <>
-            <p className="text-sm text-zinc-200">{user.email}</p>
+            <p className="text-sm text-neutral-200">{user.email}</p>
             <button
               type="button"
               className={changeLinkClass}
@@ -226,13 +226,13 @@ function AccountPanel({
   return (
     <div className="flex flex-col gap-8">
       <SettingsSection label="Sign out">
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-neutral-400">
           Sign out of Mindnow on this device.
         </p>
         <Button
           type="button"
           variant="secondary"
-          className="w-fit bg-zinc-800 text-zinc-100 hover:bg-zinc-700"
+          className="w-fit bg-neutral-800 text-neutral-100 hover:bg-neutral-700"
           onClick={onSignOut}
         >
           <LogOut data-icon="inline-start" strokeWidth={1.75} aria-hidden />
@@ -241,18 +241,18 @@ function AccountPanel({
       </SettingsSection>
 
       <SettingsSection label="Delete">
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-neutral-400">
           Permanently delete your account and all associated data.
         </p>
         {confirmDelete ? (
           <div className="flex flex-wrap items-center gap-2">
-            <p className="w-full text-sm text-zinc-400 sm:w-auto">
+            <p className="w-full text-sm text-neutral-400 sm:w-auto">
               Delete this account permanently?
             </p>
             <Button
               type="button"
               variant="ghost"
-              className="text-zinc-300 hover:bg-white/5 hover:text-white"
+              className="text-neutral-300 hover:bg-white/5 hover:text-neutral-50"
               onClick={() => setConfirmDelete(false)}
             >
               Cancel
@@ -365,7 +365,7 @@ function TeamMembersPanel({
               <Button
                 type="button"
                 variant="ghost"
-                className="text-zinc-300 hover:bg-white/5 hover:text-white"
+                className="text-neutral-300 hover:bg-white/5 hover:text-neutral-50"
                 onClick={() => setEditingTeam(false)}
               >
                 Cancel
@@ -374,7 +374,7 @@ function TeamMembersPanel({
           </div>
         ) : (
           <>
-            <p className="text-sm text-zinc-200">{teamName}</p>
+            <p className="text-sm text-neutral-200">{teamName}</p>
             <button
               type="button"
               className={changeLinkClass}
@@ -390,7 +390,7 @@ function TeamMembersPanel({
       </SettingsSection>
 
       <SettingsSection label="Members">
-        <ul className="mt-2 divide-y divide-zinc-800 rounded-lg border border-zinc-800">
+        <ul className="mt-2 divide-y divide-neutral-800 rounded-lg border border-neutral-800">
           {members.map((member) => {
             const initials = getInitials(member.firstName, member.lastName);
             return (
@@ -400,19 +400,19 @@ function TeamMembersPanel({
               >
                 <Avatar className="size-9 shrink-0 rounded-full after:rounded-full [&_[data-slot=avatar-fallback]]:rounded-full">
                   <AvatarFallback
-                    className="rounded-full text-xs font-semibold text-white"
+                    className="rounded-full text-xs font-semibold text-neutral-50"
                     style={{ backgroundColor: "#D94716" }}
                   >
                     {initials}
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-white">
+                  <p className="truncate text-sm font-medium text-neutral-50">
                     {fullName(member)}
                   </p>
-                  <p className="truncate text-xs text-zinc-400">{member.email}</p>
+                  <p className="truncate text-xs text-neutral-400">{member.email}</p>
                 </div>
-                <span className="shrink-0 rounded-md bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300">
+                <span className="shrink-0 rounded-md bg-neutral-800 px-2 py-0.5 text-xs text-neutral-300">
                   {member.role}
                 </span>
                 {member.role !== "Owner" ? (
@@ -420,7 +420,7 @@ function TeamMembersPanel({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="shrink-0 text-zinc-400 hover:bg-white/5 hover:text-white"
+                    className="shrink-0 text-neutral-400 hover:bg-white/5 hover:text-neutral-50"
                     onClick={() => removeMember(member.id)}
                   >
                     Remove
@@ -514,7 +514,7 @@ export function UserProfileDialog({
         >
           <TabsList
             className={cn(
-              "h-auto w-full shrink-0 justify-start rounded-none border-zinc-800 bg-zinc-950/80 p-2",
+              "h-auto w-full shrink-0 justify-start rounded-none border-neutral-800 bg-neutral-950/80 p-2",
               "flex flex-row gap-1 overflow-x-auto border-b",
               "sm:w-48 sm:flex-col sm:items-stretch sm:overflow-visible sm:border-r sm:border-b-0"
             )}
@@ -531,8 +531,8 @@ export function UserProfileDialog({
                 value={value}
                 className={cn(
                   "justify-start rounded-md px-3 py-2 text-sm font-medium",
-                  "data-[state=active]:bg-white/5 data-[state=active]:text-white",
-                  "data-[state=inactive]:text-zinc-400 data-[state=inactive]:hover:bg-white/5 data-[state=inactive]:hover:text-white",
+                  "data-[state=active]:bg-white/5 data-[state=active]:text-neutral-50",
+                  "data-[state=inactive]:text-neutral-400 data-[state=inactive]:hover:bg-white/5 data-[state=inactive]:hover:text-neutral-50",
                   "dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-white/5"
                 )}
               >
@@ -542,8 +542,8 @@ export function UserProfileDialog({
           </TabsList>
 
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-            <div className="shrink-0 border-b border-zinc-800 px-6 py-4 pr-12">
-              <h2 className="text-xl font-semibold tracking-tight text-white">
+            <div className="shrink-0 border-b border-neutral-800 px-6 py-4 pr-12">
+              <h2 className="text-xl font-semibold tracking-tight text-neutral-50">
                 {titles[tab]}
               </h2>
             </div>

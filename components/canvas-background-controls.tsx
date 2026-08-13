@@ -79,10 +79,10 @@ function normalizeNoiseHex(raw: string): string {
 
 /** Matches `CanvasSolidColorPicker` value field chrome (HSB row / HEX input). */
 const pickerChrome =
-  "rounded-lg border border-zinc-700 bg-zinc-950 outline-none transition-colors hover:bg-zinc-900 focus-within:ring-2 focus-within:ring-white/25";
+  "rounded-lg border border-neutral-700 bg-neutral-950 outline-none transition-colors hover:bg-neutral-900 focus-within:ring-2 focus-within:ring-white/25";
 
 const percentFieldInputClass =
-  "min-w-0 flex-1 bg-transparent px-1.5 py-1 text-center font-mono text-[11px] leading-none tabular-nums text-zinc-100 outline-none focus-visible:bg-white/5";
+  "min-w-0 flex-1 bg-transparent px-1.5 py-1 text-center font-mono text-[11px] leading-none tabular-nums text-neutral-100 outline-none focus-visible:bg-white/5";
 
 function EffectPercentField({
   id,
@@ -176,7 +176,7 @@ function EffectPercentField({
       />
       <span
         className={cn(
-          "flex shrink-0 items-center justify-center px-1.5 font-mono text-[11px] text-zinc-400 tabular-nums",
+          "flex shrink-0 items-center justify-center px-1.5 font-mono text-[11px] text-neutral-400 tabular-nums",
           variant === "default" ? "min-w-7" : "min-w-9"
         )}
         aria-hidden
@@ -188,7 +188,7 @@ function EffectPercentField({
 
   if (variant === "attached") {
     return (
-      <div className="flex min-h-8 min-w-0 flex-1 divide-x divide-zinc-700 overflow-hidden">
+      <div className="flex min-h-8 min-w-0 flex-1 divide-x divide-neutral-700 overflow-hidden">
         {embeddedInner}
       </div>
     );
@@ -197,7 +197,7 @@ function EffectPercentField({
   return (
     <div
       className={cn(
-        "flex min-h-8 min-w-0 max-w-[5rem] shrink-0 divide-x divide-zinc-700 overflow-hidden",
+        "flex min-h-8 min-w-0 max-w-[5rem] shrink-0 divide-x divide-neutral-700 overflow-hidden",
         pickerChrome
       )}
     >
@@ -224,8 +224,8 @@ function CanvasNoiseTypePicker({
     cn(
       "min-h-8 rounded-lg border px-0.5 py-1.5 text-center text-[11px] font-medium leading-tight transition-colors",
       selected
-        ? "border-zinc-500 bg-zinc-800 text-white shadow-sm"
-        : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:bg-zinc-900 hover:text-zinc-200"
+        ? "border-neutral-500 bg-neutral-800 text-neutral-50 shadow-sm"
+        : "border-neutral-800 bg-neutral-950 text-neutral-400 hover:border-neutral-600 hover:bg-neutral-900 hover:text-neutral-200"
     );
 
   return (
@@ -320,12 +320,12 @@ function NoiseBlendModeDropdown({
         <button
           type="button"
           className={cn(
-            "box-border flex h-10 min-h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-950 outline-none transition-colors",
-            "hover:bg-zinc-900 focus-visible:ring-2 focus-visible:ring-white/25"
+            "box-border flex h-10 min-h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-neutral-700 bg-neutral-950 outline-none transition-colors",
+            "hover:bg-neutral-900 focus-visible:ring-2 focus-visible:ring-white/25"
           )}
           aria-label="Blend mode"
         >
-          <Droplet className="size-4 text-white" strokeWidth={2} aria-hidden />
+          <Droplet className="size-4 text-neutral-50" strokeWidth={2} aria-hidden />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -348,7 +348,7 @@ function NoiseBlendModeDropdown({
                 <Check
                   className={cn(
                     "size-4 shrink-0",
-                    value === id ? "text-white opacity-100" : "opacity-0"
+                    value === id ? "text-neutral-50 opacity-100" : "opacity-0"
                   )}
                   strokeWidth={2}
                   aria-hidden
@@ -382,8 +382,8 @@ const overlayShadowPlacementButtonClass = (selected: boolean) =>
   cn(
     "min-h-9 rounded-lg border px-2 py-1.5 text-center text-[11px] font-semibold leading-tight transition-colors",
     selected
-      ? "border-zinc-500 bg-zinc-800 text-white shadow-sm"
-      : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:bg-zinc-900 hover:text-zinc-200"
+      ? "border-neutral-500 bg-neutral-800 text-neutral-50 shadow-sm"
+      : "border-neutral-800 bg-neutral-950 text-neutral-400 hover:border-neutral-600 hover:bg-neutral-900 hover:text-neutral-200"
   );
 
 export function CanvasEffectSliderRow({
@@ -410,10 +410,10 @@ export function CanvasEffectSliderRow({
         <div className="flex items-center justify-between gap-2">
           <label
             htmlFor={id}
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-400"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-400"
           >
             <Icon
-              className="size-3.5 shrink-0 text-zinc-500"
+              className="size-3.5 shrink-0 text-neutral-500"
               strokeWidth={2}
               aria-hidden
             />
@@ -532,7 +532,7 @@ export function CanvasBackgroundControls() {
     <>
     <div className="space-y-2">
       <span
-        className="block text-xs font-medium text-zinc-400"
+        className="block text-xs font-medium text-neutral-400"
         id="canvas-bg-label"
       >
         Background
@@ -555,8 +555,8 @@ export function CanvasBackgroundControls() {
                   className={cn(
                     "flex h-12 min-w-0 flex-1 items-center justify-center rounded-lg border p-1.5 transition-colors",
                     mode === id
-                      ? "border-zinc-500 bg-zinc-800 text-white shadow-sm"
-                      : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:bg-zinc-900 hover:text-zinc-200"
+                      ? "border-neutral-500 bg-neutral-800 text-neutral-50 shadow-sm"
+                      : "border-neutral-800 bg-neutral-950 text-neutral-400 hover:border-neutral-600 hover:bg-neutral-900 hover:text-neutral-200"
                   )}
                 >
                   <span className="flex size-[20px] shrink-0 items-center justify-center [&>svg]:block [&>svg]:size-[20px]">
@@ -602,20 +602,20 @@ export function CanvasBackgroundControls() {
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 className={cn(
-                  "flex w-full items-center gap-2 rounded-lg border border-dashed border-zinc-600 bg-zinc-950/80 px-3 py-2.5 text-left text-sm font-medium text-zinc-300 outline-none transition-colors",
-                  "hover:border-zinc-500 hover:bg-zinc-900 hover:text-white",
-                  "focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
+                  "flex w-full items-center gap-2 rounded-lg border border-dashed border-neutral-600 bg-neutral-950/80 px-3 py-2.5 text-left text-sm font-medium text-neutral-300 outline-none transition-colors",
+                  "hover:border-neutral-500 hover:bg-neutral-900 hover:text-neutral-50",
+                  "focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
                 )}
               >
                 <Upload className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
                 Upload background image
               </button>
-              <p className="text-xs leading-relaxed text-zinc-500">
+              <p className="text-xs leading-relaxed text-neutral-500">
                 Choose an image to fill the canvas frame behind your content.
               </p>
             </>
           ) : (
-            <div className="group/preview relative w-full overflow-hidden rounded-md border border-zinc-800">
+            <div className="group/preview relative w-full overflow-hidden rounded-md border border-neutral-800">
               {/* eslint-disable-next-line @next/next/no-img-element -- blob / data URL preview */}
               <img
                 src={canvasBackgroundImageUrl}
@@ -638,7 +638,7 @@ export function CanvasBackgroundControls() {
                           type="button"
                           onClick={() => setCanvasBackgroundImageFromFile(null)}
                           className={cn(
-                            "flex size-8 shrink-0 items-center justify-center rounded-md border border-zinc-600/80 bg-zinc-950/90 text-zinc-300 shadow-md backdrop-blur-sm outline-none transition-colors",
+                            "flex size-8 shrink-0 items-center justify-center rounded-md border border-neutral-600/80 bg-neutral-950/90 text-neutral-300 shadow-md backdrop-blur-sm outline-none transition-colors",
                             "hover:border-red-900/70 hover:bg-red-950/50 hover:text-red-200",
                             "focus-visible:ring-2 focus-visible:ring-white/35"
                           )}
@@ -657,8 +657,8 @@ export function CanvasBackgroundControls() {
                           type="button"
                           onClick={() => fileRef.current?.click()}
                           className={cn(
-                            "flex size-8 shrink-0 items-center justify-center rounded-md border border-zinc-600/80 bg-zinc-950/90 text-zinc-200 shadow-md backdrop-blur-sm outline-none transition-colors",
-                            "hover:border-zinc-500 hover:bg-zinc-800 hover:text-white",
+                            "flex size-8 shrink-0 items-center justify-center rounded-md border border-neutral-600/80 bg-neutral-950/90 text-neutral-200 shadow-md backdrop-blur-sm outline-none transition-colors",
+                            "hover:border-neutral-500 hover:bg-neutral-800 hover:text-neutral-50",
                             "focus-visible:ring-2 focus-visible:ring-white/35"
                           )}
                           aria-label="Upload another background image"
@@ -682,7 +682,7 @@ export function CanvasBackgroundControls() {
     </div>
 
     <div className="space-y-2 pt-1">
-      <span className="block text-xs font-medium text-zinc-400">Effects</span>
+      <span className="block text-xs font-medium text-neutral-400">Effects</span>
       <div className="space-y-2">
         <EffectAccordionSection
           sectionId="canvas-effect-noise"
@@ -745,7 +745,7 @@ export function CanvasBackgroundControls() {
     </div>
 
     <div className="space-y-2 pt-1">
-      <span className="block text-xs font-medium text-zinc-400">Shaders</span>
+      <span className="block text-xs font-medium text-neutral-400">Shaders</span>
       <div className="space-y-2">
         <EffectAccordionSection
           sectionId="canvas-shader-dither"
@@ -801,7 +801,7 @@ export function CanvasBackgroundControls() {
     </div>
 
     <div className="space-y-2 pt-1">
-      <span className="block text-xs font-medium text-zinc-400">Mood</span>
+      <span className="block text-xs font-medium text-neutral-400">Mood</span>
       <div className="space-y-2">
         <EffectAccordionSection
           sectionId="canvas-mood-shadow"
@@ -831,8 +831,8 @@ export function CanvasBackgroundControls() {
                     className={cn(
                       overlayPreviewButtonBase,
                       selected
-                        ? "border-zinc-500 shadow-sm ring-2 ring-inset ring-white/20"
-                        : "border-zinc-700 hover:border-zinc-500"
+                        ? "border-neutral-500 shadow-sm ring-2 ring-inset ring-white/20"
+                        : "border-neutral-700 hover:border-neutral-500"
                     )}
                     style={{ background: entry.previewBackground }}
                   />

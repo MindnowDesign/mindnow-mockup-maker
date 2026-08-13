@@ -75,7 +75,7 @@ export function HomePageContent() {
           >
             <Link
               href="/projects"
-              className="inline-flex w-fit items-center gap-2 rounded-sm text-foreground outline-none transition-colors hover:text-zinc-300 focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+              className="inline-flex w-fit items-center gap-2 rounded-sm text-foreground outline-none transition-colors hover:text-neutral-300 focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >
               <h2
                 id="last-projects-heading"

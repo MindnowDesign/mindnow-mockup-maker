@@ -45,7 +45,7 @@ export function EffectAccordionSection({
     >
       <AccordionItem
         value={sectionId}
-        className="overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950 not-last:border-b-zinc-800"
+        className="overflow-hidden rounded-lg border border-neutral-800 bg-neutral-950 not-last:border-b-neutral-800"
       >
         <AccordionTrigger
           title={
@@ -56,15 +56,15 @@ export function EffectAccordionSection({
               : undefined
           }
           className={cn(
-            "items-center gap-2 rounded-none border-0 px-3 py-2.5 text-xs font-medium hover:bg-zinc-900/80 hover:no-underline",
+            "items-center gap-2 rounded-none border-0 px-3 py-2.5 text-xs font-medium hover:bg-neutral-900/80 hover:no-underline",
             "focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-0",
-            "[&_[data-slot=accordion-trigger-icon]]:text-zinc-400",
+            "[&_[data-slot=accordion-trigger-icon]]:text-neutral-400",
             showRemoveIcon && "[&_[data-slot=accordion-trigger-icon]]:hidden"
           )}
         >
-          <span className="flex min-w-0 flex-1 items-center gap-2 text-left text-zinc-100">
+          <span className="flex min-w-0 flex-1 items-center gap-2 text-left text-neutral-100">
             <Icon
-              className="size-3.5 shrink-0 text-zinc-400"
+              className="size-3.5 shrink-0 text-neutral-400"
               strokeWidth={2}
               aria-hidden
             />
@@ -72,13 +72,13 @@ export function EffectAccordionSection({
           </span>
           {showRemoveIcon ? (
             <Trash2
-              className="size-4 shrink-0 text-zinc-400"
+              className="size-4 shrink-0 text-neutral-400"
               strokeWidth={2}
               aria-hidden
             />
           ) : null}
         </AccordionTrigger>
-        <AccordionContent className="border-t border-zinc-800 px-3 pb-3 pt-3 text-zinc-100">
+        <AccordionContent className="border-t border-neutral-800 px-3 pb-3 pt-3 text-neutral-100">
           <div className="space-y-3">{children}</div>
         </AccordionContent>
       </AccordionItem>

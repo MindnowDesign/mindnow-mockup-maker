@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 
 function Kbd({ children }: { children: ReactNode }) {
   return (
-    <kbd className="inline-flex size-5 items-center justify-center rounded border border-zinc-700 bg-zinc-950 text-zinc-400">
+    <kbd className="inline-flex size-5 items-center justify-center rounded border border-neutral-700 bg-neutral-950 text-neutral-400">
       {children}
     </kbd>
   );
@@ -47,7 +47,7 @@ function DropdownRow({
         })
       }
       className={cn(
-        "flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm text-zinc-100",
+        "flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm text-neutral-100",
         "outline-none transition-colors",
         active ? "bg-white/10" : "hover:bg-white/5"
       )}
@@ -56,7 +56,7 @@ function DropdownRow({
         <SearchResultThumb slide={item.previewSlide} label={item.title} />
       ) : (
         <SearchResultThumb label={item.title}>
-          <Folder className="size-4 text-zinc-400" strokeWidth={1.75} />
+          <Folder className="size-4 text-neutral-400" strokeWidth={1.75} />
         </SearchResultThumb>
       )}
       <span className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
@@ -64,7 +64,7 @@ function DropdownRow({
           <HighlightedText text={item.title} query={query} />
         </span>
         {item.kind === "visual" && item.projectTitle ? (
-          <span className="w-full truncate text-xs text-zinc-500">
+          <span className="w-full truncate text-xs text-neutral-500">
             {item.projectTitle}
           </span>
         ) : null}
@@ -99,7 +99,7 @@ export function SearchDropdown({
     <div
       className={cn(
         "flex w-full flex-col overflow-hidden rounded-xl",
-        "bg-zinc-900 shadow-lg ring-1 ring-zinc-800"
+        "bg-neutral-900 shadow-lg ring-1 ring-neutral-800"
       )}
     >
       <div
@@ -115,7 +115,7 @@ export function SearchDropdown({
           <div className="flex flex-col gap-3">
             {hasVisuals ? (
               <section className="flex flex-col gap-1">
-                <h2 className="px-2.5 pt-1 text-[11px] font-medium tracking-wider text-zinc-500 uppercase">
+                <h2 className="px-2.5 pt-1 text-[11px] font-medium tracking-wider text-neutral-500 uppercase">
                   Visuals
                 </h2>
                 <ul className="flex flex-col">
@@ -137,7 +137,7 @@ export function SearchDropdown({
 
             {hasProjects ? (
               <section className="flex flex-col gap-1">
-                <h2 className="px-2.5 pt-1 text-[11px] font-medium tracking-wider text-zinc-500 uppercase">
+                <h2 className="px-2.5 pt-1 text-[11px] font-medium tracking-wider text-neutral-500 uppercase">
                   Projects
                 </h2>
                 <ul className="flex flex-col">
@@ -158,13 +158,13 @@ export function SearchDropdown({
             ) : null}
           </div>
         ) : (
-          <p className="px-2.5 py-6 text-center text-sm text-zinc-500">
+          <p className="px-2.5 py-6 text-center text-sm text-neutral-500">
             No results
           </p>
         )}
       </div>
 
-      <div className="flex items-center justify-end gap-1.5 border-t border-zinc-800 px-3 py-2">
+      <div className="flex items-center justify-end gap-1.5 border-t border-neutral-800 px-3 py-2">
         <Kbd>
           <ArrowUp className="size-3" strokeWidth={2} aria-hidden />
         </Kbd>

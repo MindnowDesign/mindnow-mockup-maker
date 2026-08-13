@@ -54,7 +54,7 @@ export function WorkspaceMediaPanel() {
               e.target.value = "";
             }}
           />
-          <span className="flex w-full items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm font-medium text-white outline-none transition-colors hover:bg-zinc-900 focus-within:ring-2 focus-within:ring-white/25">
+          <span className="flex w-full items-center gap-2 rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm font-medium text-neutral-50 outline-none transition-colors hover:bg-neutral-900 focus-within:ring-2 focus-within:ring-white/25">
             <Upload className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
             Add media
           </span>
@@ -75,12 +75,12 @@ export function WorkspaceMediaPanel() {
                   onClick={() => assignMediaToActiveVisual(item.id)}
                   data-selected={isSelected ? "true" : "false"}
                   className={cn(
-                    "absolute inset-0 box-border overflow-hidden rounded-lg bg-zinc-950 outline-none transition-colors",
+                    "absolute inset-0 box-border overflow-hidden rounded-lg bg-neutral-950 outline-none transition-colors",
                     /* Border survives `overflow-hidden`; rings were unreliable here. */
                     isSelected
                       ? "border-2 border-white shadow-[inset_0_0_0_1px_rgba(0,0,0,0.25)]"
-                      : "border border-zinc-700 hover:border-zinc-500",
-                    "focus-visible:border-white focus-visible:ring-2 focus-visible:ring-violet-400/90 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
+                      : "border border-neutral-700 hover:border-neutral-500",
+                    "focus-visible:border-white focus-visible:ring-2 focus-visible:ring-violet-400/90 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
                   )}
                   aria-label={`Place on active canvas — ${item.kind}`}
                   aria-pressed={isSelected}
@@ -112,10 +112,10 @@ export function WorkspaceMediaPanel() {
                       onClick={(e) => e.stopPropagation()}
                       onPointerDown={(e) => e.stopPropagation()}
                       className={cn(
-                        "absolute right-1 top-1 z-10 flex size-7 items-center justify-center rounded-md bg-zinc-950/90 text-zinc-300 opacity-0 shadow-md backdrop-blur-sm transition-opacity",
-                        "hover:bg-zinc-800 hover:text-white",
+                        "absolute right-1 top-1 z-10 flex size-7 items-center justify-center rounded-md bg-neutral-950/90 text-neutral-300 opacity-0 shadow-md backdrop-blur-sm transition-opacity",
+                        "hover:bg-neutral-800 hover:text-neutral-50",
                         "group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40",
-                        "data-[state=open]:opacity-100 data-[state=open]:bg-zinc-800"
+                        "data-[state=open]:opacity-100 data-[state=open]:bg-neutral-800"
                       )}
                       aria-label="Media actions"
                       aria-haspopup="menu"
@@ -196,7 +196,7 @@ export function WorkspaceMediaPanel() {
           })}
         </ul>
       ) : (
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-neutral-500">
           No media yet — add files here or from the canvas.
         </p>
       )}

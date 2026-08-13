@@ -1,2 +1,2 @@
-/** Thin zinc scrollbar for dark scroll regions — see `.scrollbar-subtle` in globals.css. */
+/** Thin neutral scrollbar for dark scroll regions — see `.scrollbar-subtle` in globals.css. */
 export const scrollbarSubtleClass = "scrollbar-subtle";

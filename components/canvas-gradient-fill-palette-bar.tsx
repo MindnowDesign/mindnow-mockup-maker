@@ -66,8 +66,8 @@ export function CanvasGradientFillPaletteBar({
         type="button"
         onClick={resetCanvasGradientFillToDefaults}
         className={cn(
-          "flex size-8 shrink-0 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-400 outline-none transition-colors",
-          "hover:border-zinc-500 hover:bg-zinc-800 hover:text-zinc-100",
+          "flex size-8 shrink-0 items-center justify-center rounded-lg border border-neutral-700 bg-neutral-900 text-neutral-400 outline-none transition-colors",
+          "hover:border-neutral-500 hover:bg-neutral-800 hover:text-neutral-100",
           "focus-visible:ring-2 focus-visible:ring-white/25"
         )}
         title="Reset template colors"

@@ -43,7 +43,7 @@ const ProjectWorkspaceShell = dynamic(
   {
     loading: () => (
       <div
-        className="h-dvh max-h-dvh w-full bg-zinc-900"
+        className="h-dvh max-h-dvh w-full bg-neutral-900"
         aria-busy
         aria-label="Loading workspace"
       />
@@ -131,7 +131,7 @@ export function CatalystShell({
   const sidebarRail = (
     <Sidebar>
       <SidebarHeader className="px-2">
-        <div className="mb-2.5 flex w-full min-w-0 items-center gap-3 rounded-lg px-2.5 py-2 text-sm/6 font-medium text-white">
+        <div className="mb-2.5 flex w-full min-w-0 items-center gap-3 rounded-lg px-2.5 py-2 text-sm/6 font-medium text-neutral-50">
           <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg">
             {logo ?? <DefaultSidebarLogo label={teamLabel} />}
           </span>
@@ -177,22 +177,22 @@ export function CatalystShell({
               <span className="flex min-w-0 flex-1 items-center gap-3">
                 <Avatar className="size-10 shrink-0 rounded-full after:rounded-full [&_[data-slot=avatar-fallback]]:rounded-full">
                   <AvatarFallback
-                    className="rounded-full text-sm font-semibold text-white"
+                    className="rounded-full text-sm font-semibold text-neutral-50"
                     style={{ backgroundColor: "#D94716" }}
                   >
                     {initials}
                   </AvatarFallback>
                 </Avatar>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm/5 font-medium text-white">
+                  <span className="block truncate text-sm/5 font-medium text-neutral-50">
                     {user.firstName} {user.lastName}
                   </span>
-                  <span className="block truncate text-xs/5 font-normal text-zinc-400">
+                  <span className="block truncate text-xs/5 font-normal text-neutral-400">
                     {user.email}
                   </span>
                 </span>
               </span>
-              <ChevronUp className="size-4 shrink-0 text-zinc-500" aria-hidden />
+              <ChevronUp className="size-4 shrink-0 text-neutral-500" aria-hidden />
             </button>
           }
         />
@@ -224,7 +224,7 @@ export function CatalystShell({
                   aria-label="Account"
                 >
                   <span
-                    className="flex size-8 items-center justify-center rounded-full text-xs font-semibold text-white"
+                    className="flex size-8 items-center justify-center rounded-full text-xs font-semibold text-neutral-50"
                     style={{ backgroundColor: "#D94716" }}
                   >
                     {initials}

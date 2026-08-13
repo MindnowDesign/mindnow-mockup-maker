@@ -170,12 +170,12 @@ body {
 
 @layer utilities {
   /**
-   * Thin scrollbar aligned with zinc-900 panels (sidebar, popovers, lists).
+   * Thin scrollbar aligned with neutral-900 panels (sidebar, popovers, lists).
    * WebKit + Firefox; thumb darkens slightly on hover.
    */
   .scrollbar-subtle {
     scrollbar-width: thin;
-    scrollbar-color: rgb(63 63 70 / 0.55) transparent;
+    scrollbar-color: rgb(64 64 64 / 0.55) transparent;
   }
 
   .scrollbar-subtle::-webkit-scrollbar {
@@ -189,11 +189,11 @@ body {
 
   .scrollbar-subtle::-webkit-scrollbar-thumb {
     border-radius: 9999px;
-    background: rgb(63 63 70 / 0.55);
+    background: rgb(64 64 64 / 0.55);
   }
 
   .scrollbar-subtle:hover::-webkit-scrollbar-thumb {
-    background: rgb(82 82 91 / 0.75);
+    background: rgb(82 82 82 / 0.75);
   }
 }
 
@@ -265,7 +265,7 @@ body {
   box-shadow: none;
   /* Strong separation: filled white vs unfilled mid-dark gray (not near-white). */
   --canvas-range-fill: #ffffff;
-  --canvas-range-track: #52525b;
+  --canvas-range-track: #525252;
 }
 
 .canvas-effect-range::-webkit-slider-runnable-track {
@@ -291,7 +291,7 @@ body {
   border-radius: 9999px;
   /* No stroke ring: subtle shadow separates thumb from track */
   box-shadow:
-    0 0 0 1px rgb(63 63 70 / 0.65),
+    0 0 0 1px rgb(64 64 64 / 0.65),
     0 1px 3px rgb(0 0 0 / 0.35);
   background: #ffffff;
 }
@@ -316,7 +316,7 @@ body {
   border: none;
   border-radius: 9999px;
   box-shadow:
-    0 0 0 1px rgb(63 63 70 / 0.65),
+    0 0 0 1px rgb(64 64 64 / 0.65),
     0 1px 3px rgb(0 0 0 / 0.35);
   background: #ffffff;
 }

@@ -626,11 +626,11 @@ function MockupVisualTitle({
           placeholder={fallbackLabel}
           maxLength={128}
           className={cn(
-            "min-w-0 max-w-full border-0 bg-transparent px-0 py-0 text-sm font-medium tracking-tight text-zinc-400 outline-none ring-0 shadow-none",
+            "min-w-0 max-w-full border-0 bg-transparent px-0 py-0 text-sm font-medium tracking-tight text-neutral-400 outline-none ring-0 shadow-none",
             "[field-sizing:content]",
             "focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
-            "focus:text-zinc-200",
-            "placeholder:text-zinc-500"
+            "focus:text-neutral-200",
+            "placeholder:text-neutral-500"
           )}
         />
         <span
@@ -644,7 +644,7 @@ function MockupVisualTitle({
           }}
         >
           <Pencil
-            className="size-4 text-zinc-500"
+            className="size-4 text-neutral-500"
             strokeWidth={2}
             aria-hidden
           />
@@ -842,7 +842,7 @@ export function MockupWorkspaceStage() {
       return { ...base, ...waveLayer };
     }
     if (isCanvasOrganicTemplateId(activeGradientTemplateId)) {
-      return { ...base, backgroundColor: "#18181b" };
+      return { ...base, backgroundColor: "#171717" };
     }
     switch (canvasBackgroundMode) {
       case "transparent":
@@ -1211,8 +1211,8 @@ export function MockupWorkspaceStage() {
                         ? "h-full min-h-[140px] w-full"
                         : "aspect-square",
                       activeItem
-                        ? "bg-zinc-950"
-                        : "border border-zinc-900/80 bg-zinc-950 shadow-[0_24px_64px_-12px_rgba(0,0,0,0.9)]"
+                        ? "bg-neutral-950"
+                        : "border border-neutral-900/80 bg-neutral-950 shadow-[0_24px_64px_-12px_rgba(0,0,0,0.9)]"
                     )}
                   >
                     {activeItem ? (
@@ -1239,7 +1239,7 @@ export function MockupWorkspaceStage() {
                         />
                         <div className="relative flex items-center justify-center">
                           <span
-                            className="flex size-14 shrink-0 items-center justify-center rounded-full border border-dashed border-zinc-500 bg-zinc-900/35 transition-colors group-hover:border-zinc-400"
+                            className="flex size-14 shrink-0 items-center justify-center rounded-full border border-dashed border-neutral-500 bg-neutral-900/35 transition-colors group-hover:border-neutral-400"
                             aria-hidden
                           >
                             <Plus
@@ -1250,10 +1250,10 @@ export function MockupWorkspaceStage() {
                           </span>
                         </div>
                         <div className="space-y-1">
-                          <p className="text-xl font-semibold tracking-tight text-white md:text-2xl">
+                          <p className="text-xl font-semibold tracking-tight text-neutral-50 md:text-2xl">
                             Drop or Paste
                           </p>
-                          <p className="text-sm font-medium text-zinc-500">
+                          <p className="text-sm font-medium text-neutral-500">
                             Images &amp; Videos
                           </p>
                         </div>

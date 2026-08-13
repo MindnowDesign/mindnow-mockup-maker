@@ -71,12 +71,12 @@ export function OrganicTemplatePreviewThumb({
         "relative aspect-square w-full min-w-0 overflow-hidden rounded-lg border text-left outline-none transition-colors",
         "focus-visible:ring-2 focus-visible:ring-white/25",
         selected
-          ? "border-zinc-500 shadow-sm ring-2 ring-inset ring-white/20"
-          : "border-zinc-700 hover:border-zinc-500",
+          ? "border-neutral-500 shadow-sm ring-2 ring-inset ring-white/20"
+          : "border-neutral-700 hover:border-neutral-500",
         className
       )}
     >
-      <span className="absolute inset-0 bg-zinc-800" aria-hidden />
+      <span className="absolute inset-0 bg-neutral-800" aria-hidden />
       {shouldLoad ? (
         // eslint-disable-next-line @next/next/no-img-element -- tiny static preview asset
         <img

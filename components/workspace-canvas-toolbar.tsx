@@ -18,7 +18,7 @@ export function WorkspaceCanvasToolbar({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "relative isolate flex items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-900/90 p-1 shadow-lg backdrop-blur-sm",
+        "relative isolate flex items-center gap-1 rounded-lg border border-neutral-800 bg-neutral-900/90 p-1 shadow-lg backdrop-blur-sm",
         className
       )}
       role="toolbar"
@@ -30,7 +30,7 @@ export function WorkspaceCanvasToolbar({ className }: { className?: string }) {
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="text-zinc-300 hover:bg-white/10 hover:text-white [&_svg]:pointer-events-auto"
+            className="text-neutral-300 hover:bg-white/10 hover:text-neutral-50 [&_svg]:pointer-events-auto"
             aria-label="Undo"
             disabled={!canUndo}
             onClick={undo}
@@ -46,7 +46,7 @@ export function WorkspaceCanvasToolbar({ className }: { className?: string }) {
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="text-zinc-300 hover:bg-white/10 hover:text-white [&_svg]:pointer-events-auto"
+            className="text-neutral-300 hover:bg-white/10 hover:text-neutral-50 [&_svg]:pointer-events-auto"
             aria-label="Redo"
             disabled={!canRedo}
             onClick={redo}
@@ -56,12 +56,12 @@ export function WorkspaceCanvasToolbar({ className }: { className?: string }) {
         </TooltipTrigger>
         <TooltipContent side="bottom">Redo</TooltipContent>
       </Tooltip>
-      <span className="mx-0.5 h-5 w-px shrink-0 bg-zinc-700" aria-hidden />
+      <span className="mx-0.5 h-5 w-px shrink-0 bg-neutral-700" aria-hidden />
       <Button
         type="button"
         variant="ghost"
         size="sm"
-        className="h-7 px-2.5 text-xs font-medium text-zinc-300 hover:bg-white/10 hover:text-white"
+        className="h-7 px-2.5 text-xs font-medium text-neutral-300 hover:bg-white/10 hover:text-neutral-50"
         aria-label="Reset all"
         onClick={resetAll}
       >

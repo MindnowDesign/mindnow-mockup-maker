@@ -33,17 +33,17 @@ export function RecentVisualCard({
   return (
     <Card
       className={cn(
-        "relative flex h-full w-full min-h-0 flex-col gap-0 overflow-hidden py-0 ring-0 border border-zinc-800/80 transition-colors hover:border-zinc-600/90",
+        "relative flex h-full w-full min-h-0 flex-col gap-0 overflow-hidden py-0 ring-0 border border-neutral-800/80 transition-colors hover:border-neutral-600/90",
         className
       )}
     >
       <Link
         href={href}
-        className="absolute inset-0 z-[1] rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+        className="absolute inset-0 z-[1] rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
         aria-label={`Open visual: ${title}`}
       />
 
-      <div className="relative z-[2] aspect-[4/3] w-full shrink-0 bg-zinc-950 pointer-events-none">
+      <div className="relative z-[2] aspect-[4/3] w-full shrink-0 bg-neutral-950 pointer-events-none">
         <div className="absolute inset-0 flex items-center justify-center p-6 md:p-8">
           {previewSlide ? (
             <ProjectCardSlidePreview slide={previewSlide} pageLabel={title} />

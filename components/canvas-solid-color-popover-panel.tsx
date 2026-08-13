@@ -51,7 +51,7 @@ export function safeHex(color: string): string {
 type ColorFormat = "hex" | "hsb";
 
 const pickerChrome =
-  "rounded-lg border border-zinc-700 bg-zinc-950 outline-none transition-colors hover:bg-zinc-900 focus-visible:ring-2 focus-visible:ring-white/25";
+  "rounded-lg border border-neutral-700 bg-neutral-950 outline-none transition-colors hover:bg-neutral-900 focus-visible:ring-2 focus-visible:ring-white/25";
 
 /**
  * Inner panel (HexColorPicker + eyedropper + HEX/HSB row) — used by
@@ -141,14 +141,14 @@ export function CanvasSolidColorPopoverPanel({
   }
 
   const segmentHover =
-    "outline-none transition-colors hover:bg-zinc-900 focus-visible:bg-zinc-900";
+    "outline-none transition-colors hover:bg-neutral-900 focus-visible:bg-neutral-900";
 
   const eyedropperBtn = hasEyeDropper ? (
     <button
       type="button"
       onClick={sampleFromScreen}
       className={cn(
-        "flex h-10 w-10 shrink-0 items-center justify-center text-zinc-400",
+        "flex h-10 w-10 shrink-0 items-center justify-center text-neutral-400",
         segmentHover
       )}
       aria-label="Pick color from screen"
@@ -165,14 +165,14 @@ export function CanvasSolidColorPopoverPanel({
       <SelectTrigger
         aria-label="Color format"
         className={cn(
-          "flex h-10 min-h-10 w-[76px] shrink-0 cursor-pointer items-center justify-between gap-1 rounded-none border-0 px-2.5 py-2 text-xs font-semibold text-zinc-100 shadow-none ring-0",
+          "flex h-10 min-h-10 w-[76px] shrink-0 cursor-pointer items-center justify-between gap-1 rounded-none border-0 px-2.5 py-2 text-xs font-semibold text-neutral-100 shadow-none ring-0",
           segmentHover
         )}
       >
         <span>{format === "hex" ? "HEX" : "HSB"}</span>
         <SelectDropdownIcon asChild>
           <ChevronDown
-            className="size-3.5 shrink-0 text-zinc-500"
+            className="size-3.5 shrink-0 text-neutral-500"
             strokeWidth={1.75}
             aria-hidden
           />
@@ -183,7 +183,7 @@ export function CanvasSolidColorPopoverPanel({
           position="popper"
           sideOffset={6}
           align="start"
-          className="z-[250] overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900 py-1 shadow-lg"
+          className="z-[250] overflow-hidden rounded-lg border border-neutral-700 bg-neutral-900 py-1 shadow-lg"
         >
           <SelectViewport className="p-1">
             <SelectItem
@@ -191,12 +191,12 @@ export function CanvasSolidColorPopoverPanel({
               textValue="HEX"
               className={cn(
                 "relative flex cursor-pointer select-none items-center rounded-md py-2 pl-2 pr-8 text-sm font-semibold outline-none",
-                "text-zinc-200 data-highlighted:bg-zinc-800 data-highlighted:text-white data-[state=checked]:bg-zinc-800/90"
+                "text-neutral-200 data-highlighted:bg-neutral-800 data-highlighted:text-neutral-50 data-[state=checked]:bg-neutral-800/90"
               )}
             >
               HEX
               <SelectItemIndicator className="absolute right-2 flex size-4 items-center justify-center">
-                <Check className="size-3.5 text-white" strokeWidth={2} aria-hidden />
+                <Check className="size-3.5 text-neutral-50" strokeWidth={2} aria-hidden />
               </SelectItemIndicator>
             </SelectItem>
             <SelectItem
@@ -204,12 +204,12 @@ export function CanvasSolidColorPopoverPanel({
               textValue="HSB"
               className={cn(
                 "relative flex cursor-pointer select-none items-center rounded-md py-2 pl-2 pr-8 text-sm font-semibold outline-none",
-                "text-zinc-200 data-highlighted:bg-zinc-800 data-highlighted:text-white data-[state=checked]:bg-zinc-800/90"
+                "text-neutral-200 data-highlighted:bg-neutral-800 data-highlighted:text-neutral-50 data-[state=checked]:bg-neutral-800/90"
               )}
             >
               HSB
               <SelectItemIndicator className="absolute right-2 flex size-4 items-center justify-center">
-                <Check className="size-3.5 text-white" strokeWidth={2} aria-hidden />
+                <Check className="size-3.5 text-neutral-50" strokeWidth={2} aria-hidden />
               </SelectItemIndicator>
             </SelectItem>
           </SelectViewport>
@@ -219,7 +219,7 @@ export function CanvasSolidColorPopoverPanel({
   );
 
   const numberInputClass =
-    "min-w-0 flex-1 bg-transparent py-2 text-center font-mono text-[11px] leading-none tabular-nums text-zinc-100 outline-none focus-visible:bg-white/5 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none";
+    "min-w-0 flex-1 bg-transparent py-2 text-center font-mono text-[11px] leading-none tabular-nums text-neutral-100 outline-none focus-visible:bg-white/5 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none";
 
   const valueRow =
     format === "hex" ? (
@@ -242,13 +242,13 @@ export function CanvasSolidColorPopoverPanel({
         autoComplete="off"
         aria-label="Hex color"
         className={cn(
-          "min-h-10 min-w-0 flex-1 rounded-none border-0 bg-transparent px-2 py-2 font-mono text-[11px] leading-none tabular-nums tracking-tight text-zinc-100 outline-none focus-visible:bg-white/5"
+          "min-h-10 min-w-0 flex-1 rounded-none border-0 bg-transparent px-2 py-2 font-mono text-[11px] leading-none tabular-nums tracking-tight text-neutral-100 outline-none focus-visible:bg-white/5"
         )}
       />
     ) : (
       <div
         className={cn(
-          "flex min-h-10 min-w-0 flex-1 divide-x divide-zinc-700 overflow-hidden"
+          "flex min-h-10 min-w-0 flex-1 divide-x divide-neutral-700 overflow-hidden"
         )}
       >
         <input
@@ -320,7 +320,7 @@ export function CanvasSolidColorPopoverPanel({
       />
       <div
         className={cn(
-          "flex min-h-10 min-w-0 w-full divide-x divide-zinc-700 overflow-hidden",
+          "flex min-h-10 min-w-0 w-full divide-x divide-neutral-700 overflow-hidden",
           pickerChrome
         )}
       >

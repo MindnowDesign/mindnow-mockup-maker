@@ -3,12 +3,12 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 
-/** Home CTA card to start a new project — centered, zinc surfaces. */
+/** Home CTA card to start a new project — centered, neutral surfaces. */
 export function CreateProjectSection() {
   return (
-    <div className="flex min-h-64 flex-1 flex-col items-center justify-center gap-4 rounded-xl border border-zinc-800/80 bg-zinc-900 px-8 py-16 text-center">
+    <div className="flex min-h-64 flex-1 flex-col items-center justify-center gap-4 rounded-xl border border-neutral-800/80 bg-neutral-900 px-8 py-16 text-center">
       <span
-        className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-zinc-800"
+        className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-neutral-800"
         aria-hidden
       >
         <Plus className="size-5 text-foreground" strokeWidth={2} />

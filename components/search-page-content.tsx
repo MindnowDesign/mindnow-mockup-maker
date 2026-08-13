@@ -74,7 +74,7 @@ export function SearchPageContent() {
               <div className="flex items-center justify-between gap-3">
                 <h2
                   id="recent-searches-heading"
-                  className="text-sm font-medium text-zinc-500"
+                  className="text-sm font-medium text-neutral-500"
                 >
                   Recent
                 </h2>
@@ -83,9 +83,9 @@ export function SearchPageContent() {
                     type="button"
                     onClick={() => clearRecentSearches()}
                     className={cn(
-                      "inline-flex items-center gap-1.5 text-sm font-medium text-zinc-500 transition-colors",
-                      "hover:text-zinc-200",
-                      "outline-none focus-visible:text-zinc-200"
+                      "inline-flex items-center gap-1.5 text-sm font-medium text-neutral-500 transition-colors",
+                      "hover:text-neutral-200",
+                      "outline-none focus-visible:text-neutral-200"
                     )}
                   >
                     <X className="size-3.5" strokeWidth={1.75} aria-hidden />
@@ -94,7 +94,7 @@ export function SearchPageContent() {
                 ) : null}
               </div>
               {recentRows.length === 0 ? (
-                <p className="text-sm text-zinc-500">No recent searches</p>
+                <p className="text-sm text-neutral-500">No recent searches</p>
               ) : (
                 <ul className="flex flex-col">
                   {recentRows.map((item) => {
@@ -115,10 +115,10 @@ export function SearchPageContent() {
                             "text-sm transition-colors hover:bg-white/5"
                           )}
                         >
-                          <span className="min-w-0 truncate text-zinc-100">
+                          <span className="min-w-0 truncate text-neutral-100">
                             {item.title}
                           </span>
-                          <span className="shrink-0 text-zinc-500">
+                          <span className="shrink-0 text-neutral-500">
                             {item.dateLabel}
                           </span>
                         </Link>

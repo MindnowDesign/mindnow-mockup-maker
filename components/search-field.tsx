@@ -51,13 +51,13 @@ export function SearchField({
       <div
         className={cn(
           "flex h-12 w-full items-center gap-3 rounded-xl",
-          "bg-zinc-900 px-4",
-          "ring-1 ring-inset ring-zinc-800",
+          "bg-neutral-900 px-4",
+          "ring-1 ring-inset ring-neutral-800",
           "focus-within:ring-white/20"
         )}
       >
         <Search
-          className="size-4 shrink-0 text-zinc-500"
+          className="size-4 shrink-0 text-neutral-500"
           strokeWidth={1.75}
           aria-hidden
         />
@@ -77,8 +77,8 @@ export function SearchField({
           autoCorrect="off"
           spellCheck={false}
           className={cn(
-            "min-w-0 flex-1 bg-transparent text-sm text-zinc-100",
-            "outline-none placeholder:text-zinc-500",
+            "min-w-0 flex-1 bg-transparent text-sm text-neutral-100",
+            "outline-none placeholder:text-neutral-500",
             "[&::-webkit-search-cancel-button]:hidden"
           )}
         />
@@ -89,7 +89,7 @@ export function SearchField({
             aria-label="Clear search"
             className={cn(
               "flex size-7 shrink-0 items-center justify-center rounded-full",
-              "text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-200",
+              "text-neutral-500 transition-colors hover:bg-white/5 hover:text-neutral-200",
               "outline-none focus-visible:ring-2 focus-visible:ring-white/25"
             )}
           >

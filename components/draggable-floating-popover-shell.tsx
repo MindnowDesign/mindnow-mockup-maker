@@ -132,8 +132,8 @@ export function DraggableFloatingPopoverShell({
           onDragHandlePointerDown(e);
         }}
         className={cn(
-          "-mx-1 -mt-1 mb-1.5 flex h-5 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-zinc-500",
-          "hover:bg-zinc-800/70 active:cursor-grabbing"
+          "-mx-1 -mt-1 mb-1.5 flex h-5 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-neutral-500",
+          "hover:bg-neutral-800/70 active:cursor-grabbing"
         )}
       >
         <GripHorizontal className="size-3.5" strokeWidth={2} aria-hidden />

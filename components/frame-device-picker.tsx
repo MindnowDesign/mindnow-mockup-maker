@@ -75,7 +75,7 @@ function TemplateStyleCountHint({
   const count = options.length;
   if (count === 0) return null;
   return (
-    <span className="text-xs font-medium leading-snug text-zinc-500">
+    <span className="text-xs font-medium leading-snug text-neutral-500">
       {count} {count === 1 ? "style" : "styles"}
     </span>
   );
@@ -88,8 +88,8 @@ function thumbnailPreviewSrc(filename: string): string {
 
 function PreviewPlate({ src }: { src: string }) {
   return (
-    <div className="relative h-44 w-full overflow-hidden rounded-lg bg-zinc-900">
-      <div className="absolute inset-2.5 overflow-hidden rounded-md bg-zinc-800">
+    <div className="relative h-44 w-full overflow-hidden rounded-lg bg-neutral-900">
+      <div className="absolute inset-2.5 overflow-hidden rounded-md bg-neutral-800">
         {/* eslint-disable-next-line @next/next/no-img-element -- static tile thumbnail */}
         <img
           src={src}
@@ -126,20 +126,20 @@ function TemplateTile({
       type="button"
       onClick={onPick}
       className={cn(
-        "group flex h-full min-h-0 w-full flex-col overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950 text-left transition-colors",
-        "hover:border-zinc-600 hover:bg-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950",
+        "group flex h-full min-h-0 w-full flex-col overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950 text-left transition-colors",
+        "hover:border-neutral-600 hover:bg-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950",
         className
       )}
     >
       <div className="p-2">{preview}</div>
       <div className="flex min-h-[4.5rem] flex-1 flex-col gap-2 px-3 pb-3">
         <div className="min-w-0">
-          <div className="truncate font-semibold text-white">{title}</div>
+          <div className="truncate font-semibold text-neutral-50">{title}</div>
           {subtitle ? (
-            <div className="text-xs text-zinc-500">{subtitle}</div>
+            <div className="text-xs text-neutral-500">{subtitle}</div>
           ) : null}
           {resolution ? (
-            <div className="mt-1 font-mono text-[11px] text-zinc-500">
+            <div className="mt-1 font-mono text-[11px] text-neutral-500">
               {resolution}
             </div>
           ) : null}
@@ -282,7 +282,7 @@ export function FrameDevicePicker() {
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
         <span
-          className="text-xs font-medium text-zinc-400"
+          className="text-xs font-medium text-neutral-400"
           id="frame-device-label"
         >
           Device
@@ -291,29 +291,29 @@ export function FrameDevicePicker() {
           <PopoverTrigger
             aria-labelledby="frame-device-label"
             className={cn(
-              "flex min-h-10 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-left text-sm outline-none transition-colors",
-              "hover:bg-zinc-900 focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 data-[state=open]:border-zinc-600 data-[state=open]:bg-zinc-900"
+              "flex min-h-10 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-left text-sm outline-none transition-colors",
+              "hover:bg-neutral-900 focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 data-[state=open]:border-neutral-600 data-[state=open]:bg-neutral-900"
             )}
           >
             <span className="flex min-w-0 flex-1 items-start gap-2.5">
               <SelectedIcon
-                className="mt-0.5 size-[18px] shrink-0 text-zinc-300"
+                className="mt-0.5 size-[18px] shrink-0 text-neutral-300"
                 strokeWidth={1.75}
                 aria-hidden
               />
               <span className="flex min-w-0 flex-col gap-0.5">
-                <span className="truncate font-semibold text-white">
+                <span className="truncate font-semibold text-neutral-50">
                   {selection.headline}
                 </span>
                 {selection.detail ? (
-                  <span className="truncate font-mono text-xs text-zinc-500">
+                  <span className="truncate font-mono text-xs text-neutral-500">
                     {selection.detail}
                   </span>
                 ) : null}
               </span>
             </span>
             <ChevronDown
-              className="size-4 shrink-0 text-zinc-500"
+              className="size-4 shrink-0 text-neutral-500"
               strokeWidth={1.75}
               aria-hidden
             />
@@ -322,7 +322,7 @@ export function FrameDevicePicker() {
             align="start"
             sideOffset={8}
             className={cn(
-              "z-[200] w-[min(420px,calc(100vw-2rem))] max-w-none gap-0 overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-900 p-0 shadow-xl ring-1 ring-white/5"
+              "z-[200] w-[min(420px,calc(100vw-2rem))] max-w-none gap-0 overflow-hidden rounded-2xl border border-neutral-700 bg-neutral-900 p-0 shadow-xl ring-1 ring-white/5"
             )}
           >
             <Tabs
@@ -330,7 +330,7 @@ export function FrameDevicePicker() {
               onValueChange={(v) => setFilterTab(v as DeviceFilterTab)}
               className="gap-0"
             >
-              <div className="shrink-0 border-b border-zinc-800 bg-zinc-950/80 px-3 pt-3 pb-3">
+              <div className="shrink-0 border-b border-neutral-800 bg-neutral-950/80 px-3 pt-3 pb-3">
                 <TabsList className="flex h-auto w-full flex-wrap items-start gap-2 rounded-none border-0 bg-transparent p-0">
                   {FILTER_ORDER.map(({ value, icon: Icon, label }) => (
                     <TabsTrigger
@@ -340,8 +340,8 @@ export function FrameDevicePicker() {
                       aria-label={label}
                       className={cn(
                         "group inline-flex shrink-0 items-center overflow-hidden rounded-full border border-transparent outline-none transition-all",
-                        "bg-zinc-800/70 text-zinc-300 hover:bg-zinc-800",
-                        "data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-sm",
+                        "bg-neutral-800/70 text-neutral-300 hover:bg-neutral-800",
+                        "data-[state=active]:bg-white data-[state=active]:text-neutral-900 data-[state=active]:shadow-sm",
                         "data-[state=inactive]:size-9 data-[state=inactive]:justify-center",
                         "data-[state=active]:h-auto data-[state=active]:min-h-10 data-[state=active]:max-w-[min(180px,calc(100vw-8rem))] data-[state=active]:gap-2 data-[state=active]:px-2.5 data-[state=active]:py-2 data-[state=active]:justify-start",
                         "data-[state=active]:[&>.device-tab-copy]:block"
@@ -371,7 +371,7 @@ export function FrameDevicePicker() {
                       title="Screenshot"
                       subtitle="Adapts to media"
                       footer={
-                        <span className="text-xs font-medium leading-snug text-zinc-500">
+                        <span className="text-xs font-medium leading-snug text-neutral-500">
                           Plain canvas
                         </span>
                       }
@@ -393,7 +393,7 @@ export function FrameDevicePicker() {
                       title="Browser"
                       subtitle="Chrome & Safari"
                       footer={
-                        <span className="text-xs font-medium leading-snug text-zinc-500">
+                        <span className="text-xs font-medium leading-snug text-neutral-500">
                           Top chrome bar
                         </span>
                       }

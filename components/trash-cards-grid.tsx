@@ -85,7 +85,7 @@ export function TrashCardsGrid({
 
   if (projects.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-zinc-800 px-6 py-16 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-neutral-800 px-6 py-16 text-center">
         {/* eslint-disable-next-line @next/next/no-img-element -- static empty-state asset */}
         <img
           src="/images/empty-states/trash.png"
@@ -94,7 +94,7 @@ export function TrashCardsGrid({
           draggable={false}
           className="size-[120px] object-contain"
         />
-        <p className="text-sm font-medium text-zinc-200">Trash is empty</p>
+        <p className="text-sm font-medium text-neutral-200">Trash is empty</p>
         <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
           Projects you delete land here so you can restore them before removing
           them for good.
@@ -108,10 +108,10 @@ export function TrashCardsGrid({
       {focusedProject ? (
         <div
           role="status"
-          className="flex flex-col gap-3 rounded-xl border border-zinc-700/80 bg-zinc-900/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+          className="flex flex-col gap-3 rounded-xl border border-neutral-700/80 bg-neutral-900/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
         >
           <div className="min-w-0 space-y-0.5">
-            <p className="text-sm font-medium text-zinc-100">
+            <p className="text-sm font-medium text-neutral-100">
               This project is in Trash
             </p>
             <p className="truncate text-sm text-muted-foreground">
@@ -140,7 +140,7 @@ export function TrashCardsGrid({
               type="button"
               variant="ghost"
               size="sm"
-              className="text-zinc-400 hover:text-white"
+              className="text-neutral-400 hover:text-neutral-50"
             >
               <Trash2 data-icon="inline-start" strokeWidth={1.75} aria-hidden />
               Empty trash
@@ -189,7 +189,7 @@ export function TrashCardsGrid({
               className={cn(
                 "rounded-xl transition-[box-shadow,ring-color]",
                 isFocused &&
-                  "ring-2 ring-white/35 ring-offset-2 ring-offset-zinc-950"
+                  "ring-2 ring-white/35 ring-offset-2 ring-offset-neutral-950"
               )}
             >
               <ProjectProductCard

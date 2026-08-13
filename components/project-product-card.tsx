@@ -106,7 +106,7 @@ export function ProjectProductCard({
   const card = (
     <Card
       className={cn(
-        "group/card flex h-full min-h-0 flex-col gap-0 overflow-hidden py-0 ring-0 border border-zinc-800/80 transition-colors hover:border-zinc-600/90",
+        "group/card flex h-full min-h-0 flex-col gap-0 overflow-hidden py-0 ring-0 border border-neutral-800/80 transition-colors hover:border-neutral-600/90",
         href && "relative",
         className
       )}
@@ -114,7 +114,7 @@ export function ProjectProductCard({
       {href ? (
         <Link
           href={href}
-          className="absolute inset-0 z-[1] rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+          className="absolute inset-0 z-[1] rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
           aria-label={`Open project: ${title}`}
         />
       ) : null}
@@ -125,7 +125,7 @@ export function ProjectProductCard({
           href && "pointer-events-none"
         )}
       >
-        <div className="relative aspect-[4/3] w-full shrink-0 bg-zinc-950">
+        <div className="relative aspect-[4/3] w-full shrink-0 bg-neutral-950">
           <div className="absolute inset-0 flex items-center justify-center p-6 md:p-8">
             {activeSlide ? (
               <ProjectCardSlidePreview
@@ -143,7 +143,7 @@ export function ProjectProductCard({
                   type="button"
                   variant="ghost"
                   size="icon-sm"
-                  className="size-8 rounded-full border border-white/10 bg-black/45 text-white shadow-md backdrop-blur-sm hover:bg-black/60"
+                  className="size-8 rounded-full border border-white/10 bg-black/45 text-neutral-50 shadow-md backdrop-blur-sm hover:bg-black/60"
                   aria-label="Previous canvas preview"
                   onClick={(e) => {
                     e.preventDefault();
@@ -159,7 +159,7 @@ export function ProjectProductCard({
                   type="button"
                   variant="ghost"
                   size="icon-sm"
-                  className="size-8 rounded-full border border-white/10 bg-black/45 text-white shadow-md backdrop-blur-sm hover:bg-black/60"
+                  className="size-8 rounded-full border border-white/10 bg-black/45 text-neutral-50 shadow-md backdrop-blur-sm hover:bg-black/60"
                   aria-label="Next canvas preview"
                   onClick={(e) => {
                     e.preventDefault();
@@ -178,7 +178,7 @@ export function ProjectProductCard({
           <div className="min-w-0 flex-1 space-y-1">
             <CardTitle className="text-left line-clamp-2">{title}</CardTitle>
             {editedLabel ? (
-              <CardDescription className="text-xs leading-relaxed text-zinc-500">
+              <CardDescription className="text-xs leading-relaxed text-neutral-500">
                 {editedLabel}
               </CardDescription>
             ) : null}
@@ -187,7 +187,7 @@ export function ProjectProductCard({
             <Badge
               variant="secondary"
               aria-label={visualBadgeLabel}
-              className="h-6 shrink-0 tabular-nums border-zinc-700 bg-zinc-800/90 px-2.5 text-xs font-medium text-zinc-200"
+              className="h-6 shrink-0 tabular-nums border-neutral-700 bg-neutral-800/90 px-2.5 text-xs font-medium text-neutral-200"
             >
               {visualCount} {visualCount === 1 ? "visual" : "visuals"}
             </Badge>
@@ -199,7 +199,7 @@ export function ProjectProductCard({
                       type="button"
                       variant="ghost"
                       size="icon-sm"
-                      className="text-zinc-400 hover:bg-white/10 hover:text-white"
+                      className="text-neutral-400 hover:bg-white/10 hover:text-neutral-50"
                       aria-label="Project actions"
                       aria-haspopup="menu"
                     >

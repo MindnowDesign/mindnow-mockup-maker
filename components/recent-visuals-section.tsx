@@ -17,7 +17,7 @@ const navButtonClass = cn(
   "inline-flex size-9 shrink-0 items-center justify-center rounded-full",
   "border border-white/10 bg-black/45 p-0 shadow-md backdrop-blur-sm",
   "hover:bg-black/60 disabled:pointer-events-none disabled:opacity-30",
-  "[&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:stroke-white"
+  "[&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:stroke-neutral-50"
 );
 
 /** Home “Recent visuals” — heading, nav controls, and animated carousel. */

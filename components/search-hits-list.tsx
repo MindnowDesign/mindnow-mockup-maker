@@ -23,7 +23,7 @@ function resolveThumbSrc(
 
 export const searchResultThumbClass = cn(
   "relative flex size-10 min-h-10 min-w-10 shrink-0 items-center justify-center overflow-hidden",
-  "rounded-md bg-zinc-900 ring-1 ring-inset ring-zinc-800"
+  "rounded-md bg-neutral-900 ring-1 ring-inset ring-neutral-800"
 );
 
 export function SearchResultThumb({
@@ -125,7 +125,7 @@ export function SearchHitsList({ hits, query }: SearchHitsListProps) {
   const hasProjects = hits.projects.length > 0;
 
   if (!hasVisuals && !hasProjects) {
-    return <p className="text-sm text-zinc-500">No results</p>;
+    return <p className="text-sm text-neutral-500">No results</p>;
   }
 
   return (
@@ -137,7 +137,7 @@ export function SearchHitsList({ hits, query }: SearchHitsListProps) {
         >
           <h2
             id="search-visuals-heading"
-            className="text-sm font-medium text-zinc-500"
+            className="text-sm font-medium text-neutral-500"
           >
             Visuals
           </h2>
@@ -159,7 +159,7 @@ export function SearchHitsList({ hits, query }: SearchHitsListProps) {
                     slide={visual.previewSlide}
                     label={visual.title}
                   />
-                  <span className="min-w-0 flex-1 truncate text-zinc-100">
+                  <span className="min-w-0 flex-1 truncate text-neutral-100">
                     <HighlightedText text={visual.title} query={query} />
                   </span>
                 </Link>
@@ -176,7 +176,7 @@ export function SearchHitsList({ hits, query }: SearchHitsListProps) {
         >
           <h2
             id="search-projects-heading"
-            className="text-sm font-medium text-zinc-500"
+            className="text-sm font-medium text-neutral-500"
           >
             Projects
           </h2>
@@ -199,16 +199,16 @@ export function SearchHitsList({ hits, query }: SearchHitsListProps) {
                     <span
                       className={cn(
                         "flex size-10 shrink-0 items-center justify-center",
-                        "rounded-md bg-zinc-900 ring-1 ring-inset ring-zinc-800"
+                        "rounded-md bg-neutral-900 ring-1 ring-inset ring-neutral-800"
                       )}
                       aria-hidden
                     >
                       <Folder
-                        className="size-4 text-zinc-400"
+                        className="size-4 text-neutral-400"
                         strokeWidth={1.75}
                       />
                     </span>
-                    <span className="min-w-0 flex-1 truncate text-zinc-100">
+                    <span className="min-w-0 flex-1 truncate text-neutral-100">
                       <HighlightedText text={project.title} query={query} />
                     </span>
                   </Link>

@@ -104,8 +104,8 @@ export function CanvasBackgroundTemplatesSection() {
                     className={cn(
                       previewButtonBase,
                       selected
-                        ? "border-zinc-500 shadow-sm ring-2 ring-inset ring-white/20"
-                        : "border-zinc-700 hover:border-zinc-500"
+                        ? "border-neutral-500 shadow-sm ring-2 ring-inset ring-white/20"
+                        : "border-neutral-700 hover:border-neutral-500"
                     )}
                     style={{ background: entry.previewBackground }}
                   />
@@ -175,8 +175,8 @@ export function CanvasBackgroundTemplatesSection() {
                   className={cn(
                     previewButtonBase,
                     selected
-                      ? "border-zinc-500 shadow-sm ring-2 ring-inset ring-white/20"
-                      : "border-zinc-700 hover:border-zinc-500"
+                      ? "border-neutral-500 shadow-sm ring-2 ring-inset ring-white/20"
+                      : "border-neutral-700 hover:border-neutral-500"
                   )}
                   style={{ background: entry.previewBackground }}
                 />

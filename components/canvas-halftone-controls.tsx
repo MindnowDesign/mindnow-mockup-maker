@@ -41,7 +41,7 @@ function HalftoneCheckboxRow({
   return (
     <label
       htmlFor={id}
-      className="flex cursor-pointer items-center justify-between gap-3 text-xs font-medium text-zinc-200"
+      className="flex cursor-pointer items-center justify-between gap-3 text-xs font-medium text-neutral-200"
     >
       <span className="min-w-0 truncate font-mono text-[11px] tracking-tight">
         {label}
@@ -60,8 +60,8 @@ function HalftoneCheckboxRow({
           className={cn(
             "pointer-events-none absolute inset-0 flex items-center justify-center rounded-[3px] border transition-colors",
             checked
-              ? "border-white bg-white text-zinc-950"
-              : "border-zinc-600 bg-zinc-950 peer-hover:border-zinc-500"
+              ? "border-white bg-white text-neutral-950"
+              : "border-neutral-600 bg-neutral-950 peer-hover:border-neutral-500"
           )}
         >
           {checked ? (
@@ -100,7 +100,7 @@ function HalftoneNumberSliderRow({
       <div className="flex items-center justify-between gap-2">
         <label
           htmlFor={id}
-          className="font-mono text-[11px] font-medium tracking-tight text-zinc-200"
+          className="font-mono text-[11px] font-medium tracking-tight text-neutral-200"
         >
           {label}
         </label>
@@ -141,7 +141,7 @@ function HalftoneNumberSliderRow({
           onKeyDown={(e) => {
             if (e.key === "Enter") e.currentTarget.blur();
           }}
-          className="h-8 w-14 shrink-0 rounded-md border border-zinc-700 bg-zinc-900 px-2 text-center font-mono text-xs text-zinc-100 outline-none focus-visible:ring-2 focus-visible:ring-white/25"
+          className="h-8 w-14 shrink-0 rounded-md border border-neutral-700 bg-neutral-900 px-2 text-center font-mono text-xs text-neutral-100 outline-none focus-visible:ring-2 focus-visible:ring-white/25"
         />
       </div>
     </div>
@@ -159,18 +159,18 @@ function HalftoneTypeDropdown({
 
   return (
     <div className="flex items-center justify-between gap-3">
-      <span className="font-mono text-[11px] font-medium tracking-tight text-zinc-200">
+      <span className="font-mono text-[11px] font-medium tracking-tight text-neutral-200">
         type
       </span>
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            className="inline-flex h-8 w-[120px] shrink-0 items-center justify-between gap-2 rounded-md border border-zinc-700 bg-zinc-900 px-2.5 font-mono text-xs text-zinc-100 outline-none hover:border-zinc-500 focus-visible:ring-2 focus-visible:ring-white/25"
+            className="inline-flex h-8 w-[120px] shrink-0 items-center justify-between gap-2 rounded-md border border-neutral-700 bg-neutral-900 px-2.5 font-mono text-xs text-neutral-100 outline-none hover:border-neutral-500 focus-visible:ring-2 focus-visible:ring-white/25"
             aria-label="Halftone type"
           >
             <span>{value}</span>
-            <ChevronDown className="size-3.5 shrink-0 text-zinc-400" aria-hidden />
+            <ChevronDown className="size-3.5 shrink-0 text-neutral-400" aria-hidden />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-28">
@@ -200,18 +200,18 @@ function HalftoneGridDropdown({
 
   return (
     <div className="flex items-center justify-between gap-3">
-      <span className="font-mono text-[11px] font-medium tracking-tight text-zinc-200">
+      <span className="font-mono text-[11px] font-medium tracking-tight text-neutral-200">
         grid
       </span>
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            className="inline-flex h-8 w-[120px] shrink-0 items-center justify-between gap-2 rounded-md border border-zinc-700 bg-zinc-900 px-2.5 font-mono text-xs text-zinc-100 outline-none hover:border-zinc-500 focus-visible:ring-2 focus-visible:ring-white/25"
+            className="inline-flex h-8 w-[120px] shrink-0 items-center justify-between gap-2 rounded-md border border-neutral-700 bg-neutral-900 px-2.5 font-mono text-xs text-neutral-100 outline-none hover:border-neutral-500 focus-visible:ring-2 focus-visible:ring-white/25"
             aria-label="Halftone grid"
           >
             <span>{value}</span>
-            <ChevronDown className="size-3.5 shrink-0 text-zinc-400" aria-hidden />
+            <ChevronDown className="size-3.5 shrink-0 text-neutral-400" aria-hidden />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-28">
@@ -274,12 +274,12 @@ export function CanvasHalftoneControls() {
   return (
     <div className="space-y-3">
       {!canApply ? (
-        <p className="text-[11px] leading-relaxed text-zinc-500">
+        <p className="text-[11px] leading-relaxed text-neutral-500">
           Add a background image or choose a template to apply Halftone Dots.
         </p>
       ) : null}
       <div className="flex items-center justify-between gap-2">
-        <span className="shrink-0 font-mono text-[11px] font-medium tracking-tight text-zinc-200">
+        <span className="shrink-0 font-mono text-[11px] font-medium tracking-tight text-neutral-200">
           colorBack
         </span>
         <div className="w-[120px] shrink-0">
@@ -296,7 +296,7 @@ export function CanvasHalftoneControls() {
         </div>
       </div>
       <div className="flex items-center justify-between gap-2">
-        <span className="shrink-0 font-mono text-[11px] font-medium tracking-tight text-zinc-200">
+        <span className="shrink-0 font-mono text-[11px] font-medium tracking-tight text-neutral-200">
           colorFront
         </span>
         <div className="w-[120px] shrink-0">
