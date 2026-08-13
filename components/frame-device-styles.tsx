@@ -84,10 +84,10 @@ import {
 import { cn } from "@/lib/utils";
 
 const inputChrome =
-  "rounded-lg border border-neutral-700 bg-neutral-950 outline-none transition-colors hover:bg-neutral-900 focus-within:ring-2 focus-within:ring-white/25";
+  "rounded-lg border border-neutral-700 bg-neutral-900/30 outline-none transition-colors hover:bg-neutral-900 focus-within:ring-2 focus-within:ring-white/25";
 
 const sliderValueFieldChrome =
-  "rounded-lg border border-neutral-700 bg-neutral-950 outline-none transition-colors hover:bg-neutral-900 focus-within:ring-2 focus-within:ring-white/25";
+  "rounded-lg border border-neutral-700 bg-neutral-900/30 outline-none transition-colors hover:bg-neutral-900 focus-within:ring-2 focus-within:ring-white/25";
 
 const sliderValueInputClass =
   "min-w-0 flex-1 bg-transparent px-1.5 py-1 text-center font-mono text-[11px] leading-none tabular-nums text-neutral-100 outline-none focus-visible:bg-white/5";
@@ -573,7 +573,7 @@ function ScreenshotCornerRadiusField({
   }
 
   return (
-    <div className="flex min-w-0 shrink-0 items-center rounded-md border border-neutral-800 bg-neutral-950 px-1.5">
+    <div className="flex min-w-0 shrink-0 items-center rounded-md border border-neutral-800 bg-neutral-900/30 px-1.5">
       <input
         type="text"
         inputMode="numeric"

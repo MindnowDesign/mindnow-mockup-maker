@@ -51,7 +51,7 @@ export function SearchField({
       <div
         className={cn(
           "flex h-12 w-full items-center gap-3 rounded-xl",
-          "bg-neutral-900 px-4",
+          "bg-neutral-900/30 px-4",
           "ring-1 ring-inset ring-neutral-800",
           "focus-within:ring-white/20"
         )}

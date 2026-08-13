@@ -51,7 +51,7 @@ export function safeHex(color: string): string {
 type ColorFormat = "hex" | "hsb";
 
 const pickerChrome =
-  "rounded-lg border border-neutral-700 bg-neutral-950 outline-none transition-colors hover:bg-neutral-900 focus-visible:ring-2 focus-visible:ring-white/25";
+  "rounded-lg border border-neutral-700 bg-neutral-900/30 outline-none transition-colors hover:bg-neutral-900 focus-visible:ring-2 focus-visible:ring-white/25";
 
 /**
  * Inner panel (HexColorPicker + eyedropper + HEX/HSB row) — used by

@@ -17,13 +17,13 @@ import { hexToRgbaCss } from "@/lib/canvas-gradient-fill-opacity";
 import { cn } from "@/lib/utils";
 
 const rowChrome =
-  "rounded-lg border border-neutral-700 bg-neutral-950 outline-none transition-colors hover:bg-neutral-900 focus-within:ring-2 focus-within:ring-white/25";
+  "rounded-lg border border-neutral-700 bg-neutral-900/30 outline-none transition-colors hover:bg-neutral-900 focus-within:ring-2 focus-within:ring-white/25";
 
 const triggerButtonClass =
   "flex min-h-10 min-w-0 flex-1 items-center gap-1.5 px-2 text-left outline-none transition-colors hover:bg-neutral-900 focus-visible:bg-neutral-900";
 
 const fieldTriggerClass =
-  "box-border flex h-10 min-h-10 w-full min-w-0 items-center gap-1.5 overflow-hidden rounded-lg border border-neutral-700 bg-neutral-950 px-2 py-2 text-left outline-none transition-colors hover:bg-neutral-900 focus-visible:ring-2 focus-visible:ring-white/25";
+  "box-border flex h-10 min-h-10 w-full min-w-0 items-center gap-1.5 overflow-hidden rounded-lg border border-neutral-700 bg-neutral-900/30 px-2 py-2 text-left outline-none transition-colors hover:bg-neutral-900 focus-visible:ring-2 focus-visible:ring-white/25";
 
 const swatchTriggerClass =
   "box-border size-6 shrink-0 rounded border border-neutral-600 outline-none transition-colors hover:border-neutral-400 focus-visible:ring-2 focus-visible:ring-white/25";

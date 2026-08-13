@@ -20,7 +20,7 @@ import type { FrameShadowPresetId } from "@/lib/mockup-frame-shadow";
 import { cn } from "@/lib/utils";
 
 const inputChrome =
-  "rounded-lg border border-neutral-700 bg-neutral-950 outline-none transition-colors hover:bg-neutral-900 focus-within:ring-2 focus-within:ring-white/25";
+  "rounded-lg border border-neutral-700 bg-neutral-900/30 outline-none transition-colors hover:bg-neutral-900 focus-within:ring-2 focus-within:ring-white/25";
 
 const PRESET_OPTIONS: { id: FrameShadowPresetId; label: string }[] = [
   { id: "custom", label: "Custom" },

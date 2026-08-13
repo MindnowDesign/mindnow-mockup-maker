@@ -79,7 +79,7 @@ function normalizeNoiseHex(raw: string): string {
 
 /** Matches `CanvasSolidColorPicker` value field chrome (HSB row / HEX input). */
 const pickerChrome =
-  "rounded-lg border border-neutral-700 bg-neutral-950 outline-none transition-colors hover:bg-neutral-900 focus-within:ring-2 focus-within:ring-white/25";
+  "rounded-lg border border-neutral-700 bg-neutral-900/30 outline-none transition-colors hover:bg-neutral-900 focus-within:ring-2 focus-within:ring-white/25";
 
 const percentFieldInputClass =
   "min-w-0 flex-1 bg-transparent px-1.5 py-1 text-center font-mono text-[11px] leading-none tabular-nums text-neutral-100 outline-none focus-visible:bg-white/5";

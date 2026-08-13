@@ -50,7 +50,7 @@ const changeLinkClass =
   "w-fit self-start text-left text-sm font-medium text-sky-400 transition-colors hover:text-sky-300";
 
 const fieldInputClass =
-  "box-border h-10 w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 text-sm text-neutral-100 outline-none focus-visible:ring-2 focus-visible:ring-white/20";
+  "box-border h-10 w-full rounded-lg border border-neutral-700 bg-neutral-900/30 px-3 text-sm text-neutral-100 outline-none focus-visible:ring-2 focus-visible:ring-white/20";
 
 function SettingsSection({
   label,

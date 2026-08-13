@@ -29,7 +29,7 @@ export function StartFromScratchCard({
           "group flex h-full w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-neutral-800/80 px-6 py-10 outline-none transition-[background-color,border-color]",
           /* Match project card total height: 4:3 block + ~57px header strip at this width */
           "min-h-[calc(75cqw+57px)]",
-          "bg-neutral-800 hover:bg-neutral-700/85 hover:border-neutral-600/90",
+          "bg-neutral-900/30 hover:bg-neutral-900/50 hover:border-neutral-600/90",
           "focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
         )}
       >

@@ -35,7 +35,7 @@ export function LastProjectsList() {
   return (
     <div
       className={cn(
-        "min-h-64 flex-1 overflow-y-auto rounded-xl border border-neutral-800/80 bg-neutral-900 p-4",
+        "min-h-64 flex-1 overflow-y-auto rounded-xl border border-neutral-800/80 bg-neutral-900/30 p-4",
         scrollbarSubtleClass
       )}
     >

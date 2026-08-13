@@ -141,7 +141,7 @@ function HalftoneNumberSliderRow({
           onKeyDown={(e) => {
             if (e.key === "Enter") e.currentTarget.blur();
           }}
-          className="h-8 w-14 shrink-0 rounded-md border border-neutral-700 bg-neutral-900 px-2 text-center font-mono text-xs text-neutral-100 outline-none focus-visible:ring-2 focus-visible:ring-white/25"
+          className="h-8 w-14 shrink-0 rounded-md border border-neutral-700 bg-neutral-900/30 px-2 text-center font-mono text-xs text-neutral-100 outline-none focus-visible:ring-2 focus-visible:ring-white/25"
         />
       </div>
     </div>
