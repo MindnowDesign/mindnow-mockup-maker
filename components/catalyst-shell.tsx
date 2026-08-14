@@ -19,6 +19,11 @@ import {
   TooltipProvider,
 } from "@/components/ui/tooltip";
 import {
+  GlobalSearchOverlay,
+  GlobalSearchProvider,
+  useGlobalSearch,
+} from "@/components/global-search";
+import {
   Navbar,
   NavbarItem,
   NavbarSection,
@@ -33,7 +38,6 @@ import {
   SidebarSection,
 } from "@/components/sidebar";
 import { isProjectWorkspacePath } from "@/lib/project-workspace";
-import { cn } from "@/lib/utils";
 
 const ProjectWorkspaceShell = dynamic(
   () =>
@@ -106,27 +110,66 @@ export function CatalystShell({
   const pathname = usePathname();
   const isProjectWorkspace = isProjectWorkspacePath(pathname);
   const isHome = pathname === "/";
-  const isSearch = pathname === "/search";
   const isProjects = pathname === "/projects";
   const isTrash = pathname === "/trash";
   const isAccount = pathname === "/account";
   const initials = getInitials(user.firstName, user.lastName);
 
-  if (isProjectWorkspace) {
-    return (
-      <TooltipProvider>
-        <ProjectWorkspaceTitleProvider>
-          <ProjectWorkspaceShell
-            user={user}
-            logo={logo}
-            teamLabel={teamLabel}
-          >
-            {children}
-          </ProjectWorkspaceShell>
-        </ProjectWorkspaceTitleProvider>
-      </TooltipProvider>
-    );
-  }
+  return (
+    <TooltipProvider>
+      <ProjectWorkspaceTitleProvider>
+        <GlobalSearchProvider>
+          {isProjectWorkspace ? (
+            <ProjectWorkspaceShell
+              user={user}
+              logo={logo}
+              teamLabel={teamLabel}
+            >
+              {children}
+            </ProjectWorkspaceShell>
+          ) : (
+            <MainAppChrome
+              user={user}
+              logo={logo}
+              teamLabel={teamLabel}
+              initials={initials}
+              isHome={isHome}
+              isProjects={isProjects}
+              isTrash={isTrash}
+              isAccount={isAccount}
+            >
+              {children}
+            </MainAppChrome>
+          )}
+          <GlobalSearchOverlay />
+        </GlobalSearchProvider>
+      </ProjectWorkspaceTitleProvider>
+    </TooltipProvider>
+  );
+}
+
+function MainAppChrome({
+  children,
+  user,
+  logo,
+  teamLabel,
+  initials,
+  isHome,
+  isProjects,
+  isTrash,
+  isAccount,
+}: {
+  children: ReactNode;
+  user: CatalystShellUser;
+  logo?: ReactNode;
+  teamLabel: string;
+  initials: string;
+  isHome: boolean;
+  isProjects: boolean;
+  isTrash: boolean;
+  isAccount: boolean;
+}) {
+  const { isOpen: searchOpen, toggle: toggleSearch } = useGlobalSearch();
 
   const sidebarRail = (
     <Sidebar>
@@ -139,7 +182,13 @@ export function CatalystShell({
         </div>
 
         <SidebarSection>
-          <SidebarItem href="/search" current={isSearch}>
+          <SidebarItem
+            current={searchOpen}
+            onClick={toggleSearch}
+            aria-label="Search"
+            aria-haspopup="dialog"
+            aria-expanded={searchOpen}
+          >
             <Search className="size-5 shrink-0" strokeWidth={1.75} />
             <SidebarLabel>Search</SidebarLabel>
           </SidebarItem>
@@ -201,43 +250,41 @@ export function CatalystShell({
   );
 
   return (
-    <TooltipProvider>
-      <ProjectWorkspaceTitleProvider>
-        <SidebarLayout
-          navbar={
-            <Navbar>
-              <NavbarSpacer />
-              <NavbarSection>
-                <NavbarItem
-                  href="/search"
-                  current={isSearch}
-                  aria-label="Search"
-                >
-                  <Search className="size-5" strokeWidth={1.75} />
-                </NavbarItem>
-                <NavbarItem href="/" current={isHome} aria-label="Home">
-                  <Home className="size-5" strokeWidth={1.75} />
-                </NavbarItem>
-                <NavbarItem
-                  href="/account"
-                  current={isAccount}
-                  aria-label="Account"
-                >
-                  <span
-                    className="flex size-8 items-center justify-center rounded-full text-xs font-semibold text-neutral-50"
-                    style={{ backgroundColor: "#D94716" }}
-                  >
-                    {initials}
-                  </span>
-                </NavbarItem>
-              </NavbarSection>
-            </Navbar>
-          }
-          sidebar={sidebarRail}
-        >
-          {children}
-        </SidebarLayout>
-      </ProjectWorkspaceTitleProvider>
-    </TooltipProvider>
+    <SidebarLayout
+      navbar={
+        <Navbar>
+          <NavbarSpacer />
+          <NavbarSection>
+            <NavbarItem
+              current={searchOpen}
+              onClick={toggleSearch}
+              aria-label="Search"
+              aria-haspopup="dialog"
+              aria-expanded={searchOpen}
+            >
+              <Search className="size-5" strokeWidth={1.75} />
+            </NavbarItem>
+            <NavbarItem href="/" current={isHome} aria-label="Home">
+              <Home className="size-5" strokeWidth={1.75} />
+            </NavbarItem>
+            <NavbarItem
+              href="/account"
+              current={isAccount}
+              aria-label="Account"
+            >
+              <span
+                className="flex size-8 items-center justify-center rounded-full text-xs font-semibold text-neutral-50"
+                style={{ backgroundColor: "#D94716" }}
+              >
+                {initials}
+              </span>
+            </NavbarItem>
+          </NavbarSection>
+        </Navbar>
+      }
+      sidebar={sidebarRail}
+    >
+      {children}
+    </SidebarLayout>
   );
 }

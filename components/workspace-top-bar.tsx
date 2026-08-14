@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil } from "lucide-react";
+import { Pencil, Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -10,6 +10,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useMockupFrame } from "@/components/mockup-frame-context";
 import { useMockupMedia } from "@/components/mockup-media-context";
 import { WorkspaceExportButton } from "@/components/workspace-export-button";
+import { useGlobalSearch } from "@/components/global-search";
 import { useProjectWorkspaceTitle } from "@/components/project-workspace-title-context";
 import {
   clearPendingNewProjectId,
@@ -82,6 +83,7 @@ export function WorkspaceTopBar({
 }: WorkspaceTopBarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { isOpen: searchOpen, toggle: toggleSearch } = useGlobalSearch();
   const frame = useMockupFrame();
   const {
     aspectPreset,
@@ -913,6 +915,21 @@ export function WorkspaceTopBar({
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-2">
+        <button
+          type="button"
+          onClick={toggleSearch}
+          aria-label="Search"
+          aria-haspopup="dialog"
+          aria-expanded={searchOpen}
+          className={cn(
+            "flex size-10 shrink-0 items-center justify-center rounded-lg text-neutral-400 transition-colors outline-none",
+            "hover:bg-white/5 hover:text-neutral-50",
+            "focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950",
+            searchOpen && "bg-white/5 text-neutral-50"
+          )}
+        >
+          <Search className="size-5" strokeWidth={1.75} aria-hidden />
+        </button>
         <WorkspaceExportButton projectTitle={title} />
       </div>
     </header>

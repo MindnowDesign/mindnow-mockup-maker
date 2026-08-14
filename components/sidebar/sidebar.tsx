@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ComponentProps } from "react";
+import type { ComponentProps, MouseEventHandler, ReactNode } from "react";
 
 import { scrollbarSubtleClass } from "@/lib/scrollbar-classes";
 import { cn } from "@/lib/utils";
@@ -69,29 +69,60 @@ export function SidebarSpacer({ className, ...props }: ComponentProps<"div">) {
   return <div className={cn("min-h-0 flex-1", className)} {...props} />;
 }
 
-export type SidebarItemProps = ComponentProps<typeof Link> & {
-  /** Marks the item as the current route (active styles). */
+export type SidebarItemProps = {
+  className?: string;
   current?: boolean;
-};
+  children?: ReactNode;
+  href?: string;
+  onClick?: MouseEventHandler<HTMLAnchorElement | HTMLButtonElement>;
+} & Omit<
+  ComponentProps<"a">,
+  "href" | "className" | "children" | "onClick"
+>;
 
 export function SidebarItem({
   className,
   current,
+  href,
+  onClick,
+  children,
   ...props
 }: SidebarItemProps) {
+  const classes = cn(
+    "flex min-w-0 items-center gap-3 rounded-lg px-2.5 py-2 text-sm/6 font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900",
+    current
+      ? "bg-white/5 text-neutral-50"
+      : "text-neutral-400 hover:bg-white/5 hover:text-neutral-50",
+    className
+  );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        aria-current={current ? "page" : undefined}
+        data-slot="sidebar-item"
+        data-current={current ? "" : undefined}
+        className={classes}
+        onClick={onClick as MouseEventHandler<HTMLAnchorElement>}
+        {...props}
+      >
+        {children}
+      </Link>
+    );
+  }
+
   return (
-    <Link
-      aria-current={current ? "page" : undefined}
+    <button
+      type="button"
+      aria-current={current ? "true" : undefined}
       data-slot="sidebar-item"
       data-current={current ? "" : undefined}
-      className={cn(
-        "flex min-w-0 items-center gap-3 rounded-lg px-2.5 py-2 text-sm/6 font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900",
-        current
-          ? "bg-white/5 text-neutral-50"
-          : "text-neutral-400 hover:bg-white/5 hover:text-neutral-50",
-        className
-      )}
+      className={cn(classes, "w-full")}
+      onClick={onClick as MouseEventHandler<HTMLButtonElement>}
       {...props}
-    />
+    >
+      {children}
+    </button>
   );
 }

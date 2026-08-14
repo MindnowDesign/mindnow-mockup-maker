@@ -19,6 +19,10 @@ type HomeSearchProps = {
   query: string;
   onQueryChange: (value: string) => void;
   overlay?: boolean;
+  id?: string;
+  listboxId?: string;
+  autoFocus?: boolean;
+  onOpenResult?: () => void;
 };
 
 /** Home search field with categorized results dropdown. */
@@ -26,6 +30,10 @@ export function HomeSearch({
   query,
   onQueryChange,
   overlay = false,
+  id = "home-search",
+  listboxId = LISTBOX_ID,
+  autoFocus = false,
+  onOpenResult,
 }: HomeSearchProps) {
   const router = useRouter();
   const [activeIndex, setActiveIndex] = useState(0);
@@ -59,6 +67,7 @@ export function HomeSearch({
       href: activeItem.href,
       kind: activeItem.kind,
     });
+    onOpenResult?.();
     router.push(activeItem.href);
   }
 
@@ -89,20 +98,22 @@ export function HomeSearch({
       )}
     >
       <SearchField
-        id="home-search"
+        id={id}
         className="max-w-none"
         query={query}
         onQueryChange={onQueryChange}
         onClear={clearSearch}
         onKeyDown={onKeyDown}
         expanded={open}
-        listboxId={LISTBOX_ID}
+        listboxId={listboxId}
         activeOptionId={activeItem?.id ?? null}
+        autoFocus={autoFocus}
+        opaque={overlay}
       />
       {open ? (
         <div className="mt-2 w-full origin-top animate-in fade-in-0 slide-in-from-top-1 duration-300 ease-out">
           <SearchDropdown
-            id={LISTBOX_ID}
+            id={listboxId}
             hits={hits}
             items={items}
             query={trimmed}

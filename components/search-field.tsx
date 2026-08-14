@@ -15,6 +15,9 @@ type SearchFieldProps = {
   expanded?: boolean;
   listboxId?: string;
   activeOptionId?: string | null;
+  autoFocus?: boolean;
+  /** Solid fill — use over blur overlays so the field matches Home on `bg-neutral-950`. */
+  opaque?: boolean;
 };
 
 /** Search input used on Home and Search. */
@@ -28,6 +31,8 @@ export function SearchField({
   expanded,
   listboxId,
   activeOptionId,
+  autoFocus = false,
+  opaque = false,
 }: SearchFieldProps) {
   const trimmed = query.trim();
 
@@ -50,8 +55,8 @@ export function SearchField({
       </label>
       <div
         className={cn(
-          "flex h-12 w-full items-center gap-3 rounded-xl",
-          "bg-neutral-900/30 px-4",
+          "flex h-12 w-full items-center gap-3 rounded-xl px-4",
+          opaque ? "bg-neutral-950" : "bg-neutral-900/30",
           "ring-1 ring-inset ring-neutral-800",
           "focus-within:ring-white/20"
         )}
@@ -70,6 +75,7 @@ export function SearchField({
           aria-controls={listboxId}
           aria-activedescendant={activeOptionId ?? undefined}
           value={query}
+          autoFocus={autoFocus}
           onChange={(e) => onQueryChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Search for projects or visuals..."
