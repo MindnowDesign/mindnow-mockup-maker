@@ -94,7 +94,9 @@ export function TrashCardsGrid({
           draggable={false}
           className="size-[120px] object-contain"
         />
-        <p className="text-sm font-medium text-neutral-200">Trash is empty</p>
+        <p className="text-lg font-semibold tracking-tight text-foreground">
+          Trash is empty
+        </p>
         <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
           Projects you delete land here so you can restore them before removing
           them for good.

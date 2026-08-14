@@ -15,7 +15,7 @@ export function CreateProjectSection() {
       </span>
 
       <div className="flex max-w-md flex-col gap-2">
-        <p className="text-xl font-semibold tracking-tight text-foreground">
+        <p className="text-lg font-semibold tracking-tight text-foreground">
           Create a new project
         </p>
         <p className="text-sm leading-relaxed text-muted-foreground">

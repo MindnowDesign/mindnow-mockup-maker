@@ -41,7 +41,9 @@ export function ProjectCardsGrid() {
           draggable={false}
           className="size-[120px] object-contain"
         />
-        <p className="text-sm font-medium text-neutral-200">No projects yet</p>
+        <p className="text-lg font-semibold tracking-tight text-foreground">
+          No projects yet
+        </p>
         <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
           Create a project to start building mockups. Your work will show up
           here.
