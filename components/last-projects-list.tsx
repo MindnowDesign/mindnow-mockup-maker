@@ -1,29 +1,56 @@
 "use client";
 
-import { Folder } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { SearchResultThumb } from "@/components/search-hits-list";
-import { Badge } from "@/components/ui/badge";
+import { CreateProjectSection } from "@/components/create-project-section";
+import { ProjectProductCard } from "@/components/project-product-card";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNavigation,
+  useCarousel,
+} from "@/components/ui/carousel";
 import { formatEditedAgo } from "@/lib/format-edited-ago";
+import { projectCardPreviewSlides } from "@/lib/project-card-preview-slides";
 import { listSavedProjects, type SavedProject } from "@/lib/saved-projects";
-import { scrollbarSubtleClass } from "@/lib/scrollbar-classes";
 import { cn } from "@/lib/utils";
 
 const LAST_PROJECTS_LIMIT = 5;
+const carouselItemClass =
+  "basis-full overflow-visible pl-4 sm:basis-1/2 lg:basis-1/3 xl:basis-1/4";
 
-/** Compact list of recently edited projects for the Home “Last Projects” panel. */
+const navButtonClass = cn(
+  "inline-flex size-9 shrink-0 items-center justify-center rounded-full",
+  "border border-white/10 bg-black/45 p-0 shadow-md backdrop-blur-sm",
+  "hover:bg-black/60 disabled:pointer-events-none disabled:opacity-30",
+  "[&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:stroke-neutral-50"
+);
+
+function LastProjectsNav() {
+  const { itemsCount, visibleItemsCount } = useCarousel();
+  if (itemsCount <= visibleItemsCount) return null;
+
+  return (
+    <CarouselNavigation
+      className="relative left-auto top-auto ml-auto flex w-auto shrink-0 translate-y-0 items-center justify-end gap-2 px-0"
+      classNameButton={navButtonClass}
+      alwaysShow
+    />
+  );
+}
+
+/** Recent projects as product cards — carousel when more than a page fits. */
 export function LastProjectsList() {
   const [projects, setProjects] = useState<SavedProject[]>([]);
-  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     function refresh() {
       setProjects(listSavedProjects().slice(0, LAST_PROJECTS_LIMIT));
     }
     refresh();
-    setHydrated(true);
     window.addEventListener("mindnow:saved-projects-changed", refresh);
     window.addEventListener("storage", refresh);
     return () => {
@@ -33,59 +60,55 @@ export function LastProjectsList() {
   }, []);
 
   return (
-    <div
-      className={cn(
-        "min-h-64 flex-1 overflow-y-auto rounded-xl border border-neutral-800/80 bg-neutral-900/30 p-4",
-        scrollbarSubtleClass
-      )}
-    >
-      {hydrated && projects.length === 0 ? (
-        <p className="px-3 py-8 text-center text-sm text-neutral-500">
-          No recent projects
-        </p>
-      ) : (
-        <ul className="flex flex-col gap-2">
-          {projects.map((project) => {
-            const visualLabel = `${project.visualCount} ${project.visualCount === 1 ? "visual" : "visuals"}`;
+    <Carousel disableDrag className="flex min-w-0 flex-col">
+      <div className="flex flex-col gap-4">
+        <div className="flex min-h-9 items-center justify-between gap-4">
+          <Link
+            href="/projects"
+            className="inline-flex w-fit items-center gap-2 rounded-sm text-foreground outline-none transition-colors hover:text-neutral-300 focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+          >
+            <h2
+              id="last-projects-heading"
+              className="text-base font-semibold tracking-tight"
+            >
+              Last Projects
+            </h2>
+            <ChevronRight
+              className="size-4 shrink-0"
+              strokeWidth={2}
+              aria-hidden
+            />
+          </Link>
 
-            return (
-              <li key={project.id}>
-                <Link
+          <LastProjectsNav />
+        </div>
+
+        <div
+          role="region"
+          aria-roledescription="carousel"
+          aria-label="Last projects"
+          className="min-w-0 overflow-hidden"
+        >
+          <CarouselContent className="-ml-4 items-stretch">
+            <CarouselItem className={carouselItemClass}>
+              <CreateProjectSection />
+            </CarouselItem>
+            {projects.map((project) => (
+              <CarouselItem key={project.id} className={carouselItemClass}>
+                <ProjectProductCard
+                  title={project.title}
+                  visualCount={project.visualCount}
+                  editedLabel={formatEditedAgo(project.updatedAt)}
                   href={`/projects/${project.id}`}
-                  aria-label={`Open project: ${project.title}`}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg border border-neutral-800 bg-neutral-950 p-3",
-                    "outline-none transition-colors hover:border-neutral-600/90 hover:bg-white/5",
-                    "focus-visible:ring-2 focus-visible:ring-white/25"
-                  )}
-                >
-                  <SearchResultThumb label={project.title}>
-                    <Folder
-                      className="size-4 text-neutral-400"
-                      strokeWidth={1.75}
-                    />
-                  </SearchResultThumb>
-                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="truncate text-sm font-medium text-neutral-100">
-                      {project.title}
-                    </span>
-                    <span className="truncate text-xs text-neutral-500">
-                      {formatEditedAgo(project.updatedAt)}
-                    </span>
-                  </span>
-                  <Badge
-                    variant="secondary"
-                    aria-label={`${visualLabel} in this project`}
-                    className="h-6 shrink-0 tabular-nums border-neutral-700 bg-neutral-800/90 px-2.5 text-xs font-medium text-neutral-200"
-                  >
-                    {visualLabel}
-                  </Badge>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
+                  previewSrc={project.previewDataUrl || null}
+                  previewSlides={projectCardPreviewSlides(project)}
+                  projectId={project.id}
+                />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </div>
+      </div>
+    </Carousel>
   );
 }

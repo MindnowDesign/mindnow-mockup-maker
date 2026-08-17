@@ -139,15 +139,16 @@ function CarouselNavigation({
   classNameButton,
   alwaysShow,
 }: CarouselNavigationProps) {
-  const { index, setIndex, itemsCount, visibleItemsCount, step } = useCarousel();
+  const { index, setIndex, itemsCount, visibleItemsCount } = useCarousel();
   const maxIndex = Math.max(0, itemsCount - visibleItemsCount);
+  const pageSize = Math.max(1, visibleItemsCount);
 
   const goPrev = () => {
-    setIndex(Math.max(0, index - step));
+    setIndex(Math.max(0, index - pageSize));
   };
 
   const goNext = () => {
-    setIndex(Math.min(maxIndex, index + step));
+    setIndex(Math.min(maxIndex, index + pageSize));
   };
 
   return (

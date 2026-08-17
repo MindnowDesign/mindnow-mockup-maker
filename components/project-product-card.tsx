@@ -125,7 +125,7 @@ export function ProjectProductCard({
           href && "pointer-events-none"
         )}
       >
-        <div className="relative aspect-[4/3] w-full shrink-0 bg-neutral-950">
+        <div className="relative aspect-[4/3] h-auto w-full shrink-0 bg-neutral-950">
           <div className="absolute inset-0 flex items-center justify-center p-6 md:p-8">
             {activeSlide ? (
               <ProjectCardSlidePreview

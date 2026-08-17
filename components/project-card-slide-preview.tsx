@@ -47,20 +47,24 @@ export function ProjectCardSlidePreview({
 
   if (!preferComposed && captureSrc) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element -- PNG data URLs from saved projects
-      <img
-        src={captureSrc}
-        alt=""
-        aria-label={pageLabel}
-        loading="lazy"
-        decoding="async"
-        draggable={false}
-        onError={() => setPreferComposed(true)}
+      <div
         className={cn(
-          "max-h-full max-w-full object-contain object-center rounded-[8px]",
+          "relative aspect-[4/3] w-full max-h-full overflow-hidden rounded-[8px]",
           className
         )}
-      />
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element -- PNG data URLs from saved projects */}
+        <img
+          src={captureSrc}
+          alt=""
+          aria-label={pageLabel}
+          loading="lazy"
+          decoding="async"
+          draggable={false}
+          onError={() => setPreferComposed(true)}
+          className="size-full object-contain object-center"
+        />
+      </div>
     );
   }
 
@@ -70,7 +74,7 @@ export function ProjectCardSlidePreview({
       aria-label={pageLabel}
       className={cn(
         "relative max-h-full max-w-full overflow-hidden rounded-[8px]",
-        "aspect-square w-[min(100%,14rem)]",
+        "aspect-[4/3] w-full",
         className
       )}
     >

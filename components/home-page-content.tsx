@@ -1,10 +1,7 @@
 "use client";
 
-import { ChevronRight } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { CreateProjectSection } from "@/components/create-project-section";
 import { HomeSearch } from "@/components/home-search";
 import { LastProjectsList } from "@/components/last-projects-list";
 import { RecentVisualsSection } from "@/components/recent-visuals-section";
@@ -54,43 +51,12 @@ export function HomePageContent() {
           />
         </header>
 
-        <div className="grid items-stretch gap-4 lg:grid-cols-2">
-          <section
-            aria-labelledby="start-project-heading"
-            className="flex min-h-0 flex-col gap-4"
-          >
-            <h2
-              id="start-project-heading"
-              className="text-base font-semibold tracking-tight text-foreground"
-            >
-              Start project
-            </h2>
-            <CreateProjectSection />
-          </section>
-
-          <section
-            aria-labelledby="last-projects-heading"
-            className="flex min-h-0 flex-col gap-4"
-          >
-            <Link
-              href="/projects"
-              className="inline-flex w-fit items-center gap-2 rounded-sm text-foreground outline-none transition-colors hover:text-neutral-300 focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
-            >
-              <h2
-                id="last-projects-heading"
-                className="text-base font-semibold tracking-tight"
-              >
-                Last Projects
-              </h2>
-              <ChevronRight
-                className="size-4 shrink-0"
-                strokeWidth={2}
-                aria-hidden
-              />
-            </Link>
-            <LastProjectsList />
-          </section>
-        </div>
+        <section
+          aria-labelledby="last-projects-heading"
+          className="min-w-0"
+        >
+          <LastProjectsList />
+        </section>
 
         <RecentVisualsSection />
       </div>

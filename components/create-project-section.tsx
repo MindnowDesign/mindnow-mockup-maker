@@ -1,12 +1,20 @@
 import { Plus } from "lucide-react";
 import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-/** Home CTA card to start a new project — centered, neutral surfaces. */
+/** Home CTA tile to start a new project — same slot size as project cards. */
 export function CreateProjectSection() {
   return (
-    <div className="flex min-h-64 flex-1 flex-col items-center justify-center gap-4 rounded-xl border border-neutral-800/80 bg-neutral-900/30 px-8 py-16 text-center">
+    <Link
+      href="/projects/new"
+      className={cn(
+        "flex h-full min-h-0 w-full flex-col items-center justify-center gap-3 rounded-xl border border-neutral-800/80 bg-neutral-900/30 p-4 text-center",
+        "outline-none transition-colors hover:border-neutral-600/90 hover:bg-neutral-900/50",
+        "focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+      )}
+    >
       <span
         className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#F6AF7B]/20"
         aria-hidden
@@ -24,12 +32,12 @@ export function CreateProjectSection() {
         </p>
       </div>
 
-      <Button asChild className="mt-1 h-10">
-        <Link href="/projects/new">
-          <Plus data-icon="inline-start" strokeWidth={1.75} aria-hidden />
-          Start building
-        </Link>
-      </Button>
-    </div>
+      <span
+        className={cn(buttonVariants({ size: "default" }), "mt-1 h-10 pointer-events-none")}
+      >
+        <Plus data-icon="inline-start" strokeWidth={1.75} aria-hidden />
+        Start building
+      </span>
+    </Link>
   );
 }
