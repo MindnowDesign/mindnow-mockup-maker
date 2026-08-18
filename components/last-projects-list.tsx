@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 import { CreateProjectSection } from "@/components/create-project-section";
 import { ProjectProductCard } from "@/components/project-product-card";
+import { ProjectsEmptyState } from "@/components/projects-empty-state";
 import {
   Carousel,
   CarouselContent,
@@ -20,7 +21,7 @@ import { cn } from "@/lib/utils";
 
 const LAST_PROJECTS_LIMIT = 5;
 const carouselItemClass =
-  "basis-full overflow-visible pl-4 sm:basis-1/2 lg:basis-1/3 xl:basis-1/4";
+  "basis-full overflow-visible pl-4 @[420px]:basis-1/2 @[720px]:basis-1/3 @[1100px]:basis-1/4";
 
 const navButtonClass = cn(
   "inline-flex size-9 shrink-0 items-center justify-center rounded-full",
@@ -45,12 +46,14 @@ function LastProjectsNav() {
 /** Recent projects as product cards — carousel when more than a page fits. */
 export function LastProjectsList() {
   const [projects, setProjects] = useState<SavedProject[]>([]);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     function refresh() {
       setProjects(listSavedProjects().slice(0, LAST_PROJECTS_LIMIT));
     }
     refresh();
+    setHydrated(true);
     window.addEventListener("mindnow:saved-projects-changed", refresh);
     window.addEventListener("storage", refresh);
     return () => {
@@ -58,6 +61,17 @@ export function LastProjectsList() {
       window.removeEventListener("storage", refresh);
     };
   }, []);
+
+  if (hydrated && projects.length === 0) {
+    return (
+      <>
+        <h2 id="last-projects-heading" className="sr-only">
+          Last Projects
+        </h2>
+        <ProjectsEmptyState />
+      </>
+    );
+  }
 
   return (
     <Carousel disableDrag className="flex min-w-0 flex-col">
@@ -87,7 +101,7 @@ export function LastProjectsList() {
           role="region"
           aria-roledescription="carousel"
           aria-label="Last projects"
-          className="min-w-0 overflow-hidden"
+          className="@container min-w-0 overflow-hidden"
         >
           <CarouselContent className="-ml-4 items-stretch">
             <CarouselItem className={carouselItemClass}>

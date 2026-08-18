@@ -6,6 +6,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -262,34 +263,45 @@ function CarouselContent({
     disableDrag,
   } = useCarousel();
   const [visibleItemsCount, setLocalVisibleItemsCount] = useState(1);
+  const [itemWidth, setItemWidth] = useState(0);
   const dragX = useMotionValue(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const itemsLength = Children.count(children);
   const maxIndex = Math.max(0, itemsLength - visibleItemsCount);
 
-  useEffect(() => {
-    if (!containerRef.current) {
-      return;
-    }
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
 
-    const options = {
-      root: containerRef.current,
-      threshold: 0.5,
+    const update = () => {
+      const first = container.children[0];
+      if (!(first instanceof HTMLElement)) return;
+
+      const width = first.getBoundingClientRect().width;
+      if (width <= 0) return;
+
+      setItemWidth(width);
+
+      const containerWidth = container.getBoundingClientRect().width;
+      const visible = Math.max(
+        1,
+        Math.min(
+          itemsLength || 1,
+          Math.floor((containerWidth + width / 2) / width)
+        )
+      );
+      setLocalVisibleItemsCount(visible);
+      setVisibleItemsCount(visible);
     };
 
-    const observer = new IntersectionObserver((entries) => {
-      const visibleCount = entries.filter(
-        (entry) => entry.isIntersecting
-      ).length;
-      setLocalVisibleItemsCount(visibleCount);
-      setVisibleItemsCount(visibleCount);
-    }, options);
-
-    const childNodes = containerRef.current.children;
-    Array.from(childNodes).forEach((child) => observer.observe(child));
+    const observer = new ResizeObserver(update);
+    observer.observe(container);
+    const first = container.children[0];
+    if (first instanceof HTMLElement) observer.observe(first);
+    update();
 
     return () => observer.disconnect();
-  }, [children, setVisibleItemsCount]);
+  }, [children, itemsLength, setVisibleItemsCount]);
 
   useEffect(() => {
     if (!itemsLength) {
@@ -331,7 +343,10 @@ function CarouselContent({
         x: disableDrag ? undefined : dragX,
       }}
       animate={{
-        translateX: `-${index * (100 / visibleItemsCount)}%`,
+        translateX:
+          itemWidth > 0
+            ? -index * itemWidth
+            : `-${index * (100 / visibleItemsCount)}%`,
       }}
       onDragEnd={disableDrag ? undefined : onDragEnd}
       transition={
