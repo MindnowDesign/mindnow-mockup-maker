@@ -27,7 +27,7 @@ export default async function TrashPage({ searchParams }: TrashPageProps) {
           <div className="flex flex-col gap-2">
             <h1
               id="trash-page-heading"
-              className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
+              className="text-2xl font-semibold tracking-tight text-foreground"
             >
               Trash
             </h1>

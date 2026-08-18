@@ -16,7 +16,7 @@ export default function ProjectsPage() {
           <div className="flex items-center justify-between gap-4">
             <h1
               id="projects-page-heading"
-              className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl"
+              className="text-2xl font-semibold tracking-tight text-foreground"
             >
               Projects
             </h1>

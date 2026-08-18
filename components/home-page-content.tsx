@@ -4,10 +4,9 @@ import { useEffect, useState } from "react";
 
 import { HomeSearch } from "@/components/home-search";
 import { LastProjectsList } from "@/components/last-projects-list";
-import { RecentVisualsSection } from "@/components/recent-visuals-section";
 import { cn } from "@/lib/utils";
 
-/** Home: welcome, search, create project, then recent visuals. */
+/** Home: welcome, search, then last projects. */
 export function HomePageContent() {
   const [query, setQuery] = useState("");
   const searching = query.trim().length > 0;
@@ -41,7 +40,7 @@ export function HomePageContent() {
 
       <div className="w-full flex-1 space-y-[72px] px-[72px] pt-[72px] pb-10">
         <header className="flex flex-col items-center gap-8 text-center">
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+          <h1 className="text-[40px] font-semibold tracking-tight text-foreground">
             Welcome Jane
           </h1>
           <HomeSearch
@@ -57,8 +56,6 @@ export function HomePageContent() {
         >
           <LastProjectsList />
         </section>
-
-        <RecentVisualsSection />
       </div>
     </div>
   );
