@@ -1,10 +1,7 @@
 "use client";
 
-import { Pencil, Search } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
+import { Folder, Pencil, Search } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import type { ReactNode } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useMockupFrame } from "@/components/mockup-frame-context";
@@ -58,14 +55,10 @@ import {
 } from "@/lib/mockup-workspace-snapshot";
 import { cn } from "@/lib/utils";
 
-const DEFAULT_WORKSPACE_LOGO_SRC = "/images/logo.png";
-
 type WorkspaceTopBarProps = {
   className?: string;
-  /** Shown next to the logo (accessibility / branding). */
+  /** Shown next to the project title (accessibility / branding). */
   teamLabel?: string;
-  /** Replace default Mindnow mark in the header. */
-  logo?: ReactNode;
 };
 
 const AUTOSAVE_DEBOUNCE_MS = 600;
@@ -73,13 +66,12 @@ const THUMBNAIL_CAPTURE_DEBOUNCE_MS = 2500;
 const THUMBNAIL_CAPTURE_ON_VISUAL_SWITCH_MS = 800;
 
 /**
- * Top bar for project workspace routes: logo (home) + editable title + Export.
+ * Top bar for project workspace routes: folder mark + editable title + Export.
  * Project state persists automatically (debounced) without header UI.
  */
 export function WorkspaceTopBar({
   className,
   teamLabel = "Mindnow",
-  logo,
 }: WorkspaceTopBarProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -857,24 +849,12 @@ export function WorkspaceTopBar({
       )}
     >
       <div className="flex min-w-0 flex-1 items-center gap-3">
-        <Link
-          href="/"
-          aria-label="Home"
-          className="flex size-[40px] shrink-0 flex-none items-center justify-center overflow-hidden rounded-lg text-neutral-400 outline-none transition-colors hover:bg-white/5 hover:text-neutral-50 focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+        <span
+          className="flex size-[40px] shrink-0 flex-none items-center justify-center text-neutral-400"
+          aria-hidden
         >
-          <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg">
-            {logo ?? (
-              <Image
-                src={DEFAULT_WORKSPACE_LOGO_SRC}
-                alt=""
-                width={32}
-                height={32}
-                className="size-full object-contain"
-                priority
-              />
-            )}
-          </span>
-        </Link>
+          <Folder className="size-5" strokeWidth={1.75} />
+        </span>
         <div className="flex min-w-0 flex-1 justify-start">
           <div className="group inline-flex w-fit max-w-full min-w-0 cursor-text items-center gap-2">
             <input

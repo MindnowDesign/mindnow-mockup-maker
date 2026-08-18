@@ -6,6 +6,7 @@ import {
   Image as ImageIcon,
   Palette,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -42,6 +43,8 @@ const SIDEBAR_WORKSPACE_RAIL_ITEM =
 /** Logo / account controls in compact sidebar match the same dimensions. */
 const SIDEBAR_COMPACT_CONTROL =
   "mx-auto flex size-10 shrink-0 items-center justify-center px-0 py-0";
+
+const DEFAULT_WORKSPACE_LOGO_SRC = "/images/logo.png";
 
 /** Compact sidebar button (no route) — matches inactive `SidebarItem` look. */
 const SIDEBAR_COMPACT_ICON_BUTTON = cn(
@@ -97,6 +100,29 @@ export function ProjectWorkspaceShell({
     >
       <SidebarBody className="px-1.5 pt-4">
         <SidebarSection className="space-y-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href="/"
+                className={SIDEBAR_COMPACT_ICON_BUTTON}
+                aria-label="Home"
+              >
+                <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg">
+                  {logo ?? (
+                    <Image
+                      src={DEFAULT_WORKSPACE_LOGO_SRC}
+                      alt=""
+                      width={32}
+                      height={32}
+                      className="size-full object-contain"
+                      priority
+                    />
+                  )}
+                </span>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>Home</TooltipContent>
+          </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <button
@@ -245,7 +271,6 @@ export function ProjectWorkspaceShell({
             <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl bg-neutral-950">
               <WorkspaceTopBar
                 teamLabel={teamLabel}
-                logo={logo}
                 className="relative z-10 shrink-0"
               />
               <main className="no-scrollbar min-h-0 min-w-0 flex-1 overflow-y-auto">

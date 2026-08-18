@@ -1209,10 +1209,12 @@ export function MockupWorkspaceStage() {
                       "flex max-h-full max-w-full min-h-0 min-w-0 flex-col overflow-hidden rounded-[16px]",
                       deviceTemplateId && !isBrowserTemplateId(deviceTemplateId)
                         ? "h-full min-h-[140px] w-full"
-                        : "aspect-square",
+                        : activeItem
+                          ? "aspect-square"
+                          : "h-fit w-fit shrink-0",
                       activeItem
                         ? "bg-neutral-950"
-                        : "border border-neutral-900/80 bg-neutral-950 shadow-[0_24px_64px_-12px_rgba(0,0,0,0.9)]"
+                        : "items-center justify-center border border-neutral-900/80 bg-neutral-950 shadow-[0_24px_64px_-12px_rgba(0,0,0,0.9)]"
                     )}
                   >
                     {activeItem ? (
@@ -1225,8 +1227,7 @@ export function MockupWorkspaceStage() {
                         />
                       </div>
                     ) : (
-                      <label className="flex min-h-0 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-6 px-6 py-10 text-center outline-none transition-colors hover:bg-white/[0.03] focus-within:ring-2 focus-within:ring-white/25 focus-within:ring-inset">
-                        <span className="sr-only">Upload images or videos</span>
+                      <label className="flex cursor-pointer flex-col items-center gap-6 p-6 text-center outline-none transition-colors hover:bg-white/[0.03] focus-within:ring-2 focus-within:ring-white/25 focus-within:ring-inset">
                         <input
                           type="file"
                           accept="image/*,video/*"
@@ -1250,11 +1251,8 @@ export function MockupWorkspaceStage() {
                           </span>
                         </div>
                         <div className="space-y-1">
-                          <p className="text-xl font-semibold tracking-tight text-neutral-50 md:text-2xl">
-                            Drop or Paste
-                          </p>
-                          <p className="text-sm font-medium text-neutral-500">
-                            Images &amp; Videos
+                          <p className="text-lg font-semibold tracking-tight text-neutral-50">
+                            Drop or paste an image
                           </p>
                         </div>
                       </label>
