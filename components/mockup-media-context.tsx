@@ -32,6 +32,8 @@ export type MockupLibraryItem = {
   id: string;
   kind: "image" | "video";
   url: string;
+  /** Original file — persist even after the blob URL is revoked on unmount. */
+  file?: File;
 };
 
 /** Canvas slot; optional assignment to a library asset by id. */
@@ -160,6 +162,7 @@ function filesToLibraryItems(files: FileList): MockupLibraryItem[] {
       id: crypto.randomUUID(),
       kind,
       url: URL.createObjectURL(file),
+      file,
     });
   }
   return additions;
@@ -356,11 +359,11 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
       for (const item of s.library) {
         revokeIfBlobUrl(item.url);
       }
-      if (!payload?.mediaItems?.length) {
+      if (!payload) {
         return createFreshWorkspaceState();
       }
 
-      const nextLibrary: MockupLibraryItem[] = payload.mediaItems.map(
+      const nextLibrary: MockupLibraryItem[] = (payload.mediaItems ?? []).map(
         (m) => ({
           id: m.id,
           kind: m.kind,
@@ -385,7 +388,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
           payload.activeVisualId ??
           payload.activeMediaId ??
           nextVisuals[0]!.id;
-      } else {
+      } else if (nextLibrary.length) {
         nextVisuals = nextLibrary.map((lib) => {
           const legacyLabel = payload.mediaItems?.find(
             (m) => m.id === lib.id
@@ -402,6 +405,8 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
           payload.activeVisualId ??
           payload.activeMediaId ??
           nextVisuals[0]!.id;
+      } else {
+        return createFreshWorkspaceState();
       }
 
       if (

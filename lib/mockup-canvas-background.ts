@@ -17,8 +17,8 @@ export type CanvasBackgroundMode =
   | "image"
   | "template";
 
-/** Default canvas fill — matches previous fixed orange frame. */
-export const DEFAULT_CANVAS_SOLID_COLOR = "#F28345";
+/** Default canvas fill — Tailwind Neutral 300. */
+export const DEFAULT_CANVAS_SOLID_COLOR = "#D4D4D4";
 
 /** Default tint for noise grain (hex when none persisted). */
 export const DEFAULT_CANVAS_NOISE_COLOR = "#000000";

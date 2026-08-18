@@ -2,8 +2,15 @@ import type {
   MockupLibraryItem,
   MockupVisualSlot,
 } from "@/components/mockup-media-context";
+import { readFileAsDataUrl } from "@/lib/mockup-library-upload";
 import type { SavedMediaItem, SavedVisualSlot } from "@/lib/saved-projects";
 import { resourceUrlToDataUrl } from "@/lib/resource-to-data-url";
+
+async function libraryItemToDataUrl(item: MockupLibraryItem): Promise<string> {
+  if (item.url.startsWith("data:")) return item.url;
+  if (item.file) return readFileAsDataUrl(item.file);
+  return resourceUrlToDataUrl(item.url);
+}
 
 export async function serializeMockupMediaForSave(
   library: MockupLibraryItem[],
@@ -27,9 +34,7 @@ export async function serializeMockupMediaForSave(
     const item = byId.get(id);
     if (!item) continue;
     try {
-      const dataUrl = item.url.startsWith("data:")
-        ? item.url
-        : await resourceUrlToDataUrl(item.url);
+      const dataUrl = await libraryItemToDataUrl(item);
       mediaItems.push({
         id: item.id,
         kind: item.kind,

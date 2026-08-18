@@ -296,8 +296,20 @@ export function WorkspaceTopBar({
           "Autosave: could not re-serialize library blobs; keeping last saved mediaItems."
         );
         serialized.mediaItems = diskEarly.mediaItems;
-        if (diskEarly.visualSlots?.length) {
-          serialized.visualSlots = diskEarly.visualSlots;
+        const mediaIds = new Set(serialized.mediaItems.map((m) => m.id));
+        serialized.visualSlots = persistVisuals.map((v) => ({
+          id: v.id,
+          mediaId:
+            v.mediaId && mediaIds.has(v.mediaId) ? v.mediaId : null,
+          ...(v.label?.trim() ? { label: v.label.trim() } : {}),
+        }));
+        if (
+          serialized.activeVisualId &&
+          !serialized.visualSlots.some((s) => s.id === serialized.activeVisualId)
+        ) {
+          serialized.activeVisualId =
+            serialized.visualSlots[serialized.visualSlots.length - 1]?.id ??
+            null;
         }
       } else if (
         persistFrame.canvasLayers.length > 0 &&
