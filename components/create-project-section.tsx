@@ -26,7 +26,7 @@ export function CreateProjectSection() {
         <p className="text-lg font-semibold tracking-tight text-foreground">
           Create a new project
         </p>
-        <p className="text-sm leading-relaxed text-muted-foreground">
+        <p className="text-xs leading-relaxed text-muted-foreground">
           Start from a blank canvas. Drop or paste screenshots and videos to
           build device mockups.
         </p>
