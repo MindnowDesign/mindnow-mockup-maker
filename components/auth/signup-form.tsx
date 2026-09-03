@@ -5,35 +5,34 @@ import {
   updateProfile,
 } from "firebase/auth";
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   AuthCard,
   AuthDivider,
-  GoogleSignInButton,
 } from "@/components/auth/auth-card";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { AuthField, AuthInput } from "@/components/auth/auth-field";
 import { useAuth } from "@/components/auth/auth-provider";
-import { useGoogleRedirectResult } from "@/components/auth/use-google-redirect-result";
 import { Button } from "@/components/ui/button";
 import { authLinkClass } from "@/lib/auth-form-styles";
 import { getAuthErrorMessage } from "@/lib/firebase/auth-errors";
 import { getFirebaseAuth } from "@/lib/firebase/client";
-import { signInWithGoogle } from "@/lib/firebase/google-sign-in";
 
 export function SignupForm() {
-  const { configured } = useAuth();
+  const { configured, authError, clearAuthError } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const handleRedirectError = useCallback((message: string) => {
-    setError(message);
-  }, []);
 
-  useGoogleRedirectResult(handleRedirectError);
+  useEffect(() => {
+    if (authError) {
+      setError(authError);
+    }
+  }, [authError]);
 
   async function handleEmailSignup(event: React.FormEvent) {
     event.preventDefault();
@@ -43,6 +42,7 @@ export function SignupForm() {
     }
 
     setError(null);
+    clearAuthError();
 
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
@@ -63,24 +63,6 @@ export function SignupForm() {
       if (displayName) {
         await updateProfile(credential.user, { displayName });
       }
-    } catch (err) {
-      setError(getAuthErrorMessage(err));
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  async function handleGoogleSignup() {
-    if (!configured) {
-      setError("Firebase is not configured yet.");
-      return;
-    }
-
-    setError(null);
-    setSubmitting(true);
-
-    try {
-      await signInWithGoogle();
     } catch (err) {
       setError(getAuthErrorMessage(err));
     } finally {
@@ -169,8 +151,10 @@ export function SignupForm() {
       <AuthDivider />
 
       <GoogleSignInButton
-        onClick={handleGoogleSignup}
         disabled={submitting || !configured}
+        onError={(message) => {
+          setError(message);
+        }}
       />
     </AuthCard>
   );

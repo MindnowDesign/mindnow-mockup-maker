@@ -1,6 +1,7 @@
 {
   "auth": {
     "authorizedDomains": [
+      "127.0.0.1",
       "localhost",
       "mindnow-mockup-maker.vercel.app",
       "mindnow-mockup-maker-design-mindnows-projects.vercel.app",
@@ -14,9 +15,9 @@
         "oAuthBrandDisplayName": "Mindnow",
         "supportEmail": "victoria@mindnow.io",
         "authorizedRedirectUris": [
-          "https://mindnow-mockup-maker.vercel.app/__/auth/handler",
-          "https://mindnow-mockup-maker-design-mindnows-projects.vercel.app/__/auth/handler",
-          "https://mindnow-mockup-maker-git-main-design-mindnows-projects.vercel.app/__/auth/handler"
+          "https://mindnow-mockup-maker.vercel.app",
+          "https://mindnow-mockup-maker-design-mindnows-projects.vercel.app",
+          "https://mindnow-mockup-maker-git-main-design-mindnows-projects.vercel.app"
         ]
       }
     }

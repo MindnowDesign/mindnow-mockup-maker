@@ -21,6 +21,8 @@ type AuthContextValue = {
   user: User | null;
   loading: boolean;
   configured: boolean;
+  authError: string | null;
+  clearAuthError: () => void;
   signOut: () => Promise<void>;
 };
 
@@ -29,6 +31,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
   const configured = isFirebaseConfigured();
 
   useEffect(() => {
@@ -38,24 +41,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const auth = getFirebaseAuth();
-    let cancelled = false;
-
-    void auth.authStateReady().then(() => {
-      if (cancelled) return;
-      setUser(auth.currentUser);
-      setLoading(false);
-    });
-
     const unsubscribe = onAuthStateChanged(auth, (nextUser) => {
       setUser(nextUser);
       setLoading(false);
     });
 
-    return () => {
-      cancelled = true;
-      unsubscribe();
-    };
+    return unsubscribe;
   }, [configured]);
+
+  const clearAuthError = useCallback(() => {
+    setAuthError(null);
+  }, []);
 
   const signOut = useCallback(async () => {
     if (!configured) return;
@@ -63,8 +59,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [configured]);
 
   const value = useMemo(
-    () => ({ user, loading, configured, signOut }),
-    [user, loading, configured, signOut]
+    () => ({ user, loading, configured, authError, clearAuthError, signOut }),
+    [user, loading, configured, authError, clearAuthError, signOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -21,6 +21,7 @@ export function getAuthErrorMessage(error: unknown): string {
     case "auth/invalid-email":
       return "Enter a valid email address.";
     case "auth/popup-closed-by-user":
+    case "auth/cancelled-popup-request":
       return "Sign-in was cancelled.";
     case "auth/invalid-action":
     case "auth/operation-not-allowed":
@@ -34,8 +35,8 @@ export function getAuthErrorMessage(error: unknown): string {
     }
     case "auth/popup-blocked":
       return "Pop-up was blocked. Allow pop-ups for this site and try again.";
-    case "auth/cancelled-popup-request":
-      return "Sign-in was cancelled. Please try again.";
+    case "auth/redirect-uri-mismatch":
+      return "Google redirect URI is not configured. Add http://localhost:3000/auth/google/callback to your OAuth client in Google Cloud Console.";
     case "auth/too-many-requests":
       return "Too many attempts. Try again later.";
     default:

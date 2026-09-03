@@ -10,6 +10,35 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
+/** Same-origin auth via the /__/auth reverse proxy in next.config.ts. */
+function resolveAuthDomain(): string {
+  const fromEnv = process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN?.trim();
+  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+  const firebaseHostedDomain = projectId
+    ? `${projectId}.firebaseapp.com`
+    : "";
+
+  if (typeof window !== "undefined") {
+    const { hostname, protocol, host } = window.location;
+
+    // Local HTTP dev cannot serve https://localhost — Firebase always uses HTTPS
+    // for custom authDomain hosts, which triggers ERR_SSL_PROTOCOL_ERROR.
+    if (
+      (hostname === "localhost" || hostname === "127.0.0.1") &&
+      protocol === "http:"
+    ) {
+      const envLooksLocal =
+        fromEnv?.startsWith("localhost") || fromEnv?.startsWith("127.0.0.1");
+      if (fromEnv && !envLooksLocal) return fromEnv;
+      return firebaseHostedDomain;
+    }
+
+    return fromEnv || host;
+  }
+
+  return fromEnv || firebaseHostedDomain;
+}
+
 export function isFirebaseConfigured(): boolean {
   return Boolean(firebaseConfig.apiKey && firebaseConfig.projectId);
 }
@@ -21,7 +50,10 @@ function getFirebaseApp(): FirebaseApp {
     );
   }
 
-  return getApps()[0] ?? initializeApp(firebaseConfig);
+  return getApps()[0] ?? initializeApp({
+    ...firebaseConfig,
+    authDomain: resolveAuthDomain(),
+  });
 }
 
 export function getFirebaseAuth(): Auth {

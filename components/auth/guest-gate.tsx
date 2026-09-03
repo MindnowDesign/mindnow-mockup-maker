@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 
+import { AuthLoadingScreen } from "@/components/auth/auth-loading-screen";
 import { useAuth } from "@/components/auth/auth-provider";
 import { getEffectiveAuthUser } from "@/lib/firebase/effective-user";
 
@@ -19,19 +20,11 @@ export function GuestGate({ children }: { children: ReactNode }) {
   }, [effectiveUser, loading, configured, router]);
 
   if (loading) {
-    return (
-      <div
-        className="flex min-h-dvh items-center justify-center bg-shell text-sm text-neutral-400"
-        aria-busy
-        aria-label="Loading"
-      >
-        Loading…
-      </div>
-    );
+    return <AuthLoadingScreen label="Checking sign-in…" />;
   }
 
   if (configured && effectiveUser) {
-    return null;
+    return <AuthLoadingScreen label="Signing you in…" />;
   }
 
   return children;
