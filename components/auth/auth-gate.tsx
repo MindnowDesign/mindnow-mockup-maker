@@ -4,17 +4,19 @@ import { useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 
 import { useAuth } from "@/components/auth/auth-provider";
+import { getEffectiveAuthUser } from "@/lib/firebase/effective-user";
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const { user, loading, configured } = useAuth();
+  const effectiveUser = getEffectiveAuthUser(user);
   const router = useRouter();
 
   useEffect(() => {
     if (loading) return;
-    if (!configured || !user) {
+    if (!configured || !effectiveUser) {
       router.replace("/login");
     }
-  }, [user, loading, configured, router]);
+  }, [effectiveUser, loading, configured, router]);
 
   if (loading) {
     return (
@@ -28,7 +30,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!configured || !user) {
+  if (!configured || !effectiveUser) {
     return null;
   }
 

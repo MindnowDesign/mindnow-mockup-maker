@@ -7,9 +7,11 @@ import { AuthGate } from "@/components/auth/auth-gate";
 import { useAuth } from "@/components/auth/auth-provider";
 import { CatalystShell } from "@/components/catalyst-shell";
 import { firebaseUserToShellUser } from "@/lib/auth-user";
+import { getEffectiveAuthUser } from "@/lib/firebase/effective-user";
 
 export function MainLayoutClient({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
+  const effectiveUser = getEffectiveAuthUser(user);
   const router = useRouter();
 
   async function handleSignOut() {
@@ -20,7 +22,9 @@ export function MainLayoutClient({ children }: { children: ReactNode }) {
   return (
     <AuthGate>
       <CatalystShell
-        user={user ? firebaseUserToShellUser(user) : undefined}
+        user={
+          effectiveUser ? firebaseUserToShellUser(effectiveUser) : undefined
+        }
         onSignOut={handleSignOut}
       >
         {children}

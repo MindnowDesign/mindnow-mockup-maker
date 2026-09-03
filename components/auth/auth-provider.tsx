@@ -38,12 +38,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const auth = getFirebaseAuth();
+    let cancelled = false;
+
+    void auth.authStateReady().then(() => {
+      if (cancelled) return;
+      setUser(auth.currentUser);
+      setLoading(false);
+    });
+
     const unsubscribe = onAuthStateChanged(auth, (nextUser) => {
       setUser(nextUser);
       setLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }, [configured]);
 
   const signOut = useCallback(async () => {

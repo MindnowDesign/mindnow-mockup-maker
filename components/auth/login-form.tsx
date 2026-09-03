@@ -4,7 +4,6 @@ import {
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
 import {
@@ -22,7 +21,6 @@ import { getFirebaseAuth } from "@/lib/firebase/client";
 import { signInWithGoogle } from "@/lib/firebase/google-sign-in";
 
 export function LoginForm() {
-  const router = useRouter();
   const { configured } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -50,7 +48,6 @@ export function LoginForm() {
         email.trim(),
         password
       );
-      router.replace("/");
     } catch (err) {
       setError(getAuthErrorMessage(err));
     } finally {
@@ -68,10 +65,7 @@ export function LoginForm() {
     setSubmitting(true);
 
     try {
-      const result = await signInWithGoogle();
-      if (result?.user) {
-        router.replace("/");
-      }
+      await signInWithGoogle();
     } catch (err) {
       setError(getAuthErrorMessage(err));
     } finally {

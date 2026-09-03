@@ -5,7 +5,6 @@ import {
   updateProfile,
 } from "firebase/auth";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
 import {
@@ -23,7 +22,6 @@ import { getFirebaseAuth } from "@/lib/firebase/client";
 import { signInWithGoogle } from "@/lib/firebase/google-sign-in";
 
 export function SignupForm() {
-  const router = useRouter();
   const { configured } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -65,8 +63,6 @@ export function SignupForm() {
       if (displayName) {
         await updateProfile(credential.user, { displayName });
       }
-
-      router.replace("/");
     } catch (err) {
       setError(getAuthErrorMessage(err));
     } finally {
@@ -84,10 +80,7 @@ export function SignupForm() {
     setSubmitting(true);
 
     try {
-      const result = await signInWithGoogle();
-      if (result?.user) {
-        router.replace("/");
-      }
+      await signInWithGoogle();
     } catch (err) {
       setError(getAuthErrorMessage(err));
     } finally {
