@@ -37,7 +37,6 @@ import {
   CANVAS_MOOD_SHADOW_TEMPLATES,
   type CanvasMoodShadowPlacement,
 } from "@/lib/canvas-mood-shadow-templates";
-import { canvasHasShaderableBackground } from "@/lib/canvas-shader-source";
 import { CanvasSolidColorPicker } from "@/components/canvas-solid-color-picker";
 import { EffectAccordionSection } from "@/components/effect-accordion-section";
 import { SolidColorPopoverRow } from "@/components/solid-color-popover-row";
@@ -501,30 +500,15 @@ export function CanvasBackgroundControls() {
   } = useMockupFrame();
 
   const [openEffectSection, setOpenEffectSection] = useState("");
-  const [openShaderSection, setOpenShaderSection] = useState("");
   const [openMoodSection, setOpenMoodSection] = useState("");
 
   const noiseSectionOpen = openEffectSection === "canvas-effect-noise";
   const blurSectionOpen = openEffectSection === "canvas-effect-blur";
   const dotGridSectionOpen = openEffectSection === "canvas-effect-dot-grid";
-  const ditherSectionOpen = openShaderSection === "canvas-shader-dither";
-  const halftoneSectionOpen = openShaderSection === "canvas-shader-halftone";
   const shadowSectionOpen = openMoodSection === "canvas-mood-shadow";
-
-  const canApplyShader = canvasHasShaderableBackground({
-    mode,
-    imageUrl: canvasBackgroundImageUrl,
-    templateId: canvasGradientTemplateId,
-  });
 
   function toggleEffectSection(sectionId: string) {
     setOpenEffectSection((current) =>
-      current === sectionId ? "" : sectionId
-    );
-  }
-
-  function toggleShaderSection(sectionId: string) {
-    setOpenShaderSection((current) =>
       current === sectionId ? "" : sectionId
     );
   }
@@ -694,6 +678,7 @@ export function CanvasBackgroundControls() {
           label="Noise"
           Icon={StyleNoiseIcon}
           open={noiseSectionOpen}
+          active={canvasNoisePercent > 0}
           onToggle={() => toggleEffectSection("canvas-effect-noise")}
         >
           <CanvasEffectSliderRow
@@ -735,6 +720,7 @@ export function CanvasBackgroundControls() {
           label="Blur"
           Icon={StyleBlurIcon}
           open={blurSectionOpen}
+          active={canvasBlurPercent > 0}
           onToggle={() => toggleEffectSection("canvas-effect-blur")}
         >
           <CanvasEffectSliderRow
@@ -751,6 +737,7 @@ export function CanvasBackgroundControls() {
           label="Dot Grid"
           Icon={StyleDotGridIcon}
           open={dotGridSectionOpen}
+          active={canvasDotGridPercent > 0}
           onToggle={() => toggleEffectSection("canvas-effect-dot-grid")}
         >
           <CanvasEffectSliderRow
@@ -773,24 +760,16 @@ export function CanvasBackgroundControls() {
           sectionId="canvas-shader-dither"
           label="Dither"
           Icon={StyleDitherIcon}
-          open={ditherSectionOpen}
-          onToggle={() => {
-            if (ditherSectionOpen && canvasDitherEnabled) {
-              setCanvasDitherEnabled(false);
-              setOpenShaderSection("");
+          variant="toggle"
+          enabled={canvasDitherEnabled}
+          onEnabledChange={(next) => {
+            if (next) {
+              setCanvasHalftoneEnabled(false);
+              setCanvasDitherEnabled(true);
               return;
             }
-            if (!ditherSectionOpen) {
-              setOpenShaderSection("canvas-shader-dither");
-              if (canApplyShader) {
-                setCanvasHalftoneEnabled(false);
-                setCanvasDitherEnabled(true);
-              }
-              return;
-            }
-            toggleShaderSection("canvas-shader-dither");
+            setCanvasDitherEnabled(false);
           }}
-          openTrailingIcon={canvasDitherEnabled ? "remove" : "collapse"}
         >
           <CanvasDitherControls />
         </EffectAccordionSection>
@@ -798,24 +777,16 @@ export function CanvasBackgroundControls() {
           sectionId="canvas-shader-halftone"
           label="Halftone Dots"
           Icon={StyleHalftoneIcon}
-          open={halftoneSectionOpen}
-          onToggle={() => {
-            if (halftoneSectionOpen && canvasHalftoneEnabled) {
-              setCanvasHalftoneEnabled(false);
-              setOpenShaderSection("");
+          variant="toggle"
+          enabled={canvasHalftoneEnabled}
+          onEnabledChange={(next) => {
+            if (next) {
+              setCanvasDitherEnabled(false);
+              setCanvasHalftoneEnabled(true);
               return;
             }
-            if (!halftoneSectionOpen) {
-              setOpenShaderSection("canvas-shader-halftone");
-              if (canApplyShader) {
-                setCanvasDitherEnabled(false);
-                setCanvasHalftoneEnabled(true);
-              }
-              return;
-            }
-            toggleShaderSection("canvas-shader-halftone");
+            setCanvasHalftoneEnabled(false);
           }}
-          openTrailingIcon={canvasHalftoneEnabled ? "remove" : "collapse"}
         >
           <CanvasHalftoneControls />
         </EffectAccordionSection>
@@ -830,6 +801,7 @@ export function CanvasBackgroundControls() {
           label="Shadow"
           Icon={MoodShadowIcon}
           open={shadowSectionOpen}
+          active={canvasOverlayShadowId != null}
           onToggle={() => toggleMoodSection("canvas-mood-shadow")}
         >
           <div className="space-y-3">

@@ -4,6 +4,7 @@ import { LineSquiggle, ZodiacAquarius } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ensureGradientSvgCached } from "@/lib/gradient-svg-cache";
 import { getCanvasGradientTemplateById } from "@/lib/canvas-background-gradient-templates";
+import { isCanvasOrganicTemplateId } from "@/lib/canvas-background-organic-templates";
 import { getCanvasWaveTemplateById } from "@/lib/canvas-background-wave-templates";
 import { CANVAS_WAVE_TEMPLATES } from "@/lib/canvas-background-wave-templates";
 import { StyleGradientIcon } from "@/components/canvas-style-icons";
@@ -36,6 +37,14 @@ export function CanvasBackgroundTemplatesSection() {
   const gradientOpen = openTemplateSection === "canvas-template-gradient";
   const organicOpen = openTemplateSection === "canvas-template-organic";
   const wavesOpen = openTemplateSection === "canvas-template-waves";
+
+  const gradientActive = Boolean(
+    getCanvasGradientTemplateById(canvasGradientTemplateId)
+  );
+  const organicActive = isCanvasOrganicTemplateId(canvasGradientTemplateId);
+  const wavesActive = Boolean(
+    getCanvasWaveTemplateById(canvasGradientTemplateId)
+  );
 
   function toggleTemplateSection(sectionId: string) {
     setOpenTemplateSection((current) =>
@@ -75,6 +84,7 @@ export function CanvasBackgroundTemplatesSection() {
           label="Gradient"
           Icon={StyleGradientIcon}
           open={gradientOpen}
+          active={gradientActive}
           onToggle={() => toggleTemplateSection("canvas-template-gradient")}
           openTrailingIcon="collapse"
         >
@@ -119,6 +129,7 @@ export function CanvasBackgroundTemplatesSection() {
           label="Organic"
           Icon={LineSquiggle}
           open={organicOpen}
+          active={organicActive}
           onToggle={() => toggleTemplateSection("canvas-template-organic")}
           openTrailingIcon="collapse"
         >
@@ -147,6 +158,7 @@ export function CanvasBackgroundTemplatesSection() {
           label="Waves"
           Icon={ZodiacAquarius}
           open={wavesOpen}
+          active={wavesActive}
           onToggle={() => toggleTemplateSection("canvas-template-waves")}
           openTrailingIcon="collapse"
         >
