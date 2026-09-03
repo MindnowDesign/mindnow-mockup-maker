@@ -59,7 +59,11 @@ import { DEFAULT_CANVAS_NOISE_COLOR } from "@/lib/mockup-canvas-background";
 import type { CanvasNoiseBlendModeId } from "@/lib/mockup-noise-blend";
 import { CANVAS_NOISE_BLEND_GROUPS } from "@/lib/mockup-noise-blend";
 import type { CanvasNoiseTypeId } from "@/lib/mockup-noise";
-import { CANVAS_NOISE_TYPE_OPTIONS } from "@/lib/mockup-noise";
+import {
+  CANVAS_NOISE_TYPE_IDS,
+  CANVAS_NOISE_TYPE_OPTIONS,
+  DEFAULT_CANVAS_NOISE_TYPE,
+} from "@/lib/mockup-noise";
 import { cn } from "@/lib/utils";
 
 function normalizeNoiseHex(raw: string): string {
@@ -207,8 +211,8 @@ function EffectPercentField({
   );
 }
 
-/** Applied when picking a noise type while intensity is 0 (None). */
-const NOISE_TYPE_ACTIVATE_PERCENT = 25;
+/** Default intensity when enabling an effect via its section toggle. */
+const EFFECT_ACTIVATE_PERCENT = 25;
 
 function CanvasNoiseTypePicker({
   value,
@@ -496,26 +500,7 @@ export function CanvasBackgroundControls() {
     setCanvasDitherEnabled,
     canvasHalftoneEnabled,
     setCanvasHalftoneEnabled,
-    canvasGradientTemplateId,
   } = useMockupFrame();
-
-  const [openEffectSection, setOpenEffectSection] = useState("");
-  const [openMoodSection, setOpenMoodSection] = useState("");
-
-  const noiseSectionOpen = openEffectSection === "canvas-effect-noise";
-  const blurSectionOpen = openEffectSection === "canvas-effect-blur";
-  const dotGridSectionOpen = openEffectSection === "canvas-effect-dot-grid";
-  const shadowSectionOpen = openMoodSection === "canvas-mood-shadow";
-
-  function toggleEffectSection(sectionId: string) {
-    setOpenEffectSection((current) =>
-      current === sectionId ? "" : sectionId
-    );
-  }
-
-  function toggleMoodSection(sectionId: string) {
-    setOpenMoodSection((current) => (current === sectionId ? "" : sectionId));
-  }
 
   return (
     <>
@@ -674,12 +659,17 @@ export function CanvasBackgroundControls() {
       <span className="block text-xs font-medium text-neutral-400">Effects</span>
       <div className="space-y-2">
         <EffectAccordionSection
-          sectionId="canvas-effect-noise"
           label="Noise"
           Icon={StyleNoiseIcon}
-          open={noiseSectionOpen}
-          active={canvasNoisePercent > 0}
-          onToggle={() => toggleEffectSection("canvas-effect-noise")}
+          enabled={canvasNoisePercent > 0}
+          onEnabledChange={(next) => {
+            if (next) {
+              setCanvasNoiseType(CANVAS_NOISE_TYPE_IDS[0] ?? DEFAULT_CANVAS_NOISE_TYPE);
+              setCanvasNoisePercent(EFFECT_ACTIVATE_PERCENT);
+              return;
+            }
+            setCanvasNoisePercent(0);
+          }}
         >
           <CanvasEffectSliderRow
             id="canvas-effect-noise"
@@ -694,34 +684,36 @@ export function CanvasBackgroundControls() {
             onChange={(id) => {
               setCanvasNoiseType(id);
               if (canvasNoisePercent === 0) {
-                setCanvasNoisePercent(NOISE_TYPE_ACTIVATE_PERCENT);
+                setCanvasNoisePercent(EFFECT_ACTIVATE_PERCENT);
               }
             }}
             noneSelected={canvasNoisePercent === 0}
             onSelectNone={() => setCanvasNoisePercent(0)}
           />
-          {canvasNoisePercent > 0 ? (
-            <div className="flex min-h-0 items-center gap-2">
-              <div className="min-w-0 flex-1">
-                <NoiseColorCompactRow
-                  color={canvasNoiseColor}
-                  onColorChange={setCanvasNoiseColor}
-                />
-              </div>
-              <NoiseBlendModeDropdown
-                value={canvasNoiseBlendMode}
-                onChange={setCanvasNoiseBlendMode}
+          <div className="flex min-h-0 items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <NoiseColorCompactRow
+                color={canvasNoiseColor}
+                onColorChange={setCanvasNoiseColor}
               />
             </div>
-          ) : null}
+            <NoiseBlendModeDropdown
+              value={canvasNoiseBlendMode}
+              onChange={setCanvasNoiseBlendMode}
+            />
+          </div>
         </EffectAccordionSection>
         <EffectAccordionSection
-          sectionId="canvas-effect-blur"
           label="Blur"
           Icon={StyleBlurIcon}
-          open={blurSectionOpen}
-          active={canvasBlurPercent > 0}
-          onToggle={() => toggleEffectSection("canvas-effect-blur")}
+          enabled={canvasBlurPercent > 0}
+          onEnabledChange={(next) => {
+            if (next) {
+              setCanvasBlurPercent(EFFECT_ACTIVATE_PERCENT);
+              return;
+            }
+            setCanvasBlurPercent(0);
+          }}
         >
           <CanvasEffectSliderRow
             id="canvas-effect-blur"
@@ -733,12 +725,16 @@ export function CanvasBackgroundControls() {
           />
         </EffectAccordionSection>
         <EffectAccordionSection
-          sectionId="canvas-effect-dot-grid"
           label="Dot Grid"
           Icon={StyleDotGridIcon}
-          open={dotGridSectionOpen}
-          active={canvasDotGridPercent > 0}
-          onToggle={() => toggleEffectSection("canvas-effect-dot-grid")}
+          enabled={canvasDotGridPercent > 0}
+          onEnabledChange={(next) => {
+            if (next) {
+              setCanvasDotGridPercent(EFFECT_ACTIVATE_PERCENT);
+              return;
+            }
+            setCanvasDotGridPercent(0);
+          }}
         >
           <CanvasEffectSliderRow
             id="canvas-effect-dot-grid"
@@ -748,7 +744,7 @@ export function CanvasBackgroundControls() {
             onChange={setCanvasDotGridPercent}
             hideLabel
           />
-          {canvasDotGridPercent > 0 ? <CanvasDotGridControls /> : null}
+          <CanvasDotGridControls />
         </EffectAccordionSection>
       </div>
     </div>
@@ -757,10 +753,8 @@ export function CanvasBackgroundControls() {
       <span className="block text-xs font-medium text-neutral-400">Shaders</span>
       <div className="space-y-2">
         <EffectAccordionSection
-          sectionId="canvas-shader-dither"
           label="Dither"
           Icon={StyleDitherIcon}
-          variant="toggle"
           enabled={canvasDitherEnabled}
           onEnabledChange={(next) => {
             if (next) {
@@ -774,10 +768,8 @@ export function CanvasBackgroundControls() {
           <CanvasDitherControls />
         </EffectAccordionSection>
         <EffectAccordionSection
-          sectionId="canvas-shader-halftone"
           label="Halftone Dots"
           Icon={StyleHalftoneIcon}
-          variant="toggle"
           enabled={canvasHalftoneEnabled}
           onEnabledChange={(next) => {
             if (next) {
@@ -797,12 +789,18 @@ export function CanvasBackgroundControls() {
       <span className="block text-xs font-medium text-neutral-400">Mood</span>
       <div className="space-y-2">
         <EffectAccordionSection
-          sectionId="canvas-mood-shadow"
           label="Shadow"
           Icon={MoodShadowIcon}
-          open={shadowSectionOpen}
-          active={canvasOverlayShadowId != null}
-          onToggle={() => toggleMoodSection("canvas-mood-shadow")}
+          enabled={canvasOverlayShadowId != null}
+          onEnabledChange={(next) => {
+            if (next) {
+              setCanvasOverlayShadowId(
+                CANVAS_MOOD_SHADOW_TEMPLATES[0]?.id ?? null
+              );
+              return;
+            }
+            setCanvasOverlayShadowId(null);
+          }}
         >
           <div className="space-y-3">
             <div
@@ -819,9 +817,7 @@ export function CanvasBackgroundControls() {
                     role="radio"
                     aria-checked={selected}
                     aria-label={entry.label}
-                    onClick={() =>
-                      setCanvasOverlayShadowId(selected ? null : entry.id)
-                    }
+                    onClick={() => setCanvasOverlayShadowId(entry.id)}
                     className={cn(
                       overlayPreviewButtonBase,
                       selected

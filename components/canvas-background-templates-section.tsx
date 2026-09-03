@@ -1,23 +1,28 @@
 "use client";
 
 import { LineSquiggle, ZodiacAquarius } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ensureGradientSvgCached } from "@/lib/gradient-svg-cache";
 import { getCanvasGradientTemplateById } from "@/lib/canvas-background-gradient-templates";
-import { isCanvasOrganicTemplateId } from "@/lib/canvas-background-organic-templates";
-import { getCanvasWaveTemplateById } from "@/lib/canvas-background-wave-templates";
-import { CANVAS_WAVE_TEMPLATES } from "@/lib/canvas-background-wave-templates";
+import {
+  CANVAS_GRADIENT_TEMPLATES,
+} from "@/lib/canvas-background-gradient-templates";
+import {
+  CANVAS_ORGANIC_TEMPLATES,
+  isCanvasOrganicTemplateId,
+} from "@/lib/canvas-background-organic-templates";
+import {
+  CANVAS_WAVE_TEMPLATES,
+  getCanvasWaveTemplateById,
+} from "@/lib/canvas-background-wave-templates";
 import { StyleGradientIcon } from "@/components/canvas-style-icons";
 import { EffectAccordionSection } from "@/components/effect-accordion-section";
 import { useMockupFrame } from "@/components/mockup-frame-context";
-import { CANVAS_GRADIENT_TEMPLATES } from "@/lib/canvas-background-gradient-templates";
 import { OrganicTemplatePreviewThumb } from "@/components/organic-template-preview-thumb";
-import { CANVAS_ORGANIC_TEMPLATES } from "@/lib/canvas-background-organic-templates";
 import { preloadOrganicTemplateId } from "@/lib/organic-image-cache";
 import { cn } from "@/lib/utils";
 
-const templatePreviewGridClass =
-  "grid w-full grid-cols-5 gap-2";
+const templatePreviewGridClass = "grid w-full grid-cols-5 gap-2";
 
 const previewButtonBase = cn(
   "aspect-square w-full min-w-0 overflow-hidden rounded-lg border text-left outline-none transition-colors",
@@ -32,61 +37,56 @@ function preloadInlineSvgPath(path: string | null | undefined) {
 export function CanvasBackgroundTemplatesSection() {
   const { canvasGradientTemplateId, setCanvasGradientTemplateId } =
     useMockupFrame();
-  const [openTemplateSection, setOpenTemplateSection] = useState("");
 
-  const gradientOpen = openTemplateSection === "canvas-template-gradient";
-  const organicOpen = openTemplateSection === "canvas-template-organic";
-  const wavesOpen = openTemplateSection === "canvas-template-waves";
-
-  const gradientActive = Boolean(
+  const gradientEnabled = Boolean(
     getCanvasGradientTemplateById(canvasGradientTemplateId)
   );
-  const organicActive = isCanvasOrganicTemplateId(canvasGradientTemplateId);
-  const wavesActive = Boolean(
+  const organicEnabled = isCanvasOrganicTemplateId(canvasGradientTemplateId);
+  const wavesEnabled = Boolean(
     getCanvasWaveTemplateById(canvasGradientTemplateId)
   );
 
-  function toggleTemplateSection(sectionId: string) {
-    setOpenTemplateSection((current) =>
-      current === sectionId ? "" : sectionId
-    );
-  }
-
   useEffect(() => {
-    if (!gradientOpen) return;
+    if (!gradientEnabled) return;
     const template = getCanvasGradientTemplateById(canvasGradientTemplateId);
     if (template?.inlineSvgWithCssVars && template.svgPublicPath) {
       void ensureGradientSvgCached(template.svgPublicPath).catch(() => {});
     }
-  }, [gradientOpen, canvasGradientTemplateId]);
+  }, [gradientEnabled, canvasGradientTemplateId]);
 
   useEffect(() => {
-    if (!organicOpen) return;
-    if (canvasGradientTemplateId?.startsWith("organic-")) {
+    if (!organicEnabled) return;
+    if (canvasGradientTemplateId) {
       preloadOrganicTemplateId(canvasGradientTemplateId);
     }
-  }, [organicOpen, canvasGradientTemplateId]);
+  }, [organicEnabled, canvasGradientTemplateId]);
 
   useEffect(() => {
-    if (!wavesOpen) return;
+    if (!wavesEnabled) return;
     const waveId = getCanvasWaveTemplateById(canvasGradientTemplateId)
       ? canvasGradientTemplateId
       : CANVAS_WAVE_TEMPLATES[0]?.id;
     const path = getCanvasWaveTemplateById(waveId)?.svgPublicPath;
     if (path) void ensureGradientSvgCached(path).catch(() => {});
-  }, [wavesOpen, canvasGradientTemplateId]);
+  }, [wavesEnabled, canvasGradientTemplateId]);
 
   return (
     <div className="space-y-2 pt-1">
       <div className="space-y-2" aria-label="Templates">
         <EffectAccordionSection
-          sectionId="canvas-template-gradient"
           label="Gradient"
           Icon={StyleGradientIcon}
-          open={gradientOpen}
-          active={gradientActive}
-          onToggle={() => toggleTemplateSection("canvas-template-gradient")}
-          openTrailingIcon="collapse"
+          enabled={gradientEnabled}
+          onEnabledChange={(next) => {
+            if (next) {
+              const firstId = CANVAS_GRADIENT_TEMPLATES[0]?.id;
+              if (firstId) setCanvasGradientTemplateId(firstId);
+              return;
+            }
+            if (gradientEnabled) {
+              setCanvasGradientTemplateId(null);
+            }
+          }}
         >
           <div className="space-y-2">
             <div
@@ -103,11 +103,7 @@ export function CanvasBackgroundTemplatesSection() {
                     role="radio"
                     aria-checked={selected}
                     aria-label={entry.label}
-                    onClick={() =>
-                      setCanvasGradientTemplateId(
-                        selected ? null : entry.id
-                      )
-                    }
+                    onClick={() => setCanvasGradientTemplateId(entry.id)}
                     onMouseEnter={() =>
                       preloadInlineSvgPath(entry.svgPublicPath)
                     }
@@ -125,13 +121,22 @@ export function CanvasBackgroundTemplatesSection() {
           </div>
         </EffectAccordionSection>
         <EffectAccordionSection
-          sectionId="canvas-template-organic"
           label="Organic"
           Icon={LineSquiggle}
-          open={organicOpen}
-          active={organicActive}
-          onToggle={() => toggleTemplateSection("canvas-template-organic")}
-          openTrailingIcon="collapse"
+          enabled={organicEnabled}
+          onEnabledChange={(next) => {
+            if (next) {
+              const firstId = CANVAS_ORGANIC_TEMPLATES[0]?.id;
+              if (firstId) {
+                preloadOrganicTemplateId(firstId);
+                setCanvasGradientTemplateId(firstId);
+              }
+              return;
+            }
+            if (organicEnabled) {
+              setCanvasGradientTemplateId(null);
+            }
+          }}
         >
           <div
             role="radiogroup"
@@ -144,23 +149,27 @@ export function CanvasBackgroundTemplatesSection() {
                 entry={entry}
                 selected={canvasGradientTemplateId === entry.id}
                 onSelect={() => {
-                  const nextId =
-                    canvasGradientTemplateId === entry.id ? null : entry.id;
-                  if (nextId) preloadOrganicTemplateId(nextId);
-                  setCanvasGradientTemplateId(nextId);
+                  preloadOrganicTemplateId(entry.id);
+                  setCanvasGradientTemplateId(entry.id);
                 }}
               />
             ))}
           </div>
         </EffectAccordionSection>
         <EffectAccordionSection
-          sectionId="canvas-template-waves"
           label="Waves"
           Icon={ZodiacAquarius}
-          open={wavesOpen}
-          active={wavesActive}
-          onToggle={() => toggleTemplateSection("canvas-template-waves")}
-          openTrailingIcon="collapse"
+          enabled={wavesEnabled}
+          onEnabledChange={(next) => {
+            if (next) {
+              const firstId = CANVAS_WAVE_TEMPLATES[0]?.id;
+              if (firstId) setCanvasGradientTemplateId(firstId);
+              return;
+            }
+            if (wavesEnabled) {
+              setCanvasGradientTemplateId(null);
+            }
+          }}
         >
           <div
             role="radiogroup"
@@ -176,11 +185,7 @@ export function CanvasBackgroundTemplatesSection() {
                   role="radio"
                   aria-checked={selected}
                   aria-label={entry.label}
-                  onClick={() =>
-                    setCanvasGradientTemplateId(
-                      selected ? null : entry.id
-                    )
-                  }
+                  onClick={() => setCanvasGradientTemplateId(entry.id)}
                   onMouseEnter={() =>
                     preloadInlineSvgPath(entry.svgPublicPath)
                   }
