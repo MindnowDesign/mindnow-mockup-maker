@@ -75,10 +75,10 @@ export type SidebarItemProps = {
   children?: ReactNode;
   href?: string;
   onClick?: MouseEventHandler<HTMLAnchorElement | HTMLButtonElement>;
-} & Omit<
-  ComponentProps<"a">,
-  "href" | "className" | "children" | "onClick"
->;
+  "aria-label"?: string;
+  "aria-haspopup"?: boolean | "false" | "true" | "menu" | "listbox" | "tree" | "grid" | "dialog";
+  "aria-expanded"?: boolean;
+};
 
 export function SidebarItem({
   className,
@@ -86,7 +86,9 @@ export function SidebarItem({
   href,
   onClick,
   children,
-  ...props
+  "aria-label": ariaLabel,
+  "aria-haspopup": ariaHasPopup,
+  "aria-expanded": ariaExpanded,
 }: SidebarItemProps) {
   const classes = cn(
     "flex min-w-0 items-center gap-3 rounded-lg px-2.5 py-2 text-sm/6 font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900",
@@ -101,11 +103,13 @@ export function SidebarItem({
       <Link
         href={href}
         aria-current={current ? "page" : undefined}
+        aria-label={ariaLabel}
+        aria-haspopup={ariaHasPopup}
+        aria-expanded={ariaExpanded}
         data-slot="sidebar-item"
         data-current={current ? "" : undefined}
         className={classes}
         onClick={onClick as MouseEventHandler<HTMLAnchorElement>}
-        {...props}
       >
         {children}
       </Link>
@@ -116,11 +120,13 @@ export function SidebarItem({
     <button
       type="button"
       aria-current={current ? "true" : undefined}
+      aria-label={ariaLabel}
+      aria-haspopup={ariaHasPopup}
+      aria-expanded={ariaExpanded}
       data-slot="sidebar-item"
       data-current={current ? "" : undefined}
       className={cn(classes, "w-full")}
       onClick={onClick as MouseEventHandler<HTMLButtonElement>}
-      {...props}
     >
       {children}
     </button>
