@@ -33,7 +33,9 @@ export function getAuthErrorMessage(error: unknown): string {
         : "This domain is not authorized for sign-in.";
     }
     case "auth/popup-blocked":
-      return "Pop-up was blocked. Allow pop-ups or try again.";
+      return "Pop-up was blocked. Allow pop-ups for this site and try again.";
+    case "auth/cancelled-popup-request":
+      return "Sign-in was cancelled. Please try again.";
     case "auth/too-many-requests":
       return "Too many attempts. Try again later.";
     default:

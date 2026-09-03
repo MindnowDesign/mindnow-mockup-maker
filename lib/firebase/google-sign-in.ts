@@ -16,45 +16,44 @@ function createGoogleProvider() {
   return provider;
 }
 
+function isPopupFallbackError(code: string | null): boolean {
+  return (
+    code === "auth/popup-blocked" ||
+    code === "auth/popup-closed-by-user" ||
+    code === "auth/cancelled-popup-request" ||
+    code === "auth/operation-not-supported-in-this-environment"
+  );
+}
+
 export async function completeGoogleRedirectSignIn(): Promise<UserCredential | null> {
   return getRedirectResult(getFirebaseAuth());
 }
 
+/**
+ * Google Sign-In on Vercel must use popup — redirect breaks when browsers block
+ * third-party cookies between vercel.app and firebaseapp.com.
+ * @see https://firebase.google.com/docs/auth/web/redirect-best-practices
+ */
 export async function signInWithGoogle(): Promise<UserCredential | void> {
   const auth = getFirebaseAuth();
   const provider = createGoogleProvider();
 
-  // Redirect is more reliable on deployed domains; popup for local dev.
-  const preferPopup =
-    typeof window !== "undefined" &&
-    (window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1");
+  try {
+    return await signInWithPopup(auth, provider);
+  } catch (error) {
+    const code =
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      typeof (error as { code: string }).code === "string"
+        ? (error as { code: string }).code
+        : null;
 
-  if (preferPopup) {
-    try {
-      return await signInWithPopup(auth, provider);
-    } catch (error) {
-      const code =
-        typeof error === "object" &&
-        error !== null &&
-        "code" in error &&
-        typeof (error as { code: string }).code === "string"
-          ? (error as { code: string }).code
-          : null;
-
-      if (
-        code === "auth/popup-blocked" ||
-        code === "auth/popup-closed-by-user" ||
-        code === "auth/invalid-action" ||
-        code === "auth/operation-not-allowed"
-      ) {
-        await signInWithRedirect(auth, provider);
-        return;
-      }
-
-      throw error;
+    if (isPopupFallbackError(code)) {
+      await signInWithRedirect(auth, provider);
+      return;
     }
-  }
 
-  await signInWithRedirect(auth, provider);
+    throw error;
+  }
 }
