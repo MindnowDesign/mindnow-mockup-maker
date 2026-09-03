@@ -26,6 +26,37 @@ import {
   normalizeVisualWorkspacePrefs,
   type VisualWorkspacePrefs,
 } from "@/lib/mockup-workspace-snapshot";
+import {
+  deviceTemplateCategory,
+  type DeviceTemplateCategory,
+} from "@/lib/mockup-device-template-category";
+
+function withScreenshotUploadTransform(
+  prefs: VisualWorkspacePrefs | undefined
+): VisualWorkspacePrefs {
+  return {
+    ...normalizeVisualWorkspacePrefs(prefs),
+    mockupOffsetX: 0,
+    mockupOffsetY: 0,
+    mockupScale: 1,
+    screenshotUploadOffsetX: 0,
+    screenshotUploadOffsetY: 0,
+    screenshotUploadScale: 1,
+  };
+}
+
+function preserveScreenshotUploadFields(
+  snap: VisualWorkspacePrefs,
+  prev: VisualWorkspacePrefs | undefined
+): VisualWorkspacePrefs {
+  if (!prev) return snap;
+  return {
+    ...snap,
+    screenshotUploadOffsetX: prev.screenshotUploadOffsetX ?? 0,
+    screenshotUploadOffsetY: prev.screenshotUploadOffsetY ?? 0,
+    screenshotUploadScale: prev.screenshotUploadScale ?? 1,
+  };
+}
 
 /** Asset in the project library (blob or data URL). */
 export type MockupLibraryItem = {
@@ -184,6 +215,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
   visualWorkspacePrefsRef.current = visualWorkspacePrefs;
 
   const skipFramePrefsSyncRef = useRef(false);
+  const prevDeviceCategoryRef = useRef<DeviceTemplateCategory | null>(null);
   /** Prefs just written from the live frame — do not push them back via hydrate. */
   const skipHydrateFromOwnPrefsWriteRef = useRef(false);
   /** Last visual id that was pushed into the live frame (detect switches). */
@@ -274,6 +306,45 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
   }, [workspaceHydrated, activeVisualId, activeVisualPrefsKey]);
 
   useEffect(() => {
+    prevDeviceCategoryRef.current = null;
+  }, [activeVisualId]);
+
+  useEffect(() => {
+    if (!workspaceHydrated || !activeVisualId) return;
+
+    const category = deviceTemplateCategory(frame.deviceTemplateId);
+    const prev = prevDeviceCategoryRef.current;
+    prevDeviceCategoryRef.current = category;
+
+    if (prev === null || category !== "screenshot" || prev === "screenshot") {
+      return;
+    }
+
+    const prefs = normalizeVisualWorkspacePrefs(
+      visualWorkspacePrefsRef.current[activeVisualId]
+    );
+    const x = prefs.screenshotUploadOffsetX ?? 0;
+    const y = prefs.screenshotUploadOffsetY ?? 0;
+    const scale = prefs.screenshotUploadScale ?? 1;
+
+    skipFramePrefsSyncRef.current = true;
+    hydrateMockupTransformRef.current(x, y, scale);
+    skipHydrateFromOwnPrefsWriteRef.current = true;
+    setState((s) => ({
+      ...s,
+      visualWorkspacePrefs: {
+        ...s.visualWorkspacePrefs,
+        [activeVisualId]: {
+          ...normalizeVisualWorkspacePrefs(s.visualWorkspacePrefs[activeVisualId]),
+          mockupOffsetX: x,
+          mockupOffsetY: y,
+          mockupScale: scale,
+        },
+      },
+    }));
+  }, [workspaceHydrated, activeVisualId, frame.deviceTemplateId]);
+
+  useEffect(() => {
     if (!workspaceHydrated) return;
     if (!activeVisualId) return;
     if (skipFramePrefsSyncRef.current) {
@@ -286,7 +357,10 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
       ...s,
       visualWorkspacePrefs: {
         ...s.visualWorkspacePrefs,
-        [activeVisualId]: snap,
+        [activeVisualId]: preserveScreenshotUploadFields(
+          snap,
+          s.visualWorkspacePrefs[activeVisualId]
+        ),
       },
     }));
   }, [
@@ -471,6 +545,8 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
       if (!additions.length) return;
 
       const inheritPrefs = captureVisualWorkspacePrefs(frame);
+      skipFramePrefsSyncRef.current = true;
+      hydrateMockupTransformRef.current(0, 0, 1);
 
       setState((s) => {
         const activeId = s.activeVisualId;
@@ -480,8 +556,12 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
             const nextActiveId = crypto.randomUUID();
             const prefsMap = { ...s.visualWorkspacePrefs };
             if (prefsMap[activeId]) {
-              prefsMap[nextActiveId] = prefsMap[activeId]!;
+              prefsMap[nextActiveId] = withScreenshotUploadTransform(
+                prefsMap[activeId]
+              );
               delete prefsMap[activeId];
+            } else {
+              prefsMap[nextActiveId] = withScreenshotUploadTransform(inheritPrefs);
             }
             return {
               library: [...s.library, lib],
@@ -500,7 +580,12 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
               v.id === activeId ? { ...v, mediaId: lib.id } : v
             ),
             activeVisualId: activeId,
-            visualWorkspacePrefs: s.visualWorkspacePrefs,
+            visualWorkspacePrefs: {
+              ...s.visualWorkspacePrefs,
+              [activeId]: withScreenshotUploadTransform(
+                s.visualWorkspacePrefs[activeId]
+              ),
+            },
           };
         }
 
@@ -514,7 +599,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
           prefsMap[s.activeVisualId] = inheritPrefs;
         }
         for (const nv of newVisuals) {
-          prefsMap[nv.id] = inheritPrefs;
+          prefsMap[nv.id] = withScreenshotUploadTransform(inheritPrefs);
         }
 
         return {
@@ -567,6 +652,8 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
   }, [frame]);
 
   const assignMediaToActiveVisual = useCallback((libraryItemId: string) => {
+    skipFramePrefsSyncRef.current = true;
+    hydrateMockupTransformRef.current(0, 0, 1);
     setState((s) => {
       if (!s.library.some((m) => m.id === libraryItemId)) return s;
       if (!s.activeVisualId) return s;
@@ -577,6 +664,12 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
             ? { ...v, mediaId: libraryItemId }
             : v
         ),
+        visualWorkspacePrefs: {
+          ...s.visualWorkspacePrefs,
+          [s.activeVisualId]: withScreenshotUploadTransform(
+            s.visualWorkspacePrefs[s.activeVisualId]
+          ),
+        },
       };
     });
   }, []);

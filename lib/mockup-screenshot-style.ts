@@ -244,15 +244,30 @@ export function screenshotBorderOutlineOffset(
   return -weight;
 }
 
+/** Fraction of the canvas used for screenshot fit (leaves even margin on all sides). */
+export const SCREENSHOT_CANVAS_FIT_RATIO = 0.85;
+
+function insetViewport(
+  viewport: { w: number; h: number },
+  fitRatio: number
+): { w: number; h: number } {
+  return {
+    w: Math.max(1, viewport.w * fitRatio),
+    h: Math.max(1, viewport.h * fitRatio),
+  };
+}
+
 /**
  * Box dimensions for `object-contain` inside a viewport while preserving the
  * bitmap aspect ratio (rounding width and height independently causes ~1px gaps).
  */
 export function fitScreenshotDimensions(
   natural: { w: number; h: number },
-  viewport: { w: number; h: number }
+  viewport: { w: number; h: number },
+  fitRatio: number = SCREENSHOT_CANVAS_FIT_RATIO
 ): { w: number; h: number } {
-  const s = Math.min(viewport.w / natural.w, viewport.h / natural.h);
+  const padded = insetViewport(viewport, fitRatio);
+  const s = Math.min(padded.w / natural.w, padded.h / natural.h);
   const ar = natural.w / natural.h;
   let w = Math.round(natural.w * s);
   let h = Math.round(natural.h * s);
@@ -262,8 +277,8 @@ export function fitScreenshotDimensions(
     h = Math.max(1, Math.round(w / ar));
   }
   return {
-    w: Math.min(viewport.w, Math.max(1, w)),
-    h: Math.min(viewport.h, Math.max(1, h)),
+    w: Math.min(padded.w, Math.max(1, w)),
+    h: Math.min(padded.h, Math.max(1, h)),
   };
 }
 

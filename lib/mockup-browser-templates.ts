@@ -3,6 +3,8 @@
  * Each SVG is the header only; it scales to the screenshot width and sits on top.
  */
 
+import { SCREENSHOT_CANVAS_FIT_RATIO } from "@/lib/mockup-screenshot-style";
+
 export type BrowserAddressBarInset = {
   leftPct: number;
   topPct: number;
@@ -282,10 +284,15 @@ export function browserChromeHeightRatio(template: MockupBrowserTemplate): numbe
 export function fitBrowserScreenshotDimensions(
   natural: { w: number; h: number },
   viewport: { w: number; h: number },
-  chromeHeightRatio: number
+  chromeHeightRatio: number,
+  fitRatio: number = SCREENSHOT_CANVAS_FIT_RATIO
 ): { w: number; chromeH: number; imageH: number; h: number } {
+  const padded = {
+    w: Math.max(1, viewport.w * fitRatio),
+    h: Math.max(1, viewport.h * fitRatio),
+  };
   const heightPerWidth = chromeHeightRatio + natural.h / natural.w;
-  const fitW = Math.min(viewport.w, viewport.h / heightPerWidth);
+  const fitW = Math.min(padded.w, padded.h / heightPerWidth);
   /** Sub-pixel widths keep chrome SVG aspect locked to the bar box (no letterboxing gaps). */
   const w = Math.max(1, fitW);
   const chromeH = w * chromeHeightRatio;

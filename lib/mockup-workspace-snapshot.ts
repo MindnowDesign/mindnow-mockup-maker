@@ -180,6 +180,10 @@ export type VisualWorkspacePrefs = {
   mockupOffsetY?: number;
   /** Uniform scale applied to mockup content (`1` = default). */
   mockupScale?: number;
+  /** Transform captured when media was uploaded — restored when returning to Screenshot. */
+  screenshotUploadOffsetX?: number;
+  screenshotUploadOffsetY?: number;
+  screenshotUploadScale?: number;
   /** Free-form image layers on the canvas. */
   canvasLayers?: PersistedCanvasImageLayer[];
   /** @deprecated Legacy single-image rect — use `canvasLayers`. */
@@ -267,6 +271,9 @@ export const DEFAULT_NEW_VISUAL_WORKSPACE_PREFS: VisualWorkspacePrefs = {
   mockupOffsetX: 0,
   mockupOffsetY: 0,
   mockupScale: 1,
+  screenshotUploadOffsetX: 0,
+  screenshotUploadOffsetY: 0,
+  screenshotUploadScale: 1,
   canvasLayers: [],
   selectedCanvasLayerId: null,
 };
@@ -291,6 +298,9 @@ export function normalizeVisualWorkspacePrefs(
       mockupOffsetX: d.mockupOffsetX ?? 0,
       mockupOffsetY: d.mockupOffsetY ?? 0,
       mockupScale: d.mockupScale ?? 1,
+      screenshotUploadOffsetX: d.screenshotUploadOffsetX ?? 0,
+      screenshotUploadOffsetY: d.screenshotUploadOffsetY ?? 0,
+      screenshotUploadScale: d.screenshotUploadScale ?? 1,
       canvasLayers: d.canvasLayers ? [...d.canvasLayers] : [],
       canvasImageRect: d.canvasImageRect ? { ...d.canvasImageRect } : null,
       canvasImageBaseline: d.canvasImageBaseline
@@ -349,6 +359,12 @@ export function normalizeVisualWorkspacePrefs(
     mockupOffsetX: partial.mockupOffsetX ?? d.mockupOffsetX ?? 0,
     mockupOffsetY: partial.mockupOffsetY ?? d.mockupOffsetY ?? 0,
     mockupScale: partial.mockupScale ?? d.mockupScale ?? 1,
+    screenshotUploadOffsetX:
+      partial.screenshotUploadOffsetX ?? d.screenshotUploadOffsetX ?? 0,
+    screenshotUploadOffsetY:
+      partial.screenshotUploadOffsetY ?? d.screenshotUploadOffsetY ?? 0,
+    screenshotUploadScale:
+      partial.screenshotUploadScale ?? d.screenshotUploadScale ?? 1,
     canvasLayers,
     canvasImageRect:
       partial.canvasImageRect !== undefined
@@ -389,6 +405,9 @@ export function cloneVisualWorkspacePrefsForSave(
     mockupOffsetX: n.mockupOffsetX ?? 0,
     mockupOffsetY: n.mockupOffsetY ?? 0,
     mockupScale: n.mockupScale ?? 1,
+    screenshotUploadOffsetX: n.screenshotUploadOffsetX ?? 0,
+    screenshotUploadOffsetY: n.screenshotUploadOffsetY ?? 0,
+    screenshotUploadScale: n.screenshotUploadScale ?? 1,
     canvasImageRect: n.canvasImageRect ? { ...n.canvasImageRect } : null,
     canvasImageBaseline: n.canvasImageBaseline
       ? { ...n.canvasImageBaseline }
