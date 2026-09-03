@@ -172,6 +172,7 @@ type MockupMediaContextValue = {
   assignMediaToActiveVisual: (libraryItemId: string) => void;
   updateVisualLabel: (visualId: string, value: string) => void;
   removeLibraryItem: (libraryItemId: string) => void;
+  removeLibraryItems: (libraryItemIds: string[]) => void;
   /** Unassigns media from the active canvas slot; library assets are kept. */
   clearActiveVisualMedia: () => void;
   /** Removes a canvas slot; library assets are kept. At least one visual remains. */
@@ -766,6 +767,24 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const removeLibraryItems = useCallback((libraryItemIds: string[]) => {
+    if (libraryItemIds.length === 0) return;
+    const idSet = new Set(libraryItemIds);
+    setState((s) => {
+      for (const item of s.library) {
+        if (idSet.has(item.id)) revokeIfBlobUrl(item.url);
+      }
+      return {
+        ...s,
+        library: s.library.filter((x) => !idSet.has(x.id)),
+        visuals: s.visuals.map((v) =>
+          v.mediaId && idSet.has(v.mediaId) ? { ...v, mediaId: null } : v
+        ),
+        activeVisualId: s.activeVisualId,
+      };
+    });
+  }, []);
+
   const clearActiveVisualMedia = useCallback(() => {
     setState((s) => {
       if (!s.activeVisualId) return s;
@@ -912,6 +931,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
       assignMediaToActiveVisual,
       updateVisualLabel,
       removeLibraryItem,
+      removeLibraryItems,
       clearActiveVisualMedia,
       removeVisual,
       createNewVisualFromItem,
@@ -933,6 +953,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
       assignMediaToActiveVisual,
       updateVisualLabel,
       removeLibraryItem,
+      removeLibraryItems,
       clearActiveVisualMedia,
       removeVisual,
       createNewVisualFromItem,
