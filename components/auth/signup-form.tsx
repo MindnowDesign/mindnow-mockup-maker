@@ -1,14 +1,12 @@
 "use client";
 
 import {
-  GoogleAuthProvider,
   createUserWithEmailAndPassword,
-  signInWithPopup,
   updateProfile,
 } from "firebase/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import {
   AuthCard,
@@ -17,10 +15,12 @@ import {
 } from "@/components/auth/auth-card";
 import { AuthField, AuthInput } from "@/components/auth/auth-field";
 import { useAuth } from "@/components/auth/auth-provider";
+import { useGoogleRedirectResult } from "@/components/auth/use-google-redirect-result";
 import { Button } from "@/components/ui/button";
 import { authLinkClass } from "@/lib/auth-form-styles";
 import { getAuthErrorMessage } from "@/lib/firebase/auth-errors";
 import { getFirebaseAuth } from "@/lib/firebase/client";
+import { signInWithGoogle } from "@/lib/firebase/google-sign-in";
 
 export function SignupForm() {
   const router = useRouter();
@@ -31,6 +31,11 @@ export function SignupForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const handleRedirectError = useCallback((message: string) => {
+    setError(message);
+  }, []);
+
+  useGoogleRedirectResult(handleRedirectError);
 
   async function handleEmailSignup(event: React.FormEvent) {
     event.preventDefault();
@@ -79,8 +84,10 @@ export function SignupForm() {
     setSubmitting(true);
 
     try {
-      await signInWithPopup(getFirebaseAuth(), new GoogleAuthProvider());
-      router.replace("/");
+      const result = await signInWithGoogle();
+      if (result?.user) {
+        router.replace("/");
+      }
     } catch (err) {
       setError(getAuthErrorMessage(err));
     } finally {

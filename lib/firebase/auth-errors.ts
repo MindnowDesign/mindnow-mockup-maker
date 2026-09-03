@@ -22,6 +22,13 @@ export function getAuthErrorMessage(error: unknown): string {
       return "Enter a valid email address.";
     case "auth/popup-closed-by-user":
       return "Sign-in was cancelled.";
+    case "auth/invalid-action":
+    case "auth/operation-not-allowed":
+      return "Google Sign-In is not available yet. Try email/password or contact support.";
+    case "auth/unauthorized-domain":
+      return "This domain is not authorized for sign-in.";
+    case "auth/popup-blocked":
+      return "Pop-up was blocked. Allow pop-ups or try again.";
     case "auth/too-many-requests":
       return "Too many attempts. Try again later.";
     default:
