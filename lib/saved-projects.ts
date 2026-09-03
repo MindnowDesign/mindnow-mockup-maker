@@ -134,6 +134,11 @@ export function emptyTrash() {
   writeAll(projects.filter((p) => p.trashedAt == null));
 }
 
+export function clearAllSavedProjects() {
+  writeAll([]);
+  notifySavedProjectsChanged();
+}
+
 export function notifySavedProjectsChanged() {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent("mindnow:saved-projects-changed"));

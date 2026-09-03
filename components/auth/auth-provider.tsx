@@ -16,6 +16,7 @@ import {
 } from "react";
 
 import { getFirebaseAuth, isFirebaseConfigured } from "@/lib/firebase/client";
+import { syncLocalDataForUser } from "@/lib/local-workspace-storage";
 
 type AuthContextValue = {
   user: User | null;
@@ -42,6 +43,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const auth = getFirebaseAuth();
     const unsubscribe = onAuthStateChanged(auth, (nextUser) => {
+      if (nextUser) {
+        syncLocalDataForUser(nextUser.uid);
+      }
       setUser(nextUser);
       setLoading(false);
     });

@@ -298,20 +298,6 @@ function TeamMembersPanel({
       email: currentUser.email,
       role: "Owner",
     },
-    {
-      id: "m1",
-      firstName: "Alex",
-      lastName: "Rivera",
-      email: "alex.rivera@example.com",
-      role: "Member",
-    },
-    {
-      id: "m2",
-      firstName: "Sam",
-      lastName: "Chen",
-      email: "sam.chen@example.com",
-      role: "Member",
-    },
   ]);
 
   function saveTeamName() {
