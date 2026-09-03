@@ -159,7 +159,7 @@ export function TrashCardsGrid({
             </DialogHeader>
             <DialogFooter>
               <DialogClose asChild>
-                <Button type="button" variant="ghost">
+                <Button type="button" variant="ghost" size="md">
                   Cancel
                 </Button>
               </DialogClose>
@@ -167,6 +167,7 @@ export function TrashCardsGrid({
                 <Button
                   type="button"
                   variant="destructive"
+                  size="md"
                   onClick={() => {
                     emptyTrash();
                     notifySavedProjectsChanged();

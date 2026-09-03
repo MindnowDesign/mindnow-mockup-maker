@@ -1,14 +1,16 @@
 "use client";
 
-import { LogOut, Trash2 } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
+import { AuthField, AuthInput } from "@/components/auth/auth-field";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -20,7 +22,6 @@ import {
 } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import {
-  authFieldInputClass,
   authLinkClass,
 } from "@/lib/auth-form-styles";
 
@@ -50,9 +51,14 @@ function fullName(user: Pick<ProfileUser, "firstName" | "lastName">) {
   return `${user.firstName} ${user.lastName}`.trim();
 }
 
-const changeLinkClass = authLinkClass;
+const changeLinkClass = cn(authLinkClass, "self-start text-left");
 
-const fieldInputClass = authFieldInputClass;
+const destructiveLinkClass = cn(
+  "text-sm font-medium text-destructive transition-colors hover:text-destructive/80 self-start text-left"
+);
+
+const settingsOutlineButtonClass =
+  "shrink-0 border-neutral-700 text-neutral-100 hover:bg-white/5 hover:text-neutral-50";
 
 function SettingsSection({
   label,
@@ -69,6 +75,68 @@ function SettingsSection({
   );
 }
 
+function SettingsEditDialog({
+  open,
+  onOpenChange,
+  title,
+  description,
+  children,
+  onSave,
+  saveDisabled,
+  saveLabel = "Save",
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  description?: string;
+  children: ReactNode;
+  onSave: () => void;
+  saveDisabled?: boolean;
+  saveLabel?: string;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="gap-6 sm:max-w-md">
+        <DialogHeaderBlock title={title} description={description} />
+        <div className="flex flex-col gap-4">{children}</div>
+        <DialogFooter className="gap-2 sm:justify-end">
+          <Button
+            type="button"
+            variant="ghost"
+            size="md"
+            className="text-neutral-300 hover:bg-white/5 hover:text-neutral-50"
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <Button type="button" size="md" onClick={onSave} disabled={saveDisabled}>
+            {saveLabel}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function DialogHeaderBlock({
+  title,
+  description,
+}: {
+  title: string;
+  description?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-2 pr-8">
+      <DialogTitle className="text-xl font-semibold tracking-tight">
+        {title}
+      </DialogTitle>
+      {description ? (
+        <DialogDescription>{description}</DialogDescription>
+      ) : null}
+    </div>
+  );
+}
+
 function ProfilePanel({
   user,
   onUserChange,
@@ -76,19 +144,27 @@ function ProfilePanel({
   user: ProfileUser;
   onUserChange: (next: ProfileUser) => void;
 }) {
-  const [editing, setEditing] = useState<"name" | "email" | null>(null);
+  const [editTarget, setEditTarget] = useState<
+    "name" | "email" | "password" | null
+  >(null);
   const [draftName, setDraftName] = useState(fullName(user));
   const [draftEmail, setDraftEmail] = useState(user.email);
+  const [draftPassword, setDraftPassword] = useState("");
+  const [draftConfirmPassword, setDraftConfirmPassword] = useState("");
   const initials = getInitials(user.firstName, user.lastName);
 
-  function startEditName() {
-    setDraftName(fullName(user));
-    setEditing("name");
+  function openEdit(target: NonNullable<typeof editTarget>) {
+    if (target === "name") setDraftName(fullName(user));
+    if (target === "email") setDraftEmail(user.email);
+    if (target === "password") {
+      setDraftPassword("");
+      setDraftConfirmPassword("");
+    }
+    setEditTarget(target);
   }
 
-  function startEditEmail() {
-    setDraftEmail(user.email);
-    setEditing("email");
+  function closeEdit() {
+    setEditTarget(null);
   }
 
   function saveName() {
@@ -96,14 +172,25 @@ function ProfilePanel({
     const firstName = parts[0] || user.firstName;
     const lastName = parts.slice(1).join(" ") || user.lastName;
     onUserChange({ ...user, firstName, lastName });
-    setEditing(null);
+    closeEdit();
   }
 
   function saveEmail() {
     const next = draftEmail.trim();
-    if (next) onUserChange({ ...user, email: next });
-    setEditing(null);
+    if (!next) return;
+    onUserChange({ ...user, email: next });
+    closeEdit();
   }
+
+  function savePassword() {
+    // Placeholder until auth is wired.
+    closeEdit();
+  }
+
+  const passwordMismatch =
+    draftPassword.length > 0 &&
+    draftConfirmPassword.length > 0 &&
+    draftPassword !== draftConfirmPassword;
 
   return (
     <div className="flex flex-col gap-8">
@@ -118,100 +205,129 @@ function ProfilePanel({
         </Avatar>
         <Button
           type="button"
-          variant="secondary"
-          className="bg-neutral-800 text-neutral-100 hover:bg-neutral-700"
+          variant="ghost"
+          className="text-neutral-300 hover:bg-white/5 hover:text-neutral-50"
           onClick={() => {
             // Placeholder until profile photo upload is wired.
           }}
         >
-          Upload profile photo
+          <Pencil data-icon="inline-start" strokeWidth={1.75} aria-hidden />
+          Edit
         </Button>
       </div>
 
       <SettingsSection label="Name">
-        {editing === "name" ? (
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <input
-              aria-label="Name"
-              value={draftName}
-              onChange={(e) => setDraftName(e.target.value)}
-              className={cn(fieldInputClass, "sm:max-w-xs")}
-              autoFocus
-            />
-            <div className="flex gap-2">
-              <Button type="button" onClick={saveName}>
-                Save
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                className="text-neutral-300 hover:bg-white/5 hover:text-neutral-50"
-                onClick={() => setEditing(null)}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <p className="text-sm text-neutral-200">{fullName(user)}</p>
-            <button type="button" className={changeLinkClass} onClick={startEditName}>
-              Change name
-            </button>
-          </>
-        )}
+        <p className="text-sm text-neutral-200">{fullName(user)}</p>
+        <button
+          type="button"
+          className={changeLinkClass}
+          onClick={() => openEdit("name")}
+        >
+          Change name
+        </button>
       </SettingsSection>
 
       <SettingsSection label="Email">
-        {editing === "email" ? (
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <input
-              aria-label="Email"
-              type="email"
-              value={draftEmail}
-              onChange={(e) => setDraftEmail(e.target.value)}
-              className={cn(fieldInputClass, "sm:max-w-sm")}
-              autoFocus
-            />
-            <div className="flex gap-2">
-              <Button type="button" onClick={saveEmail}>
-                Save
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                className="text-neutral-300 hover:bg-white/5 hover:text-neutral-50"
-                onClick={() => setEditing(null)}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <p className="text-sm text-neutral-200">{user.email}</p>
-            <button
-              type="button"
-              className={changeLinkClass}
-              onClick={startEditEmail}
-            >
-              Change email
-            </button>
-          </>
-        )}
+        <p className="text-sm text-neutral-200">{user.email}</p>
+        <button
+          type="button"
+          className={changeLinkClass}
+          onClick={() => openEdit("email")}
+        >
+          Change email
+        </button>
       </SettingsSection>
 
       <SettingsSection label="Password">
         <button
           type="button"
           className={changeLinkClass}
-          onClick={() => {
-            // Placeholder until auth is wired.
-          }}
+          onClick={() => openEdit("password")}
         >
           Change password
         </button>
       </SettingsSection>
+
+      <SettingsEditDialog
+        open={editTarget === "name"}
+        onOpenChange={(open) => {
+          if (!open) closeEdit();
+        }}
+        title="Change name"
+        description="This is the name that will appear on your profile."
+        onSave={saveName}
+        saveDisabled={!draftName.trim()}
+      >
+        <AuthField id="profile-edit-name" label="Name">
+          <AuthInput
+            id="profile-edit-name"
+            value={draftName}
+            onChange={(e) => setDraftName(e.target.value)}
+            autoFocus
+          />
+        </AuthField>
+      </SettingsEditDialog>
+
+      <SettingsEditDialog
+        open={editTarget === "email"}
+        onOpenChange={(open) => {
+          if (!open) closeEdit();
+        }}
+        title="Change email"
+        description="We'll use this email for account notifications."
+        onSave={saveEmail}
+        saveDisabled={!draftEmail.trim()}
+      >
+        <AuthField id="profile-edit-email" label="Email">
+          <AuthInput
+            id="profile-edit-email"
+            type="email"
+            value={draftEmail}
+            onChange={(e) => setDraftEmail(e.target.value)}
+            autoFocus
+          />
+        </AuthField>
+      </SettingsEditDialog>
+
+      <SettingsEditDialog
+        open={editTarget === "password"}
+        onOpenChange={(open) => {
+          if (!open) closeEdit();
+        }}
+        title="Change password"
+        description="Choose a new password for your account."
+        onSave={savePassword}
+        saveDisabled={
+          !draftPassword ||
+          !draftConfirmPassword ||
+          draftPassword !== draftConfirmPassword
+        }
+      >
+        <AuthField id="profile-edit-password" label="New password">
+          <AuthInput
+            id="profile-edit-password"
+            type="password"
+            autoComplete="new-password"
+            value={draftPassword}
+            onChange={(e) => setDraftPassword(e.target.value)}
+            autoFocus
+          />
+        </AuthField>
+        <AuthField id="profile-edit-confirm-password" label="Confirm password">
+          <AuthInput
+            id="profile-edit-confirm-password"
+            type="password"
+            autoComplete="new-password"
+            value={draftConfirmPassword}
+            onChange={(e) => setDraftConfirmPassword(e.target.value)}
+          />
+        </AuthField>
+        {passwordMismatch ? (
+          <p className="text-sm text-red-400" role="alert">
+            Passwords do not match.
+          </p>
+        ) : null}
+      </SettingsEditDialog>
     </div>
   );
 }
@@ -231,15 +347,9 @@ function AccountPanel({
         <p className="text-sm text-neutral-400">
           Sign out of Mindnow on this device.
         </p>
-        <Button
-          type="button"
-          variant="secondary"
-          className="w-fit bg-neutral-800 text-neutral-100 hover:bg-neutral-700"
-          onClick={onSignOut}
-        >
-          <LogOut data-icon="inline-start" strokeWidth={1.75} aria-hidden />
+        <button type="button" className={changeLinkClass} onClick={onSignOut}>
           Sign out
-        </Button>
+        </button>
       </SettingsSection>
 
       <SettingsSection label="Delete">
@@ -264,15 +374,13 @@ function AccountPanel({
             </Button>
           </div>
         ) : (
-          <Button
+          <button
             type="button"
-            variant="destructive"
-            className="w-fit"
+            className={destructiveLinkClass}
             onClick={() => setConfirmDelete(true)}
           >
-            <Trash2 data-icon="inline-start" strokeWidth={1.75} aria-hidden />
             Delete account
-          </Button>
+          </button>
         )}
       </SettingsSection>
     </div>
@@ -290,6 +398,7 @@ function TeamMembersPanel({
   const [editingTeam, setEditingTeam] = useState(false);
   const [draftTeam, setDraftTeam] = useState(teamLabel);
   const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [members, setMembers] = useState<TeamMember[]>([
     {
       id: "self",
@@ -328,6 +437,7 @@ function TeamMembersPanel({
       },
     ]);
     setInviteEmail("");
+    setInviteOpen(false);
   }
 
   function removeMember(id: string) {
@@ -337,47 +447,50 @@ function TeamMembersPanel({
   return (
     <div className="flex flex-col gap-8">
       <SettingsSection label="Team name">
-        {editingTeam ? (
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <input
-              aria-label="Team name"
-              value={draftTeam}
-              onChange={(e) => setDraftTeam(e.target.value)}
-              className={cn(fieldInputClass, "sm:max-w-xs")}
-              autoFocus
-            />
-            <div className="flex gap-2">
-              <Button type="button" onClick={saveTeamName}>
-                Save
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                className="text-neutral-300 hover:bg-white/5 hover:text-neutral-50"
-                onClick={() => setEditingTeam(false)}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <p className="text-sm text-neutral-200">{teamName}</p>
-            <button
-              type="button"
-              className={changeLinkClass}
-              onClick={() => {
-                setDraftTeam(teamName);
-                setEditingTeam(true);
-              }}
-            >
-              Change team name
-            </button>
-          </>
-        )}
+        <p className="text-sm text-neutral-200">{teamName}</p>
+        <button
+          type="button"
+          className={changeLinkClass}
+          onClick={() => {
+            setDraftTeam(teamName);
+            setEditingTeam(true);
+          }}
+        >
+          Change team name
+        </button>
       </SettingsSection>
 
-      <SettingsSection label="Members">
+      <SettingsEditDialog
+        open={editingTeam}
+        onOpenChange={setEditingTeam}
+        title="Change team name"
+        description="This name is visible to everyone on your team."
+        onSave={saveTeamName}
+        saveDisabled={!draftTeam.trim()}
+      >
+        <AuthField id="team-edit-name" label="Team name">
+          <AuthInput
+            id="team-edit-name"
+            value={draftTeam}
+            onChange={(e) => setDraftTeam(e.target.value)}
+            autoFocus
+          />
+        </AuthField>
+      </SettingsEditDialog>
+
+      <div className="flex min-w-0 flex-col gap-1.5">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm font-semibold text-neutral-50">Members</p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className={settingsOutlineButtonClass}
+            onClick={() => setInviteOpen(true)}
+          >
+            Invite
+          </Button>
+        </div>
         <ul className="mt-2 divide-y divide-neutral-800 rounded-lg border border-neutral-800">
           {members.map((member) => {
             const initials = getInitials(member.firstName, member.lastName);
@@ -418,34 +531,28 @@ function TeamMembersPanel({
             );
           })}
         </ul>
-      </SettingsSection>
+      </div>
 
-      <SettingsSection label="Invite member">
-        <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-stretch">
-          <input
-            aria-label="Invite email"
+      <SettingsEditDialog
+        open={inviteOpen}
+        onOpenChange={setInviteOpen}
+        title="Invite member"
+        description="Send an invitation to join your team."
+        onSave={inviteMember}
+        saveDisabled={!inviteEmail.trim()}
+        saveLabel="Send invite"
+      >
+        <AuthField id="team-invite-email" label="Email">
+          <AuthInput
+            id="team-invite-email"
             type="email"
             placeholder="colleague@company.com"
             value={inviteEmail}
             onChange={(e) => setInviteEmail(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                inviteMember();
-              }
-            }}
-            className={cn(fieldInputClass, "sm:max-w-sm")}
+            autoFocus
           />
-          <Button
-            type="button"
-            className="h-10 w-fit py-0"
-            disabled={!inviteEmail.trim()}
-            onClick={inviteMember}
-          >
-            Send invite
-          </Button>
-        </div>
-      </SettingsSection>
+        </AuthField>
+      </SettingsEditDialog>
     </div>
   );
 }
@@ -512,8 +619,8 @@ export function UserProfileDialog({
             {(
               [
                 ["profile", "Profile"],
-                ["account", "Account"],
                 ["team", "Team Members"],
+                ["account", "Account"],
               ] as const
             ).map(([value, label]) => (
               <TabsTrigger

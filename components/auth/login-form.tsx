@@ -110,7 +110,7 @@ export function LoginForm() {
 
         <Button
           type="submit"
-          className="h-10 w-full"
+          className="w-full"
           disabled={submitting || !configured}
         >
           {submitting ? "Signing in…" : "Sign in"}

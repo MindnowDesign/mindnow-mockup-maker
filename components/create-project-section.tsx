@@ -33,7 +33,7 @@ export function CreateProjectSection() {
       </div>
 
       <span
-        className={cn(buttonVariants({ size: "default" }), "mt-1 h-10 pointer-events-none")}
+        className={cn(buttonVariants({ size: "sm" }), "mt-1 pointer-events-none")}
       >
         <Plus data-icon="inline-start" strokeWidth={1.75} aria-hidden />
         Start building

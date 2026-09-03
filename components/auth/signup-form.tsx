@@ -141,7 +141,7 @@ export function SignupForm() {
 
         <Button
           type="submit"
-          className="h-10 w-full"
+          className="w-full"
           disabled={submitting || !configured}
         >
           {submitting ? "Creating account…" : "Create account"}
