@@ -25,8 +25,13 @@ export function getAuthErrorMessage(error: unknown): string {
     case "auth/invalid-action":
     case "auth/operation-not-allowed":
       return "Google Sign-In is not available yet. Try email/password or contact support.";
-    case "auth/unauthorized-domain":
-      return "This domain is not authorized for sign-in.";
+    case "auth/unauthorized-domain": {
+      const hostname =
+        typeof window !== "undefined" ? window.location.hostname : null;
+      return hostname
+        ? `${hostname} is not authorized for sign-in. Add it in Firebase Console → Authentication → Settings → Authorized domains.`
+        : "This domain is not authorized for sign-in.";
+    }
     case "auth/popup-blocked":
       return "Pop-up was blocked. Allow pop-ups or try again.";
     case "auth/too-many-requests":

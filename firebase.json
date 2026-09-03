@@ -3,6 +3,8 @@
     "authorizedDomains": [
       "localhost",
       "mindnow-mockup-maker.vercel.app",
+      "mindnow-mockup-maker-design-mindnows-projects.vercel.app",
+      "mindnow-mockup-maker-git-main-design-mindnows-projects.vercel.app",
       "mindnow-mockup-maker-54797.firebaseapp.com",
       "mindnow-mockup-maker-54797.web.app"
     ],
