@@ -105,20 +105,29 @@ export function CatalystShell({
 }: CatalystShellProps) {
   const pathname = usePathname();
   const [profileUser, setProfileUser] = useState(authUser);
-  const hasLocalAvatarEdit = useRef(false);
+  const hasLocalProfileEdit = useRef(false);
 
   useEffect(() => {
-    hasLocalAvatarEdit.current = false;
+    hasLocalProfileEdit.current = false;
     setProfileUser(authUser);
   }, [authUser.email]);
 
   useEffect(() => {
-    setProfileUser((prev) => ({
-      ...authUser,
-      avatarUrl: hasLocalAvatarEdit.current
-        ? (prev.avatarUrl ?? null)
-        : (authUser.avatarUrl ?? null),
-    }));
+    setProfileUser((prev) => {
+      if (hasLocalProfileEdit.current) {
+        return {
+          ...authUser,
+          firstName: prev.firstName,
+          lastName: prev.lastName,
+          avatarUrl: prev.avatarUrl ?? null,
+        };
+      }
+
+      return {
+        ...authUser,
+        avatarUrl: authUser.avatarUrl ?? null,
+      };
+    });
   }, [
     authUser.email,
     authUser.firstName,
@@ -127,9 +136,7 @@ export function CatalystShell({
   ]);
 
   function handleProfileUserChange(next: CatalystShellUser) {
-    if ((next.avatarUrl ?? null) !== (profileUser.avatarUrl ?? null)) {
-      hasLocalAvatarEdit.current = true;
-    }
+    hasLocalProfileEdit.current = true;
     setProfileUser(next);
   }
 

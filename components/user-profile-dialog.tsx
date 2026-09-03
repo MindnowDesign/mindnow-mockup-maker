@@ -1,11 +1,20 @@
 "use client";
 
-import { Pencil, X } from "lucide-react";
-import { useRef, useState, type ReactNode } from "react";
+import { Pencil, Trash2, X } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { AuthField, AuthInput } from "@/components/auth/auth-field";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { readFileAsDataUrl } from "@/lib/mockup-library-upload";
+import {
+  getProfileInitials,
+  resolveProfileAvatarUrl,
+} from "@/lib/profile-avatar";
+import {
+  loadTeamSettings,
+  saveTeamSettings,
+  type StoredTeamMember,
+} from "@/lib/team-settings-storage";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -45,10 +54,7 @@ type TeamMember = {
 type SettingsTab = "profile" | "account" | "team";
 
 function getInitials(firstName: string, lastName: string) {
-  const parts = fullName({ firstName, lastName }).split(/\s+/).filter(Boolean);
-  const a = parts[0]?.charAt(0) ?? "";
-  const b = parts[1]?.charAt(0) ?? parts[0]?.charAt(1) ?? "";
-  return (a + b).toUpperCase() || "–";
+  return getProfileInitials(firstName, lastName);
 }
 
 export function fullName(user: Pick<ProfileUser, "firstName" | "lastName">) {
@@ -66,6 +72,23 @@ function memberHasName(member: Pick<TeamMember, "firstName" | "lastName" | "pend
   return !member.pending && Boolean(fullName(member));
 }
 
+function createOwnerMember(user: ProfileUser): TeamMember {
+  return {
+    id: "self",
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    role: "Owner",
+  };
+}
+
+function buildMembersList(
+  user: ProfileUser,
+  storedMembers: StoredTeamMember[] = []
+): TeamMember[] {
+  return [createOwnerMember(user), ...storedMembers];
+}
+
 export function UserAvatar({
   user,
   className,
@@ -76,17 +99,18 @@ export function UserAvatar({
   fallbackClassName?: string;
 }) {
   const initials = getInitials(user.firstName, user.lastName);
+  const avatarSrc = resolveProfileAvatarUrl(user.avatarUrl);
 
   return (
     <Avatar
-      key={user.avatarUrl ?? "initials"}
+      key={avatarSrc ?? "initials"}
       className={cn(
         "shrink-0 rounded-full after:rounded-full [&_[data-slot=avatar-fallback]]:rounded-full",
         className
       )}
     >
-      {user.avatarUrl ? (
-        <AvatarImage src={user.avatarUrl} alt="" className="rounded-full" />
+      {avatarSrc ? (
+        <AvatarImage src={avatarSrc} alt="" className="rounded-full" />
       ) : null}
       <AvatarFallback
         delayMs={0}
@@ -118,7 +142,7 @@ function SettingsSection({
   children: ReactNode;
 }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1.5">
+    <div className="flex min-w-0 flex-col gap-2">
       <p className="text-sm font-semibold text-neutral-50">{label}</p>
       {children}
     </div>
@@ -255,6 +279,8 @@ function ProfilePanel({
     onUserChange({ ...user, avatarUrl: null });
   }
 
+  const profileAvatarSrc = resolveProfileAvatarUrl(user.avatarUrl);
+
   const passwordMismatch =
     draftPassword.length > 0 &&
     draftConfirmPassword.length > 0 &&
@@ -269,7 +295,7 @@ function ProfilePanel({
             className="size-16"
             fallbackClassName="text-lg"
           />
-          {user.avatarUrl ? (
+          {profileAvatarSrc ? (
             <button
               type="button"
               className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 rounded-full bg-black/60 text-neutral-50 opacity-0 transition-opacity outline-none group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-white/25"
@@ -479,32 +505,72 @@ function TeamMembersPanel({
   teamLabel: string;
   currentUser: ProfileUser;
 }) {
+  const ownerEmail = currentUser.email.trim().toLowerCase();
   const [teamName, setTeamName] = useState(teamLabel);
   const [editingTeam, setEditingTeam] = useState(false);
   const [draftTeam, setDraftTeam] = useState(teamLabel);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteOpen, setInviteOpen] = useState(false);
-  const [members, setMembers] = useState<TeamMember[]>([
-    {
-      id: "self",
-      firstName: currentUser.firstName,
-      lastName: currentUser.lastName,
-      email: currentUser.email,
-      role: "Owner",
-    },
+  const [members, setMembers] = useState<TeamMember[]>(() => [
+    createOwnerMember(currentUser),
   ]);
+  const skipNextSave = useRef(true);
+
+  function persistTeamSettings(
+    nextMembers: TeamMember[],
+    nextTeamName: string = teamName
+  ) {
+    if (!ownerEmail) return;
+
+    saveTeamSettings(ownerEmail, {
+      teamName: nextTeamName,
+      members: nextMembers
+        .filter((member): member is StoredTeamMember => member.role === "Member")
+        .map((member) => ({
+          id: member.id,
+          firstName: member.firstName,
+          lastName: member.lastName,
+          email: member.email,
+          role: "Member",
+          pending: member.pending,
+        })),
+    });
+  }
+
+  useEffect(() => {
+    const stored = loadTeamSettings(ownerEmail);
+    setTeamName(stored?.teamName ?? teamLabel);
+    setMembers(buildMembersList(currentUser, stored?.members ?? []));
+    skipNextSave.current = true;
+  }, [
+    ownerEmail,
+    teamLabel,
+    currentUser.firstName,
+    currentUser.lastName,
+    currentUser.email,
+  ]);
+
+  useEffect(() => {
+    if (skipNextSave.current) {
+      skipNextSave.current = false;
+      return;
+    }
+    persistTeamSettings(members, teamName);
+  }, [ownerEmail, teamName, members]);
 
   function saveTeamName() {
     const next = draftTeam.trim();
-    if (next) setTeamName(next);
+    if (!next) return;
+    setTeamName(next);
+    persistTeamSettings(members, next);
     setEditingTeam(false);
   }
 
   function inviteMember() {
     const email = inviteEmail.trim().toLowerCase();
     if (!email || members.some((m) => m.email.toLowerCase() === email)) return;
-    setMembers((prev) => [
-      ...prev,
+    const nextMembers: TeamMember[] = [
+      ...members,
       {
         id: `invite-${Date.now()}`,
         firstName: "",
@@ -513,13 +579,17 @@ function TeamMembersPanel({
         role: "Member",
         pending: true,
       },
-    ]);
+    ];
+    setMembers(nextMembers);
+    persistTeamSettings(nextMembers);
     setInviteEmail("");
     setInviteOpen(false);
   }
 
   function removeMember(id: string) {
-    setMembers((prev) => prev.filter((m) => m.id !== id || m.role === "Owner"));
+    const nextMembers = members.filter((m) => m.id !== id || m.role === "Owner");
+    setMembers(nextMembers);
+    persistTeamSettings(nextMembers);
   }
 
   return (
@@ -556,7 +626,7 @@ function TeamMembersPanel({
         </AuthField>
       </SettingsEditDialog>
 
-      <div className="flex min-w-0 flex-col gap-1.5">
+      <div className="flex min-w-0 flex-col gap-2">
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm font-semibold text-neutral-50">Members</p>
           <Button
@@ -611,11 +681,12 @@ function TeamMembersPanel({
                   <Button
                     type="button"
                     variant="ghost"
-                    size="sm"
+                    size="icon-sm"
                     className="shrink-0 text-neutral-400 hover:bg-white/5 hover:text-neutral-50"
+                    aria-label={`Remove ${member.email}`}
                     onClick={() => removeMember(member.id)}
                   >
-                    Remove
+                    <Trash2 strokeWidth={1.75} aria-hidden />
                   </Button>
                 ) : null}
               </li>
@@ -667,6 +738,12 @@ export function UserProfileDialog({
   const [tab, setTab] = useState<SettingsTab>("profile");
   const [user, setUser] = useState(initialUser);
 
+  useEffect(() => {
+    if (open) {
+      setUser(initialUser);
+    }
+  }, [open, initialUser]);
+
   function handleUserChange(next: ProfileUser) {
     setUser(next);
     onUserChange?.(next);
@@ -676,8 +753,6 @@ export function UserProfileDialog({
     setOpen(next);
     if (!next) {
       setTab("profile");
-    } else {
-      setUser(initialUser);
     }
   }
 

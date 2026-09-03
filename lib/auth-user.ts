@@ -1,6 +1,7 @@
 import type { User } from "firebase/auth";
 
 import type { CatalystShellUser } from "@/components/catalyst-shell";
+import { resolveProfileAvatarUrl } from "@/lib/profile-avatar";
 
 export function firebaseUserToShellUser(user: User): CatalystShellUser {
   const displayName = user.displayName?.trim() ?? "";
@@ -12,6 +13,6 @@ export function firebaseUserToShellUser(user: User): CatalystShellUser {
     firstName,
     lastName,
     email: user.email ?? "",
-    avatarUrl: user.photoURL ?? null,
+    avatarUrl: resolveProfileAvatarUrl(user.photoURL ?? null),
   };
 }
