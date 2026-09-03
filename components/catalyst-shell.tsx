@@ -10,11 +10,10 @@ import {
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { ProjectWorkspaceTitleProvider } from "@/components/project-workspace-title-context";
-import { UserProfileDialog } from "@/components/user-profile-dialog";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserAvatar, UserProfileDialog, fullName } from "@/components/user-profile-dialog";
 import {
   TooltipProvider,
 } from "@/components/ui/tooltip";
@@ -59,6 +58,7 @@ export type CatalystShellUser = {
   firstName: string;
   lastName: string;
   email: string;
+  avatarUrl?: string | null;
 };
 
 const defaultUser: CatalystShellUser = {
@@ -66,12 +66,6 @@ const defaultUser: CatalystShellUser = {
   lastName: "Doe",
   email: "jane.doe@example.com",
 };
-
-function getInitials(firstName: string, lastName: string) {
-  const a = firstName.trim().charAt(0);
-  const b = lastName.trim().charAt(0);
-  return (a + b).toUpperCase() || "–";
-}
 
 const DEFAULT_SIDEBAR_LOGO_SRC = "/images/logo.png";
 
@@ -104,18 +98,46 @@ type CatalystShellProps = {
  */
 export function CatalystShell({
   children,
-  user = defaultUser,
+  user: authUser = defaultUser,
   logo,
   teamLabel = "Mindnow",
   onSignOut,
 }: CatalystShellProps) {
   const pathname = usePathname();
+  const [profileUser, setProfileUser] = useState(authUser);
+  const hasLocalAvatarEdit = useRef(false);
+
+  useEffect(() => {
+    hasLocalAvatarEdit.current = false;
+    setProfileUser(authUser);
+  }, [authUser.email]);
+
+  useEffect(() => {
+    setProfileUser((prev) => ({
+      ...authUser,
+      avatarUrl: hasLocalAvatarEdit.current
+        ? (prev.avatarUrl ?? null)
+        : (authUser.avatarUrl ?? null),
+    }));
+  }, [
+    authUser.email,
+    authUser.firstName,
+    authUser.lastName,
+    authUser.avatarUrl,
+  ]);
+
+  function handleProfileUserChange(next: CatalystShellUser) {
+    if ((next.avatarUrl ?? null) !== (profileUser.avatarUrl ?? null)) {
+      hasLocalAvatarEdit.current = true;
+    }
+    setProfileUser(next);
+  }
+
   const isProjectWorkspace = isProjectWorkspacePath(pathname);
   const isHome = pathname === "/";
   const isProjects = pathname === "/projects";
   const isTrash = pathname === "/trash";
   const isAccount = pathname === "/account";
-  const initials = getInitials(user.firstName, user.lastName);
 
   return (
     <TooltipProvider>
@@ -123,24 +145,25 @@ export function CatalystShell({
         <GlobalSearchProvider>
           {isProjectWorkspace ? (
             <ProjectWorkspaceShell
-              user={user}
+              user={profileUser}
               logo={logo}
               teamLabel={teamLabel}
               onSignOut={onSignOut}
+              onUserChange={handleProfileUserChange}
             >
               {children}
             </ProjectWorkspaceShell>
           ) : (
             <MainAppChrome
-              user={user}
+              user={profileUser}
               logo={logo}
               teamLabel={teamLabel}
-              initials={initials}
               isHome={isHome}
               isProjects={isProjects}
               isTrash={isTrash}
               isAccount={isAccount}
               onSignOut={onSignOut}
+              onUserChange={handleProfileUserChange}
             >
               {children}
             </MainAppChrome>
@@ -157,23 +180,23 @@ function MainAppChrome({
   user,
   logo,
   teamLabel,
-  initials,
   isHome,
   isProjects,
   isTrash,
   isAccount,
   onSignOut,
+  onUserChange,
 }: {
   children: ReactNode;
   user: CatalystShellUser;
   logo?: ReactNode;
   teamLabel: string;
-  initials: string;
   isHome: boolean;
   isProjects: boolean;
   isTrash: boolean;
   isAccount: boolean;
   onSignOut?: () => void | Promise<void>;
+  onUserChange?: (user: CatalystShellUser) => void;
 }) {
   const { isOpen: searchOpen, toggle: toggleSearch } = useGlobalSearch();
 
@@ -223,25 +246,23 @@ function MainAppChrome({
           user={user}
           teamLabel={teamLabel}
           onSignOut={onSignOut}
+          onUserChange={onUserChange}
           trigger={
             <button
               type="button"
               className="flex w-full min-w-0 items-center gap-2 rounded-lg px-2 py-2 text-left outline-none transition-colors hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-white/25"
-              aria-label={`${user.firstName} ${user.lastName} — ${user.email}`}
+              aria-label={`${fullName(user)} — ${user.email}`}
               aria-haspopup="dialog"
             >
               <span className="flex min-w-0 flex-1 items-center gap-3">
-                <Avatar className="size-10 shrink-0 rounded-full after:rounded-full [&_[data-slot=avatar-fallback]]:rounded-full">
-                  <AvatarFallback
-                    className="rounded-full text-sm font-semibold text-neutral-50"
-                    style={{ backgroundColor: "#D94716" }}
-                  >
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar
+                  user={user}
+                  className="size-10"
+                  fallbackClassName="text-sm"
+                />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm/5 font-medium text-neutral-50">
-                    {user.firstName} {user.lastName}
+                    {fullName(user)}
                   </span>
                   <span className="block truncate text-xs/5 font-normal text-neutral-400">
                     {user.email}
@@ -279,12 +300,11 @@ function MainAppChrome({
               current={isAccount}
               aria-label="Account"
             >
-              <span
-                className="flex size-8 items-center justify-center rounded-full text-xs font-semibold text-neutral-50"
-                style={{ backgroundColor: "#D94716" }}
-              >
-                {initials}
-              </span>
+              <UserAvatar
+                user={user}
+                className="size-8"
+                fallbackClassName="text-xs"
+              />
             </NavbarItem>
           </NavbarSection>
         </Navbar>

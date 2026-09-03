@@ -16,9 +16,8 @@ import { MockupFrameProvider } from "@/components/mockup-frame-context";
 import { MockupMediaProvider } from "@/components/mockup-media-context";
 import { MockupWorkspaceHistoryProvider } from "@/components/mockup-workspace-history";
 import { ProjectWorkspaceHydrate } from "@/components/project-workspace-hydrate";
-import { UserProfileDialog } from "@/components/user-profile-dialog";
+import { UserAvatar, UserProfileDialog, fullName } from "@/components/user-profile-dialog";
 import { WorkspaceTopBar } from "@/components/workspace-top-bar";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Tooltip,
   TooltipContent,
@@ -57,13 +56,8 @@ export type ProjectWorkspaceShellUser = {
   firstName: string;
   lastName: string;
   email: string;
+  avatarUrl?: string | null;
 };
-
-function getInitials(firstName: string, lastName: string) {
-  const a = firstName.trim().charAt(0);
-  const b = lastName.trim().charAt(0);
-  return (a + b).toUpperCase() || "–";
-}
 
 type ProjectWorkspaceShellProps = {
   children: ReactNode;
@@ -71,6 +65,7 @@ type ProjectWorkspaceShellProps = {
   logo?: ReactNode;
   teamLabel?: string;
   onSignOut?: () => void | Promise<void>;
+  onUserChange?: (user: ProjectWorkspaceShellUser) => void;
 };
 
 /**
@@ -83,10 +78,10 @@ export function ProjectWorkspaceShell({
   logo,
   teamLabel = "Mindnow",
   onSignOut,
+  onUserChange,
 }: ProjectWorkspaceShellProps) {
   const pathname = usePathname();
   const isProjects = pathname === "/projects";
-  const initials = getInitials(user.firstName, user.lastName);
 
   const [workspaceFeature, setWorkspaceFeature] =
     useState<WorkspaceFeatureId | null>(null);
@@ -216,6 +211,7 @@ export function ProjectWorkspaceShell({
           user={user}
           teamLabel={teamLabel}
           onSignOut={onSignOut}
+          onUserChange={onUserChange}
           trigger={
             <button
               type="button"
@@ -223,18 +219,15 @@ export function ProjectWorkspaceShell({
                 "flex w-full min-w-0 items-center gap-2 rounded-lg px-2 py-2 text-left outline-none transition-colors hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-white/25",
                 SIDEBAR_COMPACT_CONTROL
               )}
-              aria-label={`${user.firstName} ${user.lastName} — ${user.email}`}
+              aria-label={`${fullName(user)} — ${user.email}`}
               aria-haspopup="dialog"
             >
               <span className="flex min-w-0 flex-none items-center justify-center gap-3">
-                <Avatar className="size-10 shrink-0 rounded-full after:rounded-full [&_[data-slot=avatar-fallback]]:rounded-full">
-                  <AvatarFallback
-                    className="rounded-full text-sm font-semibold text-neutral-50"
-                    style={{ backgroundColor: "#D94716" }}
-                  >
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar
+                  user={user}
+                  className="size-10"
+                  fallbackClassName="text-sm"
+                />
               </span>
             </button>
           }

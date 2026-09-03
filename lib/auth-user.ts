@@ -12,5 +12,6 @@ export function firebaseUserToShellUser(user: User): CatalystShellUser {
     firstName,
     lastName,
     email: user.email ?? "",
+    avatarUrl: user.photoURL ?? null,
   };
 }

@@ -1,10 +1,11 @@
 "use client";
 
-import { Pencil } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { Pencil, X } from "lucide-react";
+import { useRef, useState, type ReactNode } from "react";
 
 import { AuthField, AuthInput } from "@/components/auth/auth-field";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { readFileAsDataUrl } from "@/lib/mockup-library-upload";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -29,6 +30,7 @@ export type ProfileUser = {
   firstName: string;
   lastName: string;
   email: string;
+  avatarUrl?: string | null;
 };
 
 type TeamMember = {
@@ -37,18 +39,66 @@ type TeamMember = {
   lastName: string;
   email: string;
   role: "Owner" | "Member";
+  pending?: boolean;
 };
 
 type SettingsTab = "profile" | "account" | "team";
 
 function getInitials(firstName: string, lastName: string) {
-  const a = firstName.trim().charAt(0);
-  const b = lastName.trim().charAt(0);
+  const parts = fullName({ firstName, lastName }).split(/\s+/).filter(Boolean);
+  const a = parts[0]?.charAt(0) ?? "";
+  const b = parts[1]?.charAt(0) ?? parts[0]?.charAt(1) ?? "";
   return (a + b).toUpperCase() || "–";
 }
 
-function fullName(user: Pick<ProfileUser, "firstName" | "lastName">) {
+export function fullName(user: Pick<ProfileUser, "firstName" | "lastName">) {
   return `${user.firstName} ${user.lastName}`.trim();
+}
+
+function getEmailInitials(email: string) {
+  const local = email.split("@")[0] ?? "";
+  const a = local.charAt(0);
+  const b = local.charAt(1);
+  return (a + b).toUpperCase() || "–";
+}
+
+function memberHasName(member: Pick<TeamMember, "firstName" | "lastName" | "pending">) {
+  return !member.pending && Boolean(fullName(member));
+}
+
+export function UserAvatar({
+  user,
+  className,
+  fallbackClassName,
+}: {
+  user: Pick<ProfileUser, "firstName" | "lastName" | "avatarUrl">;
+  className?: string;
+  fallbackClassName?: string;
+}) {
+  const initials = getInitials(user.firstName, user.lastName);
+
+  return (
+    <Avatar
+      key={user.avatarUrl ?? "initials"}
+      className={cn(
+        "shrink-0 rounded-full after:rounded-full [&_[data-slot=avatar-fallback]]:rounded-full",
+        className
+      )}
+    >
+      {user.avatarUrl ? (
+        <AvatarImage src={user.avatarUrl} alt="" className="rounded-full" />
+      ) : null}
+      <AvatarFallback
+        delayMs={0}
+        className={cn(
+          "rounded-full bg-[#D94716] font-semibold text-neutral-50",
+          fallbackClassName
+        )}
+      >
+        {initials}
+      </AvatarFallback>
+    </Avatar>
+  );
 }
 
 const changeLinkClass = cn(authLinkClass, "self-start text-left");
@@ -151,7 +201,8 @@ function ProfilePanel({
   const [draftEmail, setDraftEmail] = useState(user.email);
   const [draftPassword, setDraftPassword] = useState("");
   const [draftConfirmPassword, setDraftConfirmPassword] = useState("");
-  const initials = getInitials(user.firstName, user.lastName);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
 
   function openEdit(target: NonNullable<typeof editTarget>) {
     if (target === "name") setDraftName(fullName(user));
@@ -168,10 +219,9 @@ function ProfilePanel({
   }
 
   function saveName() {
-    const parts = draftName.trim().split(/\s+/);
-    const firstName = parts[0] || user.firstName;
-    const lastName = parts.slice(1).join(" ") || user.lastName;
-    onUserChange({ ...user, firstName, lastName });
+    const name = draftName.trim();
+    if (!name) return;
+    onUserChange({ ...user, firstName: name, lastName: "" });
     closeEdit();
   }
 
@@ -187,6 +237,24 @@ function ProfilePanel({
     closeEdit();
   }
 
+  async function handlePhotoChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !file.type.startsWith("image/")) return;
+
+    setPhotoUploading(true);
+    try {
+      const avatarUrl = await readFileAsDataUrl(file);
+      onUserChange({ ...user, avatarUrl });
+    } finally {
+      setPhotoUploading(false);
+    }
+  }
+
+  function handleRemovePhoto() {
+    onUserChange({ ...user, avatarUrl: null });
+  }
+
   const passwordMismatch =
     draftPassword.length > 0 &&
     draftConfirmPassword.length > 0 &&
@@ -195,24 +263,41 @@ function ProfilePanel({
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-center gap-4">
-        <Avatar className="size-16 shrink-0 rounded-full after:rounded-full [&_[data-slot=avatar-fallback]]:rounded-full">
-          <AvatarFallback
-            className="rounded-full text-lg font-semibold text-neutral-50"
-            style={{ backgroundColor: "#D94716" }}
-          >
-            {initials}
-          </AvatarFallback>
-        </Avatar>
+        <div className="group relative size-16 shrink-0">
+          <UserAvatar
+            user={user}
+            className="size-16"
+            fallbackClassName="text-lg"
+          />
+          {user.avatarUrl ? (
+            <button
+              type="button"
+              className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 rounded-full bg-black/60 text-neutral-50 opacity-0 transition-opacity outline-none group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-white/25"
+              aria-label="Remove profile photo"
+              onClick={handleRemovePhoto}
+            >
+              <X className="size-4 shrink-0" strokeWidth={2} aria-hidden />
+              <span className="text-[10px] font-medium leading-none">Remove</span>
+            </button>
+          ) : null}
+        </div>
+        <input
+          ref={photoInputRef}
+          type="file"
+          accept="image/*"
+          className="sr-only"
+          aria-hidden
+          onChange={handlePhotoChange}
+        />
         <Button
           type="button"
           variant="ghost"
           className="text-neutral-300 hover:bg-white/5 hover:text-neutral-50"
-          onClick={() => {
-            // Placeholder until profile photo upload is wired.
-          }}
+          disabled={photoUploading}
+          onClick={() => photoInputRef.current?.click()}
         >
           <Pencil data-icon="inline-start" strokeWidth={1.75} aria-hidden />
-          Edit
+          {photoUploading ? "Uploading…" : "Edit"}
         </Button>
       </div>
 
@@ -254,7 +339,7 @@ function ProfilePanel({
           if (!open) closeEdit();
         }}
         title="Change name"
-        description="This is the name that will appear on your profile."
+        description="Use whatever name you prefer — first name only, full name, or a nickname."
         onSave={saveName}
         saveDisabled={!draftName.trim()}
       >
@@ -418,22 +503,15 @@ function TeamMembersPanel({
   function inviteMember() {
     const email = inviteEmail.trim().toLowerCase();
     if (!email || members.some((m) => m.email.toLowerCase() === email)) return;
-    const local = email.split("@")[0] || "member";
-    const parts = local.split(/[._-]/).filter(Boolean);
-    const firstName = parts[0]
-      ? parts[0].charAt(0).toUpperCase() + parts[0].slice(1)
-      : "New";
-    const lastName = parts[1]
-      ? parts[1].charAt(0).toUpperCase() + parts[1].slice(1)
-      : "Member";
     setMembers((prev) => [
       ...prev,
       {
         id: `invite-${Date.now()}`,
-        firstName,
-        lastName,
+        firstName: "",
+        lastName: "",
         email,
         role: "Member",
+        pending: true,
       },
     ]);
     setInviteEmail("");
@@ -456,7 +534,7 @@ function TeamMembersPanel({
             setEditingTeam(true);
           }}
         >
-          Change team name
+          Change name
         </button>
       </SettingsSection>
 
@@ -493,7 +571,10 @@ function TeamMembersPanel({
         </div>
         <ul className="mt-2 divide-y divide-neutral-800 rounded-lg border border-neutral-800">
           {members.map((member) => {
-            const initials = getInitials(member.firstName, member.lastName);
+            const hasName = memberHasName(member);
+            const initials = hasName
+              ? getInitials(member.firstName, member.lastName)
+              : getEmailInitials(member.email);
             return (
               <li
                 key={member.id}
@@ -508,10 +589,20 @@ function TeamMembersPanel({
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-neutral-50">
-                    {fullName(member)}
-                  </p>
-                  <p className="truncate text-xs text-neutral-400">{member.email}</p>
+                  {hasName ? (
+                    <>
+                      <p className="truncate text-sm font-medium text-neutral-50">
+                        {fullName(member)}
+                      </p>
+                      <p className="truncate text-xs text-neutral-400">
+                        {member.email}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="truncate text-sm font-medium text-neutral-50">
+                      {member.email}
+                    </p>
+                  )}
                 </div>
                 <span className="shrink-0 rounded-md bg-neutral-800 px-2 py-0.5 text-xs text-neutral-300">
                   {member.role}
@@ -562,6 +653,7 @@ type UserProfileDialogProps = {
   trigger: ReactNode;
   teamLabel?: string;
   onSignOut?: () => void | Promise<void>;
+  onUserChange?: (user: ProfileUser) => void;
 };
 
 export function UserProfileDialog({
@@ -569,10 +661,16 @@ export function UserProfileDialog({
   trigger,
   teamLabel = "Mindnow",
   onSignOut,
+  onUserChange,
 }: UserProfileDialogProps) {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<SettingsTab>("profile");
   const [user, setUser] = useState(initialUser);
+
+  function handleUserChange(next: ProfileUser) {
+    setUser(next);
+    onUserChange?.(next);
+  }
 
   function handleOpenChange(next: boolean) {
     setOpen(next);
@@ -646,7 +744,7 @@ export function UserProfileDialog({
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
               <TabsContent value="profile" className="mt-0">
-                <ProfilePanel user={user} onUserChange={setUser} />
+                <ProfilePanel user={user} onUserChange={handleUserChange} />
               </TabsContent>
               <TabsContent value="account" className="mt-0">
                 <AccountPanel
