@@ -5,11 +5,12 @@ import {
   ChevronLeft,
   ChevronRight,
   MoreHorizontal,
+  Pencil,
   RotateCcw,
   Trash2,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ProjectCardSlidePreview } from "@/components/project-card-slide-preview";
 import { Badge } from "@/components/ui/badge";
@@ -26,10 +27,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { ProjectCardPreviewSlide } from "@/lib/project-card-preview-slides";
 import {
   deleteSavedProject,
   notifySavedProjectsChanged,
+  renameSavedProject,
   restoreProject,
   trashProject,
 } from "@/lib/saved-projects";
@@ -94,6 +101,12 @@ export function ProjectProductCard({
   }, [previewSlides, previewSrcs, previewSrc]);
 
   const [previewIdx, setPreviewIdx] = useState(0);
+  const [displayTitle, setDisplayTitle] = useState(title);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [draftTitle, setDraftTitle] = useState(title);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const skipTitleBlurRef = useRef(false);
+  const pendingRenameFocusRef = useRef(false);
   const n = slides.length;
   const activeSlide =
     n > 0 ? slides[((previewIdx % n) + n) % n]! : null;
@@ -103,6 +116,53 @@ export function ProjectProductCard({
       ? `Preview ${previewIdx + 1} of ${slides.length}`
       : undefined;
 
+  useEffect(() => {
+    setDisplayTitle(title);
+    if (!isRenaming) {
+      setDraftTitle(title);
+    }
+  }, [title, isRenaming]);
+
+  useEffect(() => {
+    if (!isRenaming) return;
+    const frame = window.requestAnimationFrame(() => {
+      titleInputRef.current?.focus();
+      titleInputRef.current?.select();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [isRenaming]);
+
+  function startRename() {
+    pendingRenameFocusRef.current = true;
+    setDraftTitle(displayTitle);
+    setIsRenaming(true);
+  }
+
+  function cancelRename() {
+    skipTitleBlurRef.current = false;
+    setDraftTitle(displayTitle);
+    setIsRenaming(false);
+  }
+
+  function commitTitle() {
+    if (skipTitleBlurRef.current) {
+      skipTitleBlurRef.current = false;
+      setIsRenaming(false);
+      return;
+    }
+    const trimmed = draftTitle.trim();
+    if (!trimmed || !projectId) {
+      cancelRename();
+      return;
+    }
+    if (trimmed !== displayTitle) {
+      renameSavedProject(projectId, trimmed);
+      notifySavedProjectsChanged();
+      setDisplayTitle(trimmed);
+    }
+    setIsRenaming(false);
+  }
+
   const card = (
     <Card
       className={cn(
@@ -111,18 +171,18 @@ export function ProjectProductCard({
         className
       )}
     >
-      {href ? (
+      {href && !isRenaming ? (
         <Link
           href={href}
           className="absolute inset-0 z-[1] rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
-          aria-label={`Open project: ${title}`}
+          aria-label={`Open project: ${displayTitle}`}
         />
       ) : null}
 
       <div
         className={cn(
           "relative z-[2] flex min-h-0 flex-1 flex-col",
-          href && "pointer-events-none"
+          href && !isRenaming && "pointer-events-none"
         )}
       >
         <div className="relative aspect-[4/3] h-auto w-full shrink-0 bg-neutral-950">
@@ -175,8 +235,57 @@ export function ProjectProductCard({
         </div>
 
         <CardHeader className="flex flex-row items-start justify-between gap-3 border-b border-border/50 p-[16px]">
-          <div className="min-w-0 flex-1 space-y-1">
-            <CardTitle className="text-left line-clamp-2">{title}</CardTitle>
+          <div
+            className="pointer-events-auto relative z-[4] min-w-0 flex-1 space-y-1"
+            onClick={(e) => {
+              if (isRenaming || !href) return;
+              e.preventDefault();
+              router.push(href);
+            }}
+          >
+            {isRenaming ? (
+              <input
+                ref={titleInputRef}
+                type="text"
+                value={draftTitle}
+                onChange={(e) => setDraftTitle(e.target.value)}
+                onBlur={commitTitle}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    e.currentTarget.blur();
+                  }
+                  if (e.key === "Escape") {
+                    e.preventDefault();
+                    skipTitleBlurRef.current = true;
+                    cancelRename();
+                    e.currentTarget.blur();
+                  }
+                }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onPointerDown={(e) => e.stopPropagation()}
+                spellCheck={false}
+                autoComplete="off"
+                aria-label="Project name"
+                maxLength={128}
+                className={cn(
+                  "min-w-0 w-full truncate border-0 bg-transparent px-0 py-0 text-base font-semibold leading-snug tracking-tight text-neutral-50 outline-none ring-0 shadow-none",
+                  "cursor-text focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
+                )}
+              />
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <CardTitle className="truncate text-left">{displayTitle}</CardTitle>
+                </TooltipTrigger>
+                <TooltipContent side="top" align="start">
+                  {displayTitle}
+                </TooltipContent>
+              </Tooltip>
+            )}
             {editedLabel ? (
               <CardDescription className="text-xs leading-relaxed text-neutral-500">
                 {editedLabel}
@@ -206,7 +315,15 @@ export function ProjectProductCard({
                       <MoreHorizontal className="size-4" strokeWidth={2} aria-hidden />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-52">
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-52"
+                    onCloseAutoFocus={(e) => {
+                      if (!pendingRenameFocusRef.current) return;
+                      e.preventDefault();
+                      pendingRenameFocusRef.current = false;
+                    }}
+                  >
                     {trashed ? (
                       <DropdownMenuItem
                         className="gap-2"
@@ -218,7 +335,17 @@ export function ProjectProductCard({
                         <RotateCcw className="size-4 shrink-0" strokeWidth={2} aria-hidden />
                         Restore
                       </DropdownMenuItem>
-                    ) : null}
+                    ) : (
+                      <DropdownMenuItem
+                        className="gap-2"
+                        onSelect={() => {
+                          startRename();
+                        }}
+                      >
+                        <Pencil className="size-4 shrink-0" strokeWidth={2} aria-hidden />
+                        Rename
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem
                       className="gap-2 text-red-400 focus:bg-red-500/15 focus:text-red-300"
                       onSelect={() => {

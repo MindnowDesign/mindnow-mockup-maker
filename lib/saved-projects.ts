@@ -103,6 +103,15 @@ export function upsertSavedProject(project: SavedProject) {
   writeAll(projects);
 }
 
+export function renameSavedProject(id: string, title: string) {
+  const trimmed = title.trim();
+  if (!trimmed) return;
+  const { projects } = readAll();
+  writeAll(
+    projects.map((p) => (p.id === id ? { ...p, title: trimmed } : p))
+  );
+}
+
 /** Soft delete — keeps the project recoverable from `/trash`. */
 export function trashProject(id: string) {
   const { projects } = readAll();
