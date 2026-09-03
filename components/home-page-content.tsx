@@ -2,14 +2,18 @@
 
 import { useEffect, useState } from "react";
 
+import { useAuth } from "@/components/auth/auth-provider";
 import { HomeSearch } from "@/components/home-search";
 import { LastProjectsList } from "@/components/last-projects-list";
+import { firebaseUserToShellUser } from "@/lib/auth-user";
 import { cn } from "@/lib/utils";
 
 /** Home: welcome, search, then last projects. */
 export function HomePageContent() {
   const [query, setQuery] = useState("");
   const searching = query.trim().length > 0;
+  const { user } = useAuth();
+  const firstName = user ? firebaseUserToShellUser(user).firstName : "there";
 
   useEffect(() => {
     if (!searching) return;
@@ -41,7 +45,7 @@ export function HomePageContent() {
       <div className="w-full flex-1 space-y-[72px] px-[72px] pt-[72px] pb-10">
         <header className="flex flex-col items-center gap-8 text-center">
           <h1 className="text-[40px] font-semibold tracking-tight text-foreground">
-            Welcome Jane
+            Welcome {firstName}
           </h1>
           <HomeSearch
             query={query}

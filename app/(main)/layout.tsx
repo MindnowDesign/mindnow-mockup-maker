@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
 
-import { CatalystShell } from "@/components/catalyst-shell";
+import { MainLayoutClient } from "@/components/main-layout-client";
 
 export default function MainLayout({
   children,
 }: Readonly<{
   children: ReactNode;
 }>) {
-  return <CatalystShell>{children}</CatalystShell>;
+  return <MainLayoutClient>{children}</MainLayoutClient>;
 }

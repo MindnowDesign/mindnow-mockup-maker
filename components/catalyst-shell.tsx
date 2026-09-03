@@ -94,6 +94,7 @@ type CatalystShellProps = {
   logo?: ReactNode;
   /** Label next to the logo (team / product), like “Tailwind Labs” in the Catalyst demo. */
   teamLabel?: string;
+  onSignOut?: () => void | Promise<void>;
 };
 
 /**
@@ -106,6 +107,7 @@ export function CatalystShell({
   user = defaultUser,
   logo,
   teamLabel = "Mindnow",
+  onSignOut,
 }: CatalystShellProps) {
   const pathname = usePathname();
   const isProjectWorkspace = isProjectWorkspacePath(pathname);
@@ -124,6 +126,7 @@ export function CatalystShell({
               user={user}
               logo={logo}
               teamLabel={teamLabel}
+              onSignOut={onSignOut}
             >
               {children}
             </ProjectWorkspaceShell>
@@ -137,6 +140,7 @@ export function CatalystShell({
               isProjects={isProjects}
               isTrash={isTrash}
               isAccount={isAccount}
+              onSignOut={onSignOut}
             >
               {children}
             </MainAppChrome>
@@ -158,6 +162,7 @@ function MainAppChrome({
   isProjects,
   isTrash,
   isAccount,
+  onSignOut,
 }: {
   children: ReactNode;
   user: CatalystShellUser;
@@ -168,6 +173,7 @@ function MainAppChrome({
   isProjects: boolean;
   isTrash: boolean;
   isAccount: boolean;
+  onSignOut?: () => void | Promise<void>;
 }) {
   const { isOpen: searchOpen, toggle: toggleSearch } = useGlobalSearch();
 
@@ -216,6 +222,7 @@ function MainAppChrome({
         <UserProfileDialog
           user={user}
           teamLabel={teamLabel}
+          onSignOut={onSignOut}
           trigger={
             <button
               type="button"

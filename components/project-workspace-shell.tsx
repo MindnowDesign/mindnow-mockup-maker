@@ -70,6 +70,7 @@ type ProjectWorkspaceShellProps = {
   user: ProjectWorkspaceShellUser;
   logo?: ReactNode;
   teamLabel?: string;
+  onSignOut?: () => void | Promise<void>;
 };
 
 /**
@@ -81,6 +82,7 @@ export function ProjectWorkspaceShell({
   user,
   logo,
   teamLabel = "Mindnow",
+  onSignOut,
 }: ProjectWorkspaceShellProps) {
   const pathname = usePathname();
   const isProjects = pathname === "/projects";
@@ -213,6 +215,7 @@ export function ProjectWorkspaceShell({
         <UserProfileDialog
           user={user}
           teamLabel={teamLabel}
+          onSignOut={onSignOut}
           trigger={
             <button
               type="button"

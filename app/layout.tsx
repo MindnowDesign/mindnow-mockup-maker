@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Manrope } from "next/font/google";
+
+import { AuthProvider } from "@/components/auth/auth-provider";
+
 import "./globals.css";
 
 const manrope = Manrope({
@@ -27,7 +30,9 @@ export default function RootLayout({
       lang="en"
       className={`${manrope.variable} ${geistMono.variable} h-full overflow-hidden bg-shell dark antialiased`}
     >
-      <body className="h-full overflow-hidden">{children}</body>
+      <body className="h-full overflow-hidden">
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }

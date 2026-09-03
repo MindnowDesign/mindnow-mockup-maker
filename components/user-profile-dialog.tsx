@@ -19,6 +19,10 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import {
+  authFieldInputClass,
+  authLinkClass,
+} from "@/lib/auth-form-styles";
 
 export type ProfileUser = {
   firstName: string;
@@ -46,11 +50,9 @@ function fullName(user: Pick<ProfileUser, "firstName" | "lastName">) {
   return `${user.firstName} ${user.lastName}`.trim();
 }
 
-const changeLinkClass =
-  "w-fit self-start text-left text-sm font-medium text-sky-400 transition-colors hover:text-sky-300";
+const changeLinkClass = authLinkClass;
 
-const fieldInputClass =
-  "box-border h-10 w-full rounded-lg border border-neutral-700 bg-neutral-900/30 px-3 text-sm text-neutral-100 outline-none focus-visible:ring-2 focus-visible:ring-white/20";
+const fieldInputClass = authFieldInputClass;
 
 function SettingsSection({
   label,
@@ -466,12 +468,14 @@ type UserProfileDialogProps = {
   user: ProfileUser;
   trigger: ReactNode;
   teamLabel?: string;
+  onSignOut?: () => void | Promise<void>;
 };
 
 export function UserProfileDialog({
   user: initialUser,
   trigger,
   teamLabel = "Mindnow",
+  onSignOut,
 }: UserProfileDialogProps) {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<SettingsTab>("profile");
@@ -553,7 +557,10 @@ export function UserProfileDialog({
               </TabsContent>
               <TabsContent value="account" className="mt-0">
                 <AccountPanel
-                  onSignOut={() => setOpen(false)}
+                  onSignOut={async () => {
+                    setOpen(false);
+                    await onSignOut?.();
+                  }}
                   onDeleteAccount={() => setOpen(false)}
                 />
               </TabsContent>
