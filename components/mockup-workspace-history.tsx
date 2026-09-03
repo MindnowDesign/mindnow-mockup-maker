@@ -21,7 +21,7 @@ import { useMockupMedia } from "@/components/mockup-media-context";
 import { normalizeAspectPreset } from "@/lib/mockup-aspect";
 import {
   captureWorkspaceSnapshot,
-  createCanvasResetSnapshot,
+  createActiveVisualResetSnapshot,
   serializeWorkspaceSnapshot,
   type VisualWorkspacePrefs,
   type WorkspaceSnapshot,
@@ -32,7 +32,7 @@ const MAX_SNAPSHOTS = 80;
 type MockupWorkspaceHistoryValue = {
   undo: () => void;
   redo: () => void;
-  resetAll: () => void;
+  resetVisual: () => void;
   canUndo: boolean;
   canRedo: boolean;
 };
@@ -187,10 +187,9 @@ export function MockupWorkspaceHistoryProvider({
     commitHistory(snapshots, index + 1);
   }, [applySnapshot, commitHistory]);
 
-  const resetAll = useCallback(() => {
-    const resetSnap = createCanvasResetSnapshot(
-      media.library.map((m) => ({ ...m }))
-    );
+  const resetVisual = useCallback(() => {
+    const resetSnap = createActiveVisualResetSnapshot(snapshot);
+    if (!resetSnap) return;
     const { snapshots, index } = historyRef.current;
     applySnapshot(resetSnap);
     let nextSnapshots = [...snapshots.slice(0, index + 1), resetSnap];
@@ -198,17 +197,17 @@ export function MockupWorkspaceHistoryProvider({
       nextSnapshots = nextSnapshots.slice(-MAX_SNAPSHOTS);
     }
     commitHistory(nextSnapshots, nextSnapshots.length - 1);
-  }, [applySnapshot, commitHistory, media.library]);
+  }, [applySnapshot, commitHistory, snapshot]);
 
   const value = useMemo(
     () => ({
       undo,
       redo,
-      resetAll,
+      resetVisual,
       canUndo: navFlags.canUndo,
       canRedo: navFlags.canRedo,
     }),
-    [undo, redo, resetAll, navFlags.canUndo, navFlags.canRedo]
+    [undo, redo, resetVisual, navFlags.canUndo, navFlags.canRedo]
   );
 
   return (

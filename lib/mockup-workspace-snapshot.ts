@@ -632,3 +632,37 @@ export function createCanvasResetSnapshot(
     activeVisualId: vid,
   };
 }
+
+/**
+ * Reset only the active visual: default frame prefs, clear its canvas media,
+ * keep library + other visual slots unchanged.
+ */
+export function createActiveVisualResetSnapshot(
+  current: WorkspaceSnapshot
+): WorkspaceSnapshot | null {
+  const activeId = current.activeVisualId;
+  if (!activeId) return null;
+
+  const visuals = current.visualSlots ?? [];
+  if (!visuals.some((v) => v.id === activeId)) return null;
+
+  const resetPrefs = normalizeVisualWorkspacePrefs(null);
+
+  const nextVisuals = visuals.map((v) =>
+    v.id === activeId ? { ...v, mediaId: null } : { ...v }
+  );
+
+  const nextVisualWorkspacePrefs = {
+    ...(current.visualWorkspacePrefs ?? {}),
+    [activeId]: resetPrefs,
+  };
+
+  return {
+    aspectPreset: resetPrefs.aspectPreset,
+    canvasBackground: resetPrefs.canvasBackground,
+    mediaItems: current.mediaItems.map((m) => ({ ...m })),
+    visualSlots: nextVisuals,
+    activeVisualId: activeId,
+    visualWorkspacePrefs: nextVisualWorkspacePrefs,
+  };
+}

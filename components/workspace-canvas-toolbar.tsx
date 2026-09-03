@@ -12,7 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 
 export function WorkspaceCanvasToolbar({ className }: { className?: string }) {
-  const { undo, redo, resetAll, canUndo, canRedo } =
+  const { undo, redo, resetVisual, canUndo, canRedo } =
     useMockupWorkspaceHistory();
 
   return (
@@ -62,10 +62,10 @@ export function WorkspaceCanvasToolbar({ className }: { className?: string }) {
         variant="ghost"
         size="sm"
         className="h-7 px-2.5 text-xs font-medium text-neutral-300 hover:bg-white/10 hover:text-neutral-50"
-        aria-label="Reset all"
-        onClick={resetAll}
+        aria-label="Reset Visual"
+        onClick={resetVisual}
       >
-        Reset all
+        Reset Visual
       </Button>
     </div>
   );
