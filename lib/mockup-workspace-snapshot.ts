@@ -101,6 +101,15 @@ export type FrameLike = {
   canvasGradientOpacitiesByTemplate: Record<string, Record<string, number>>;
   canvasNoisePercent: number;
   canvasBlurPercent: number;
+  canvasDotGridPercent: number;
+  canvasDotGridColorBack: string;
+  canvasDotGridColorFill: string;
+  canvasDotGridShape: import("@/lib/canvas-dot-grid").CanvasDotGridShapeId;
+  canvasDotGridSize: number;
+  canvasDotGridGapX: number;
+  canvasDotGridGapY: number;
+  canvasDotGridSizeRange: number;
+  canvasDotGridOpacityRange: number;
   canvasNoiseType: import("@/lib/mockup-noise").CanvasNoiseTypeId;
   canvasNoiseColor: string;
   canvasNoiseColorOpacity: number;
@@ -468,6 +477,7 @@ export function frameLikeToPersistedCanvasBackground(
   const effects = {
     noisePercent: f.canvasNoisePercent,
     blurPercent: f.canvasBlurPercent,
+    dotGridPercent: f.canvasDotGridPercent,
     noiseType: f.canvasNoiseType,
     noiseColor: f.canvasNoiseColor.trim().toUpperCase(),
     noiseColorOpacity: f.canvasNoiseColorOpacity,
@@ -497,6 +507,16 @@ export function frameLikeToPersistedCanvasBackground(
       size: f.canvasHalftoneSize,
       radius: f.canvasHalftoneRadius,
       contrast: f.canvasHalftoneContrast,
+    },
+    dotGrid: {
+      colorBack: f.canvasDotGridColorBack.trim().toUpperCase(),
+      colorFill: f.canvasDotGridColorFill.trim().toUpperCase(),
+      shape: f.canvasDotGridShape,
+      size: f.canvasDotGridSize,
+      gapX: f.canvasDotGridGapX,
+      gapY: f.canvasDotGridGapY,
+      sizeRange: f.canvasDotGridSizeRange,
+      opacityRange: f.canvasDotGridOpacityRange,
     },
   };
   const gradientTemplateId =

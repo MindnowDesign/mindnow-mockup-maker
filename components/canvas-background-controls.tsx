@@ -23,11 +23,13 @@ import {
 } from "react";
 import { CanvasBackgroundTemplatesSection } from "@/components/canvas-background-templates-section";
 import { CanvasDitherControls } from "@/components/canvas-dither-controls";
+import { CanvasDotGridControls } from "@/components/canvas-dot-grid-controls";
 import { CanvasHalftoneControls } from "@/components/canvas-halftone-controls";
 import {
   MoodShadowIcon,
   StyleBlurIcon,
   StyleDitherIcon,
+  StyleDotGridIcon,
   StyleHalftoneIcon,
   StyleNoiseIcon,
 } from "@/components/canvas-style-icons";
@@ -477,6 +479,8 @@ export function CanvasBackgroundControls() {
     setCanvasNoisePercent,
     canvasBlurPercent,
     setCanvasBlurPercent,
+    canvasDotGridPercent,
+    setCanvasDotGridPercent,
     canvasNoiseType,
     setCanvasNoiseType,
     canvasNoiseColor,
@@ -502,6 +506,7 @@ export function CanvasBackgroundControls() {
 
   const noiseSectionOpen = openEffectSection === "canvas-effect-noise";
   const blurSectionOpen = openEffectSection === "canvas-effect-blur";
+  const dotGridSectionOpen = openEffectSection === "canvas-effect-dot-grid";
   const ditherSectionOpen = openShaderSection === "canvas-shader-dither";
   const halftoneSectionOpen = openShaderSection === "canvas-shader-halftone";
   const shadowSectionOpen = openMoodSection === "canvas-mood-shadow";
@@ -740,6 +745,23 @@ export function CanvasBackgroundControls() {
             onChange={setCanvasBlurPercent}
             hideLabel
           />
+        </EffectAccordionSection>
+        <EffectAccordionSection
+          sectionId="canvas-effect-dot-grid"
+          label="Dot Grid"
+          Icon={StyleDotGridIcon}
+          open={dotGridSectionOpen}
+          onToggle={() => toggleEffectSection("canvas-effect-dot-grid")}
+        >
+          <CanvasEffectSliderRow
+            id="canvas-effect-dot-grid"
+            label="Dot Grid"
+            Icon={Grid3x3}
+            value={canvasDotGridPercent}
+            onChange={setCanvasDotGridPercent}
+            hideLabel
+          />
+          {canvasDotGridPercent > 0 ? <CanvasDotGridControls /> : null}
         </EffectAccordionSection>
       </div>
     </div>

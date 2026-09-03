@@ -36,7 +36,7 @@ export function CreateProjectSection() {
         className={cn(buttonVariants({ size: "sm" }), "mt-1 pointer-events-none")}
       >
         <Plus data-icon="inline-start" strokeWidth={1.75} aria-hidden />
-        Start building
+        Create project
       </span>
     </Link>
   );

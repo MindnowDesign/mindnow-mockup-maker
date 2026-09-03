@@ -17,6 +17,7 @@ import { CanvasGradientFillPaletteBar } from "@/components/canvas-gradient-fill-
 import { useMockupMedia } from "@/components/mockup-media-context";
 import { CanvasBackgroundNoiseOverlay } from "@/components/canvas-background-noise-overlay";
 import { CanvasBackgroundDitherOverlay } from "@/components/canvas-background-dither-overlay";
+import { CanvasBackgroundDotGridOverlay } from "@/components/canvas-background-dot-grid-overlay";
 import { CanvasBackgroundHalftoneOverlay } from "@/components/canvas-background-halftone-overlay";
 import { CanvasMoodShadowLayer } from "@/components/canvas-mood-shadow-layer";
 import { CanvasGradientInlineBackground } from "@/components/canvas-gradient-inline-background";
@@ -670,6 +671,15 @@ export function MockupWorkspaceStage() {
     canvasGradientFillOpacity,
     canvasNoisePercent,
     canvasBlurPercent,
+    canvasDotGridPercent,
+    canvasDotGridColorBack,
+    canvasDotGridColorFill,
+    canvasDotGridShape,
+    canvasDotGridSize,
+    canvasDotGridGapX,
+    canvasDotGridGapY,
+    canvasDotGridSizeRange,
+    canvasDotGridOpacityRange,
     canvasNoiseType,
     canvasNoiseColor,
     canvasNoiseColorOpacity,
@@ -1113,6 +1123,18 @@ export function MockupWorkspaceStage() {
           />
           <CanvasOrganicBackground
             templateId={activeOrganicTemplateId}
+            blurLayers={canvasBackgroundBlurLayers}
+          />
+          <CanvasBackgroundDotGridOverlay
+            strength={canvasDotGridPercent / 100}
+            colorBack={canvasDotGridColorBack}
+            colorFill={canvasDotGridColorFill}
+            shape={canvasDotGridShape}
+            size={canvasDotGridSize}
+            gapX={canvasDotGridGapX}
+            gapY={canvasDotGridGapY}
+            sizeRange={canvasDotGridSizeRange}
+            opacityRange={canvasDotGridOpacityRange}
             blurLayers={canvasBackgroundBlurLayers}
           />
           {shaderSourceEnabled && shaderSourceImageUrl ? (

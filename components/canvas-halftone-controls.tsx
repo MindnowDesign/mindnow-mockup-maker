@@ -24,7 +24,6 @@ import {
   type CanvasHalftoneTypeId,
   normalizeHalftoneHex,
 } from "@/lib/canvas-halftone";
-import { canvasHasShaderableBackground } from "@/lib/canvas-shader-source";
 import { cn } from "@/lib/utils";
 
 function HalftoneCheckboxRow({
@@ -233,8 +232,6 @@ function HalftoneGridDropdown({
 /** Controls for Paper Design HalftoneDots (options from the shader panel). */
 export function CanvasHalftoneControls() {
   const {
-    canvasBackgroundImageUrl,
-    canvasBackgroundMode,
     canvasHalftoneEnabled,
     setCanvasHalftoneEnabled,
     canvasHalftoneColorBack,
@@ -255,7 +252,6 @@ export function CanvasHalftoneControls() {
     setCanvasHalftoneRadius,
     canvasHalftoneContrast,
     setCanvasHalftoneContrast,
-    canvasGradientTemplateId,
   } = useMockupFrame();
 
   function enableAnd<T>(apply: (value: T) => void) {
@@ -265,19 +261,8 @@ export function CanvasHalftoneControls() {
     };
   }
 
-  const canApply = canvasHasShaderableBackground({
-    mode: canvasBackgroundMode,
-    imageUrl: canvasBackgroundImageUrl,
-    templateId: canvasGradientTemplateId,
-  });
-
   return (
     <div className="space-y-3">
-      {!canApply ? (
-        <p className="text-[11px] leading-relaxed text-neutral-500">
-          Add a background image or choose a template to apply Halftone Dots.
-        </p>
-      ) : null}
       <div className="flex items-center justify-between gap-2">
         <span className="shrink-0 font-mono text-[11px] font-medium tracking-tight text-neutral-200">
           colorBack

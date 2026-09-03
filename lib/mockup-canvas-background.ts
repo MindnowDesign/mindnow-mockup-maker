@@ -9,6 +9,7 @@ import type { CanvasMoodShadowPlacement } from "@/lib/canvas-mood-shadow-templat
 import type { CanvasNoiseBlendModeId } from "./mockup-noise-blend";
 import type { CanvasNoiseTypeId } from "./mockup-noise";
 import type { PersistedCanvasDither } from "./canvas-dither";
+import type { PersistedCanvasDotGrid } from "./canvas-dot-grid";
 import type { PersistedCanvasHalftone } from "./canvas-halftone";
 
 export type CanvasBackgroundMode =
@@ -54,6 +55,10 @@ export type PersistedCanvasBackground = {
   noisePercent?: number;
   /** 0–100 — blur intensity on the canvas background layer. */
   blurPercent?: number;
+  /** 0–100 — dot grid pattern intensity on the canvas background layer. */
+  dotGridPercent?: number;
+  /** Dot grid shader parameters (Paper Design DotGrid). */
+  dotGrid?: PersistedCanvasDotGrid | null;
   /** Grain algorithm preset for SVG turbulence. */
   noiseType?: CanvasNoiseTypeId;
   /** Hex tint for noise grain. */

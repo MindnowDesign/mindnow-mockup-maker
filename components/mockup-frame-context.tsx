@@ -86,6 +86,22 @@ import {
   type CanvasHalftoneGridId,
   type CanvasHalftoneTypeId,
 } from "@/lib/canvas-halftone";
+import {
+  clampCanvasDotGridGap,
+  clampCanvasDotGridRange,
+  clampCanvasDotGridSize,
+  DEFAULT_CANVAS_DOT_GRID_COLOR_BACK,
+  DEFAULT_CANVAS_DOT_GRID_COLOR_FILL,
+  DEFAULT_CANVAS_DOT_GRID_GAP_X,
+  DEFAULT_CANVAS_DOT_GRID_GAP_Y,
+  DEFAULT_CANVAS_DOT_GRID_OPACITY_RANGE,
+  DEFAULT_CANVAS_DOT_GRID_SHAPE,
+  DEFAULT_CANVAS_DOT_GRID_SIZE,
+  DEFAULT_CANVAS_DOT_GRID_SIZE_RANGE,
+  normalizeDotGridHex,
+  parseCanvasDotGridShape,
+  type CanvasDotGridShapeId,
+} from "@/lib/canvas-dot-grid";
 import type { CanvasNoiseBlendModeId } from "@/lib/mockup-noise-blend";
 import {
   DEFAULT_CANVAS_NOISE_BLEND_MODE,
@@ -169,6 +185,24 @@ type MockupFrameContextValue = {
   setCanvasNoisePercent: (value: number) => void;
   canvasBlurPercent: number;
   setCanvasBlurPercent: (value: number) => void;
+  canvasDotGridPercent: number;
+  setCanvasDotGridPercent: (value: number) => void;
+  canvasDotGridColorBack: string;
+  setCanvasDotGridColorBack: (hex: string) => void;
+  canvasDotGridColorFill: string;
+  setCanvasDotGridColorFill: (hex: string) => void;
+  canvasDotGridShape: CanvasDotGridShapeId;
+  setCanvasDotGridShape: (id: CanvasDotGridShapeId) => void;
+  canvasDotGridSize: number;
+  setCanvasDotGridSize: (value: number) => void;
+  canvasDotGridGapX: number;
+  setCanvasDotGridGapX: (value: number) => void;
+  canvasDotGridGapY: number;
+  setCanvasDotGridGapY: (value: number) => void;
+  canvasDotGridSizeRange: number;
+  setCanvasDotGridSizeRange: (value: number) => void;
+  canvasDotGridOpacityRange: number;
+  setCanvasDotGridOpacityRange: (value: number) => void;
   canvasNoiseType: CanvasNoiseTypeId;
   setCanvasNoiseType: (id: CanvasNoiseTypeId) => void;
   canvasNoiseColor: string;
@@ -349,6 +383,29 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
 
   const [canvasNoisePercent, setCanvasNoisePercent] = useState(0);
   const [canvasBlurPercent, setCanvasBlurPercent] = useState(0);
+  const [canvasDotGridPercent, setCanvasDotGridPercent] = useState(0);
+  const [canvasDotGridColorBack, setCanvasDotGridColorBackState] = useState(
+    DEFAULT_CANVAS_DOT_GRID_COLOR_BACK
+  );
+  const [canvasDotGridColorFill, setCanvasDotGridColorFillState] = useState(
+    DEFAULT_CANVAS_DOT_GRID_COLOR_FILL
+  );
+  const [canvasDotGridShape, setCanvasDotGridShapeState] =
+    useState<CanvasDotGridShapeId>(DEFAULT_CANVAS_DOT_GRID_SHAPE);
+  const [canvasDotGridSize, setCanvasDotGridSizeState] = useState(
+    DEFAULT_CANVAS_DOT_GRID_SIZE
+  );
+  const [canvasDotGridGapX, setCanvasDotGridGapXState] = useState(
+    DEFAULT_CANVAS_DOT_GRID_GAP_X
+  );
+  const [canvasDotGridGapY, setCanvasDotGridGapYState] = useState(
+    DEFAULT_CANVAS_DOT_GRID_GAP_Y
+  );
+  const [canvasDotGridSizeRange, setCanvasDotGridSizeRangeState] = useState(
+    DEFAULT_CANVAS_DOT_GRID_SIZE_RANGE
+  );
+  const [canvasDotGridOpacityRange, setCanvasDotGridOpacityRangeState] =
+    useState(DEFAULT_CANVAS_DOT_GRID_OPACITY_RANGE);
   const [canvasNoiseType, setCanvasNoiseType] =
     useState<CanvasNoiseTypeId>(DEFAULT_CANVAS_NOISE_TYPE);
   const [canvasNoiseColor, setCanvasNoiseColor] = useState(
@@ -472,6 +529,35 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
   }, []);
   const setCanvasHalftoneContrast = useCallback((value: number) => {
     setCanvasHalftoneContrastState(clampCanvasHalftoneContrast(value));
+  }, []);
+
+  const setCanvasDotGridColorBack = useCallback((hex: string) => {
+    setCanvasDotGridColorBackState(
+      normalizeDotGridHex(hex, DEFAULT_CANVAS_DOT_GRID_COLOR_BACK)
+    );
+  }, []);
+  const setCanvasDotGridColorFill = useCallback((hex: string) => {
+    setCanvasDotGridColorFillState(
+      normalizeDotGridHex(hex, DEFAULT_CANVAS_DOT_GRID_COLOR_FILL)
+    );
+  }, []);
+  const setCanvasDotGridShape = useCallback((id: CanvasDotGridShapeId) => {
+    setCanvasDotGridShapeState(parseCanvasDotGridShape(id));
+  }, []);
+  const setCanvasDotGridSize = useCallback((value: number) => {
+    setCanvasDotGridSizeState(clampCanvasDotGridSize(value));
+  }, []);
+  const setCanvasDotGridGapX = useCallback((value: number) => {
+    setCanvasDotGridGapXState(clampCanvasDotGridGap(value));
+  }, []);
+  const setCanvasDotGridGapY = useCallback((value: number) => {
+    setCanvasDotGridGapYState(clampCanvasDotGridGap(value));
+  }, []);
+  const setCanvasDotGridSizeRange = useCallback((value: number) => {
+    setCanvasDotGridSizeRangeState(clampCanvasDotGridRange(value));
+  }, []);
+  const setCanvasDotGridOpacityRange = useCallback((value: number) => {
+    setCanvasDotGridOpacityRangeState(clampCanvasDotGridRange(value));
   }, []);
 
   const [deviceTemplateId, setDeviceTemplateId] = useState<string | null>(null);
@@ -885,6 +971,15 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
         );
         setCanvasNoisePercent(0);
         setCanvasBlurPercent(0);
+        setCanvasDotGridPercent(0);
+        setCanvasDotGridColorBackState(DEFAULT_CANVAS_DOT_GRID_COLOR_BACK);
+        setCanvasDotGridColorFillState(DEFAULT_CANVAS_DOT_GRID_COLOR_FILL);
+        setCanvasDotGridShapeState(DEFAULT_CANVAS_DOT_GRID_SHAPE);
+        setCanvasDotGridSizeState(DEFAULT_CANVAS_DOT_GRID_SIZE);
+        setCanvasDotGridGapXState(DEFAULT_CANVAS_DOT_GRID_GAP_X);
+        setCanvasDotGridGapYState(DEFAULT_CANVAS_DOT_GRID_GAP_Y);
+        setCanvasDotGridSizeRangeState(DEFAULT_CANVAS_DOT_GRID_SIZE_RANGE);
+        setCanvasDotGridOpacityRangeState(DEFAULT_CANVAS_DOT_GRID_OPACITY_RANGE);
         setCanvasNoiseType(DEFAULT_CANVAS_NOISE_TYPE);
         setCanvasNoiseColor(DEFAULT_CANVAS_NOISE_COLOR);
         setCanvasNoiseColorOpacity(DEFAULT_CANVAS_NOISE_COLOR_OPACITY);
@@ -919,6 +1014,36 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       );
       setCanvasNoisePercent(clampPercent(payload.noisePercent));
       setCanvasBlurPercent(clampPercent(payload.blurPercent));
+      setCanvasDotGridPercent(clampPercent(payload.dotGridPercent));
+      {
+        const dotGrid = payload.dotGrid;
+        setCanvasDotGridColorBackState(
+          normalizeDotGridHex(
+            dotGrid?.colorBack,
+            DEFAULT_CANVAS_DOT_GRID_COLOR_BACK
+          )
+        );
+        setCanvasDotGridColorFillState(
+          normalizeDotGridHex(
+            dotGrid?.colorFill,
+            DEFAULT_CANVAS_DOT_GRID_COLOR_FILL
+          )
+        );
+        setCanvasDotGridShapeState(parseCanvasDotGridShape(dotGrid?.shape));
+        setCanvasDotGridSizeState(clampCanvasDotGridSize(dotGrid?.size));
+        setCanvasDotGridGapXState(
+          clampCanvasDotGridGap(dotGrid?.gapX ?? DEFAULT_CANVAS_DOT_GRID_GAP_X)
+        );
+        setCanvasDotGridGapYState(
+          clampCanvasDotGridGap(dotGrid?.gapY ?? DEFAULT_CANVAS_DOT_GRID_GAP_Y)
+        );
+        setCanvasDotGridSizeRangeState(
+          clampCanvasDotGridRange(dotGrid?.sizeRange)
+        );
+        setCanvasDotGridOpacityRangeState(
+          clampCanvasDotGridRange(dotGrid?.opacityRange)
+        );
+      }
       setCanvasNoiseType(parseCanvasNoiseType(payload.noiseType));
       {
         const raw = payload.noiseColor?.trim();
@@ -1079,6 +1204,24 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       setCanvasNoisePercent,
       canvasBlurPercent,
       setCanvasBlurPercent,
+      canvasDotGridPercent,
+      setCanvasDotGridPercent,
+      canvasDotGridColorBack,
+      setCanvasDotGridColorBack,
+      canvasDotGridColorFill,
+      setCanvasDotGridColorFill,
+      canvasDotGridShape,
+      setCanvasDotGridShape,
+      canvasDotGridSize,
+      setCanvasDotGridSize,
+      canvasDotGridGapX,
+      setCanvasDotGridGapX,
+      canvasDotGridGapY,
+      setCanvasDotGridGapY,
+      canvasDotGridSizeRange,
+      setCanvasDotGridSizeRange,
+      canvasDotGridOpacityRange,
+      setCanvasDotGridOpacityRange,
       canvasNoiseType,
       setCanvasNoiseType,
       canvasNoiseColor,
@@ -1201,6 +1344,15 @@ export function MockupFrameProvider({ children }: { children: ReactNode }) {
       canvasGradientBlendModesByTemplate,
       canvasNoisePercent,
       canvasBlurPercent,
+      canvasDotGridPercent,
+      canvasDotGridColorBack,
+      canvasDotGridColorFill,
+      canvasDotGridShape,
+      canvasDotGridSize,
+      canvasDotGridGapX,
+      canvasDotGridGapY,
+      canvasDotGridSizeRange,
+      canvasDotGridOpacityRange,
       canvasNoiseType,
       canvasNoiseColor,
       canvasNoiseColorOpacity,
