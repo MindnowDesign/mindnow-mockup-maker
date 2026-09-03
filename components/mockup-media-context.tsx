@@ -30,19 +30,38 @@ import {
   deviceTemplateCategory,
   type DeviceTemplateCategory,
 } from "@/lib/mockup-device-template-category";
+import { noFrameShadowPersisted } from "@/lib/mockup-frame-shadow";
+import { RAW_SCREENSHOT_UPLOAD_STYLE } from "@/lib/mockup-screenshot-style";
 
-function withScreenshotUploadTransform(
-  prefs: VisualWorkspacePrefs | undefined
+function prefsAfterMediaAssignment(
+  prefs: VisualWorkspacePrefs | undefined,
+  {
+    deviceTemplateId,
+    liveTransform,
+  }: {
+    deviceTemplateId: string | null;
+    liveTransform: { x: number; y: number; scale: number };
+  }
 ): VisualWorkspacePrefs {
-  return {
-    ...normalizeVisualWorkspacePrefs(prefs),
-    mockupOffsetX: 0,
-    mockupOffsetY: 0,
-    mockupScale: 1,
-    screenshotUploadOffsetX: 0,
-    screenshotUploadOffsetY: 0,
-    screenshotUploadScale: 1,
+  const base = normalizeVisualWorkspacePrefs(prefs);
+  const category = deviceTemplateCategory(deviceTemplateId);
+
+  const next: VisualWorkspacePrefs = {
+    ...base,
+    mockupOffsetX: liveTransform.x,
+    mockupOffsetY: liveTransform.y,
+    mockupScale: liveTransform.scale,
   };
+
+  if (category === "screenshot") {
+    next.screenshotUploadOffsetX = liveTransform.x;
+    next.screenshotUploadOffsetY = liveTransform.y;
+    next.screenshotUploadScale = liveTransform.scale;
+    next.screenshotStyle = { ...RAW_SCREENSHOT_UPLOAD_STYLE };
+    next.frameShadow = noFrameShadowPersisted();
+  }
+
+  return next;
 }
 
 function preserveScreenshotUploadFields(
@@ -153,6 +172,8 @@ type MockupMediaContextValue = {
   assignMediaToActiveVisual: (libraryItemId: string) => void;
   updateVisualLabel: (visualId: string, value: string) => void;
   removeLibraryItem: (libraryItemId: string) => void;
+  /** Unassigns media from the active canvas slot; library assets are kept. */
+  clearActiveVisualMedia: () => void;
   /** Removes a canvas slot; library assets are kept. At least one visual remains. */
   removeVisual: (visualId: string) => void;
   /**
@@ -264,6 +285,22 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
   hydrateScreenshotStyleRef.current = frame.hydrateScreenshotStyle;
   hydrateFrameShadowRef.current = frame.hydrateFrameShadow;
   hydrateMockupTransformRef.current = frame.hydrateMockupTransform;
+
+  function hydrateFrameForMediaAssignment(deviceTemplateId: string | null) {
+    skipFramePrefsSyncRef.current = true;
+    if (deviceTemplateCategory(deviceTemplateId) === "screenshot") {
+      hydrateScreenshotStyleRef.current(RAW_SCREENSHOT_UPLOAD_STYLE);
+      hydrateFrameShadowRef.current(noFrameShadowPersisted());
+    }
+  }
+
+  function liveMockupTransform() {
+    return {
+      x: frame.mockupOffsetX,
+      y: frame.mockupOffsetY,
+      scale: frame.mockupScale,
+    };
+  }
 
   useEffect(() => {
     if (!workspaceHydrated) return;
@@ -545,8 +582,8 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
       if (!additions.length) return;
 
       const inheritPrefs = captureVisualWorkspacePrefs(frame);
-      skipFramePrefsSyncRef.current = true;
-      hydrateMockupTransformRef.current(0, 0, 1);
+      const liveTransform = liveMockupTransform();
+      hydrateFrameForMediaAssignment(frame.deviceTemplateId);
 
       setState((s) => {
         const activeId = s.activeVisualId;
@@ -556,12 +593,19 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
             const nextActiveId = crypto.randomUUID();
             const prefsMap = { ...s.visualWorkspacePrefs };
             if (prefsMap[activeId]) {
-              prefsMap[nextActiveId] = withScreenshotUploadTransform(
-                prefsMap[activeId]
+              prefsMap[nextActiveId] = prefsAfterMediaAssignment(
+                prefsMap[activeId],
+                {
+                  deviceTemplateId: frame.deviceTemplateId,
+                  liveTransform,
+                }
               );
               delete prefsMap[activeId];
             } else {
-              prefsMap[nextActiveId] = withScreenshotUploadTransform(inheritPrefs);
+              prefsMap[nextActiveId] = prefsAfterMediaAssignment(inheritPrefs, {
+                deviceTemplateId: frame.deviceTemplateId,
+                liveTransform,
+              });
             }
             return {
               library: [...s.library, lib],
@@ -582,8 +626,12 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
             activeVisualId: activeId,
             visualWorkspacePrefs: {
               ...s.visualWorkspacePrefs,
-              [activeId]: withScreenshotUploadTransform(
-                s.visualWorkspacePrefs[activeId]
+              [activeId]: prefsAfterMediaAssignment(
+                s.visualWorkspacePrefs[activeId],
+                {
+                  deviceTemplateId: frame.deviceTemplateId,
+                  liveTransform,
+                }
               ),
             },
           };
@@ -599,7 +647,10 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
           prefsMap[s.activeVisualId] = inheritPrefs;
         }
         for (const nv of newVisuals) {
-          prefsMap[nv.id] = withScreenshotUploadTransform(inheritPrefs);
+          prefsMap[nv.id] = prefsAfterMediaAssignment(inheritPrefs, {
+            deviceTemplateId: frame.deviceTemplateId,
+            liveTransform,
+          });
         }
 
         return {
@@ -651,28 +702,35 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
     });
   }, [frame]);
 
-  const assignMediaToActiveVisual = useCallback((libraryItemId: string) => {
-    skipFramePrefsSyncRef.current = true;
-    hydrateMockupTransformRef.current(0, 0, 1);
-    setState((s) => {
-      if (!s.library.some((m) => m.id === libraryItemId)) return s;
-      if (!s.activeVisualId) return s;
-      return {
-        ...s,
-        visuals: s.visuals.map((v) =>
-          v.id === s.activeVisualId
-            ? { ...v, mediaId: libraryItemId }
-            : v
-        ),
-        visualWorkspacePrefs: {
-          ...s.visualWorkspacePrefs,
-          [s.activeVisualId]: withScreenshotUploadTransform(
-            s.visualWorkspacePrefs[s.activeVisualId]
+  const assignMediaToActiveVisual = useCallback(
+    (libraryItemId: string) => {
+      const liveTransform = liveMockupTransform();
+      hydrateFrameForMediaAssignment(frame.deviceTemplateId);
+      setState((s) => {
+        if (!s.library.some((m) => m.id === libraryItemId)) return s;
+        if (!s.activeVisualId) return s;
+        return {
+          ...s,
+          visuals: s.visuals.map((v) =>
+            v.id === s.activeVisualId
+              ? { ...v, mediaId: libraryItemId }
+              : v
           ),
-        },
-      };
-    });
-  }, []);
+          visualWorkspacePrefs: {
+            ...s.visualWorkspacePrefs,
+            [s.activeVisualId]: prefsAfterMediaAssignment(
+              s.visualWorkspacePrefs[s.activeVisualId],
+              {
+                deviceTemplateId: frame.deviceTemplateId,
+                liveTransform,
+              }
+            ),
+          },
+        };
+      });
+    },
+    [frame]
+  );
 
   const updateVisualLabel = useCallback((visualId: string, label: string) => {
     setState((s) => {
@@ -704,6 +762,20 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
         library: nextLibrary,
         visuals: nextVisuals,
         activeVisualId: s.activeVisualId,
+      };
+    });
+  }, []);
+
+  const clearActiveVisualMedia = useCallback(() => {
+    setState((s) => {
+      if (!s.activeVisualId) return s;
+      const active = s.visuals.find((v) => v.id === s.activeVisualId);
+      if (!active?.mediaId) return s;
+      return {
+        ...s,
+        visuals: s.visuals.map((v) =>
+          v.id === s.activeVisualId ? { ...v, mediaId: null } : v
+        ),
       };
     });
   }, []);
@@ -840,6 +912,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
       assignMediaToActiveVisual,
       updateVisualLabel,
       removeLibraryItem,
+      clearActiveVisualMedia,
       removeVisual,
       createNewVisualFromItem,
       hydrateFromSaved,
@@ -860,6 +933,7 @@ export function MockupMediaProvider({ children }: { children: ReactNode }) {
       assignMediaToActiveVisual,
       updateVisualLabel,
       removeLibraryItem,
+      clearActiveVisualMedia,
       removeVisual,
       createNewVisualFromItem,
       hydrateFromSaved,

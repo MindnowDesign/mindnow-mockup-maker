@@ -182,6 +182,20 @@ export type PersistedScreenshotStyle = {
   glassFramePadding?: number;
 };
 
+/** Plain screenshot on upload — no border, outline, glass, or corner rounding. */
+export const RAW_SCREENSHOT_UPLOAD_STYLE: PersistedScreenshotStyle = {
+  style: DEFAULT_SCREENSHOT_STYLE,
+  borderColor: DEFAULT_SCREENSHOT_BORDER_COLOR,
+  borderColorOpacity: DEFAULT_SCREENSHOT_BORDER_COLOR_OPACITY,
+  borderPosition: DEFAULT_SCREENSHOT_BORDER_POSITION,
+  borderWeight: DEFAULT_SCREENSHOT_BORDER_WEIGHT,
+  outlineColor: DEFAULT_SCREENSHOT_OUTLINE_COLOR,
+  outlineColorOpacity: DEFAULT_SCREENSHOT_OUTLINE_COLOR_OPACITY,
+  cornerType: DEFAULT_SCREENSHOT_CORNER_TYPE,
+  cornerRadius: DEFAULT_SCREENSHOT_CORNER_RADIUS,
+  glassFramePadding: DEFAULT_SCREENSHOT_GLASS_FRAME_PADDING,
+};
+
 export function parseScreenshotStyle(value: unknown): ScreenshotStyleId {
   if (value === "border") return "border";
   if (value === "glass") return "glass";

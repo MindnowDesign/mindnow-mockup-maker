@@ -40,6 +40,7 @@ import {
   buildFrameShadowBoxShadow,
   canvasDeviceShadowMarginPx,
   deviceFrameShadowActive,
+  frameShadowVisible,
 } from "@/lib/mockup-frame-shadow";
 import {
   canvasGradientTemplateToCaptureStyle,
@@ -729,7 +730,10 @@ export function MockupWorkspaceStage() {
     visuals,
     addFromFileList,
     updateVisualLabel,
+    clearActiveVisualMedia,
   } = useMockupMedia();
+
+  const canvasRegionRef = useRef<HTMLDivElement>(null);
 
   const visualForTitle = activeVisual ?? visuals[0] ?? null;
   const { maxW, maxH } = useFrameViewportCaps();
@@ -801,6 +805,38 @@ export function MockupWorkspaceStage() {
     resetKey: activeVisual?.id ?? null,
     layoutSyncKey: canvasLayoutSyncKey,
   });
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key !== "Delete" && event.key !== "Backspace") return;
+      if (!activeItem?.id) return;
+
+      const target = event.target;
+      if (target instanceof HTMLElement) {
+        if (
+          target.closest(
+            "input, textarea, select, [contenteditable='true'], [role='textbox']"
+          )
+        ) {
+          return;
+        }
+      }
+
+      const canvasEl = canvasRegionRef.current;
+      const canvasFocused =
+        canvasEl != null &&
+        (document.activeElement === canvasEl ||
+          canvasEl.contains(document.activeElement));
+
+      if (!isSelected && !canvasFocused) return;
+
+      event.preventDefault();
+      clearActiveVisualMedia();
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [activeItem, isSelected, clearActiveVisualMedia]);
 
   const activeGradientTemplateId =
     canvasBackgroundMode === "template" ? canvasGradientTemplateId : null;
@@ -941,6 +977,7 @@ export function MockupWorkspaceStage() {
 
   const screenshotMediaBoxShadow = useMemo(() => {
     if (!isPlainScreenshot && !isBrowserScreenshot) return null;
+    if (!frameShadowVisible(frameShadowNumbers)) return null;
     return buildFrameShadowBoxShadow(frameShadowNumbers);
   }, [isPlainScreenshot, isBrowserScreenshot, frameShadowNumbers]);
 
@@ -1035,6 +1072,7 @@ export function MockupWorkspaceStage() {
         />
       ) : null}
       <div
+        ref={canvasRegionRef}
         key={aspectPreset}
         data-mockup-capture-target
         data-active-visual-id={activeVisual?.id ?? ""}

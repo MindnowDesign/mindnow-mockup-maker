@@ -67,6 +67,25 @@ export function defaultFrameShadowNumbers(): FrameShadowNumbers {
   return { ...FRAME_SHADOW_PRESET_SPECS.soft };
 }
 
+/** No visible shadow — used for raw screenshot uploads. */
+export const NO_FRAME_SHADOW_NUMBERS: FrameShadowNumbers = {
+  offsetX: 0,
+  offsetY: 0,
+  blur: 0,
+  spread: 0,
+  color: DEFAULT_COLOR,
+  colorOpacity: 0,
+};
+
+export function noFrameShadowPersisted(): PersistedFrameShadow {
+  return frameShadowToPersisted("custom", NO_FRAME_SHADOW_NUMBERS);
+}
+
+export function frameShadowVisible(n: FrameShadowNumbers): boolean {
+  if (n.colorOpacity <= 0) return false;
+  return deviceFrameShadowActive(n);
+}
+
 export function parseFrameShadowPreset(value: unknown): FrameShadowPresetId {
   if (value === "custom" || value === "sharp" || value === "soft" || value === "floating") {
     return value;
