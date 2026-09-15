@@ -502,6 +502,9 @@ export function CanvasBackgroundControls() {
     setCanvasHalftoneEnabled,
   } = useMockupFrame();
 
+  /** Dither / Halftone read the background as an image, so solid + transparency have nothing to shade. */
+  const shadersAvailable = mode === "image" || mode === "template";
+
   return (
     <>
     <div className="space-y-2">
@@ -749,6 +752,7 @@ export function CanvasBackgroundControls() {
       </div>
     </div>
 
+    {shadersAvailable ? (
     <div className="space-y-2 pt-1">
       <span className="block text-xs font-medium text-neutral-400">Shaders</span>
       <div className="space-y-2">
@@ -784,6 +788,7 @@ export function CanvasBackgroundControls() {
         </EffectAccordionSection>
       </div>
     </div>
+    ) : null}
 
     <div className="space-y-2 pt-1">
       <span className="block text-xs font-medium text-neutral-400">Mood</span>
