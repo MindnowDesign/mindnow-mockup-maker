@@ -1,4 +1,5 @@
 import { waitForCaptureReady } from "@/lib/wait-for-capture-ready";
+import { beginSquareCanvasClip } from "@/lib/square-canvas-capture";
 
 export type MockupExportFormat = "png" | "jpeg";
 export type MockupExportScale = 1 | 2 | 3 | 4;
@@ -26,29 +27,10 @@ export const DEFAULT_MOCKUP_EXPORT_SCALE: MockupExportScale = 1;
 
 const JPEG_QUALITY = 0.92;
 
-/**
- * Preview-only canvas rounding (stage chrome). Mark full-bleed background
- * layers with this so download capture can flatten them to a rectangle.
- */
-export const MOCKUP_CANVAS_CLIP_ATTR = "data-mockup-canvas-clip";
-
-const EXPORT_SQUARE_STYLE = `[data-mockup-capture-target],[data-mockup-capture-target] [${MOCKUP_CANVAS_CLIP_ATTR}]{border-radius:0!important;box-shadow:none!important;outline:none!important}`;
-
 function flushPaint(): Promise<void> {
   return new Promise((resolve) => {
     requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
   });
-}
-
-/** Temporarily square the canvas clip so html-to-image does not bake in UI rounding. */
-function beginSquareCanvasExport(): () => void {
-  const style = document.createElement("style");
-  style.setAttribute("data-mockup-export-square", "");
-  style.textContent = EXPORT_SQUARE_STYLE;
-  document.head.appendChild(style);
-  return () => {
-    style.remove();
-  };
 }
 
 function slugifyExportBasename(title: string): string {
@@ -102,7 +84,7 @@ export async function captureMockupExport(
   await flushPaint();
   await waitForCaptureReady(el);
 
-  const restoreClip = beginSquareCanvasExport();
+  const restoreClip = beginSquareCanvasClip();
   try {
     await flushPaint();
     void el.offsetWidth;

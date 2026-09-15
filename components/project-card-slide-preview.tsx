@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { VisualCanvasPeekBackground } from "@/components/visual-canvas-peek-background";
+import { containedCanvasPreviewStyle } from "@/lib/mockup-aspect";
 import {
   isMostlyBlackPreviewDataUrl,
   isWeakPreviewThumb,
@@ -18,15 +19,15 @@ export type ProjectCardSlidePreviewProps = {
 };
 
 /**
- * Project card slide: prefer captured PNG; fall back to canvas peek + media
- * when the thumb is missing or mostly black (failed backfill capture).
+ * Project card slide: prefer captured PNG of the canvas; fall back to a
+ * canvas-shaped peek when the thumb is missing or mostly black.
  */
 export function ProjectCardSlidePreview({
   slide,
   pageLabel,
   className,
 }: ProjectCardSlidePreviewProps) {
-  const { captureSrc, canvasBackground, mediaDataUrl } = slide;
+  const { captureSrc, canvasBackground, mediaDataUrl, aspectPreset } = slide;
   const [preferComposed, setPreferComposed] = useState(
     !captureSrc || isWeakPreviewThumb(captureSrc)
   );
@@ -49,7 +50,7 @@ export function ProjectCardSlidePreview({
     return (
       <div
         className={cn(
-          "relative aspect-[4/3] w-full max-h-full overflow-hidden rounded-[8px]",
+          "flex size-full items-center justify-center",
           className
         )}
       >
@@ -62,34 +63,40 @@ export function ProjectCardSlidePreview({
           decoding="async"
           draggable={false}
           onError={() => setPreferComposed(true)}
-          className="size-full object-contain object-center"
+          className="block h-auto w-auto max-h-full max-w-full rounded-[6px] object-contain"
         />
       </div>
     );
   }
+
+  const canvasBox = containedCanvasPreviewStyle(aspectPreset);
 
   return (
     <div
       role="img"
       aria-label={pageLabel}
       className={cn(
-        "relative max-h-full max-w-full overflow-hidden rounded-[8px]",
-        "aspect-[4/3] w-full",
+        "relative flex size-full items-center justify-center [container-type:size]",
         className
       )}
     >
-      <VisualCanvasPeekBackground persisted={canvasBackground} />
-      {mediaDataUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element -- persisted project media
-        <img
-          src={mediaDataUrl}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          draggable={false}
-          className="absolute inset-0 z-[2] size-full object-contain p-[12%]"
-        />
-      ) : null}
+      <div
+        className="relative overflow-hidden rounded-[6px]"
+        style={canvasBox}
+      >
+        <VisualCanvasPeekBackground persisted={canvasBackground} />
+        {mediaDataUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element -- persisted project media
+          <img
+            src={mediaDataUrl}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            draggable={false}
+            className="absolute inset-0 z-[2] size-full object-contain p-[12%]"
+          />
+        ) : null}
+      </div>
     </div>
   );
 }

@@ -95,6 +95,7 @@ export function ProjectProductCard({
     return urls.map((captureSrc, i) => ({
       visualId: `legacy-${i}`,
       captureSrc,
+      aspectPreset: "square-1-1" as const,
       canvasBackground: null,
       mediaDataUrl: null,
     }));
@@ -186,7 +187,7 @@ export function ProjectProductCard({
         )}
       >
         <div className="relative aspect-[4/3] h-auto w-full shrink-0 bg-neutral-950">
-          <div className="absolute inset-0 flex items-center justify-center p-6 md:p-8">
+          <div className="absolute inset-0 flex items-center justify-center p-6 md:p-7">
             {activeSlide ? (
               <ProjectCardSlidePreview
                 slide={activeSlide}

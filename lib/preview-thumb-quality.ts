@@ -1,5 +1,5 @@
-/** PNG data URLs shorter than this are usually failed / empty captures. */
-const WEAK_PREVIEW_MIN_LENGTH = 12_000;
+/** PNG data URLs shorter than this are empty / failed captures — not valid thumbs. */
+const WEAK_PREVIEW_MIN_LENGTH = 800;
 
 export function isWeakPreviewThumb(dataUrl: string | null | undefined): boolean {
   const trimmed = dataUrl?.trim();

@@ -1,4 +1,5 @@
 import { waitForCaptureReady } from "@/lib/wait-for-capture-ready";
+import { beginSquareCanvasClip } from "@/lib/square-canvas-capture";
 
 function flushPaint(): Promise<void> {
   return new Promise((resolve) => {
@@ -26,39 +27,50 @@ export async function captureMockupPreview(
   }
   await flushPaint();
   await waitForCaptureReady(el);
-  await flushPaint();
-  void el.offsetWidth;
 
-  const maxSide = Math.max(el.offsetWidth, el.offsetHeight, 1);
-  /** Readable card thumbnail without huge files — keeps localStorage happy. */
-  const pixelRatio = Math.min(2, Math.max(1, targetMaxSide / maxSide));
-
-  const { toPng, toCanvas } = await import("html-to-image");
-
-  const baseOptions = {
-    cacheBust: true as const,
-    pixelRatio,
-    skipFonts: true as const,
-  };
-
+  const restoreClip = beginSquareCanvasClip();
   try {
-    return await toPng(el, baseOptions);
-  } catch (first) {
-    console.warn("toPng preview failed, retrying with smaller scale:", first);
+    await flushPaint();
+    void el.offsetWidth;
+
+    const maxSide = Math.max(el.offsetWidth, el.offsetHeight, 1);
+    /** Readable card thumbnail without huge files — keeps localStorage happy. */
+    const pixelRatio = Math.min(2, Math.max(1, targetMaxSide / maxSide));
+
+    const { toPng, toCanvas } = await import("html-to-image");
+
+    const baseOptions = {
+      cacheBust: true as const,
+      pixelRatio,
+      skipFonts: true as const,
+      style: {
+        borderRadius: "0px",
+        boxShadow: "none",
+        outline: "none",
+      } satisfies Partial<CSSStyleDeclaration>,
+    };
+
     try {
-      return await toPng(el, {
-        ...baseOptions,
-        pixelRatio: Math.min(1, baseOptions.pixelRatio),
-      });
-    } catch (second) {
-      console.warn("toPng retry failed, trying toCanvas:", second);
+      return await toPng(el, baseOptions);
+    } catch (first) {
+      console.warn("toPng preview failed, retrying with smaller scale:", first);
       try {
-        const canvas = await toCanvas(el, baseOptions);
-        return canvas.toDataURL("image/png");
-      } catch (third) {
-        console.error("Preview capture failed:", third);
-        return "";
+        return await toPng(el, {
+          ...baseOptions,
+          pixelRatio: Math.min(1, baseOptions.pixelRatio),
+        });
+      } catch (second) {
+        console.warn("toPng retry failed, trying toCanvas:", second);
+        try {
+          const canvas = await toCanvas(el, baseOptions);
+          return canvas.toDataURL("image/png");
+        } catch (third) {
+          console.error("Preview capture failed:", third);
+          return "";
+        }
       }
     }
+  } finally {
+    restoreClip();
   }
 }

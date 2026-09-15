@@ -72,6 +72,24 @@ export function scaledFramePixelSize(
 }
 
 /**
+ * Size a canvas-shaped box so it `contain`s inside a size container
+ * (`container-type: size` on the parent).
+ */
+export function containedCanvasPreviewStyle(
+  id: FrameAspectPresetId
+): { aspectRatio: string; width: string; height: string } {
+  const d = dimensionsForPreset(normalizeAspectPreset(id)) ?? {
+    width: 1,
+    height: 1,
+  };
+  return {
+    aspectRatio: `${d.width} / ${d.height}`,
+    width: `min(100cqw, calc(100cqh * ${d.width} / ${d.height}))`,
+    height: `min(100cqh, calc(100cqw * ${d.height} / ${d.width}))`,
+  };
+}
+
+/**
  * CSS `aspect-ratio` for the frame (same proportions as `FRAME_PRESET_DIMENSIONS`).
  * Uses reduced ratios — identical math, better browser behavior than huge pixel fractions.
  */

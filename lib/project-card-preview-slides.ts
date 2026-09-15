@@ -1,4 +1,5 @@
 import type { PersistedCanvasBackground } from "@/lib/mockup-canvas-background";
+import type { FrameAspectPresetId } from "@/lib/mockup-aspect";
 import { isWeakPreviewThumb } from "@/lib/preview-thumb-quality";
 import type { SavedProject } from "@/lib/saved-projects";
 import {
@@ -10,6 +11,7 @@ export type ProjectCardPreviewSlide = {
   visualId: string;
   /** Captured PNG when valid; omitted when weak / missing. */
   captureSrc: string | null;
+  aspectPreset: FrameAspectPresetId;
   canvasBackground: PersistedCanvasBackground | null;
   mediaDataUrl: string | null;
 };
@@ -39,6 +41,7 @@ export function projectCardPreviewSlides(
         {
           visualId: "__legacy__",
           captureSrc: single,
+          aspectPreset: project.aspectPreset ?? "square-1-1",
           canvasBackground: project.canvasBackground ?? null,
           mediaDataUrl: null,
         },
@@ -72,6 +75,7 @@ export function projectCardPreviewSlides(
     return {
       visualId: slot.id,
       captureSrc,
+      aspectPreset: prefs.aspectPreset,
       canvasBackground:
         prefs.canvasBackground ??
         project.canvasBackground ??
