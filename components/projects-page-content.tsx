@@ -7,6 +7,11 @@ import { useEffect, useState } from "react";
 import { ProjectCardsGrid } from "@/components/project-cards-grid";
 import { ProjectsEmptyState } from "@/components/projects-empty-state";
 import { buttonVariants } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { listSavedProjects, type SavedProject } from "@/lib/saved-projects";
 import { cn } from "@/lib/utils";
 
@@ -45,15 +50,20 @@ export function ProjectsPageContent() {
           Projects
         </h1>
         {showCreateButton ? (
-          <Link
-            href="/projects/new"
-            aria-label="Create new project"
-            className={cn(
-              buttonVariants({ variant: "outline", size: "icon-md" })
-            )}
-          >
-            <Plus strokeWidth={1.75} aria-hidden />
-          </Link>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href="/projects/new"
+                aria-label="Create new project"
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "icon-md" })
+                )}
+              >
+                <Plus strokeWidth={1.75} aria-hidden />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Create new project</TooltipContent>
+          </Tooltip>
         ) : null}
       </div>
 

@@ -28,9 +28,24 @@ import { waitForVisualCaptureReady } from "@/lib/wait-for-visual-capture-ready";
 import { cn } from "@/lib/utils";
 
 type WorkspaceExportButtonProps = {
-  projectTitle: string;
   className?: string;
 };
+
+function visualExportName(
+  visuals: { id: string; label?: string }[],
+  visualId: string | null
+): string {
+  const live = document
+    .querySelector<HTMLInputElement>("[data-mockup-visual-title]")
+    ?.value.trim();
+  if (live) return live;
+
+  const index = visuals.findIndex((v) => v.id === visualId);
+  const slot = index >= 0 ? visuals[index] : visuals[0];
+  if (!slot) return "visual";
+  const oneBased = (index >= 0 ? index : 0) + 1;
+  return slot.label?.trim() || defaultVisualLabel(oneBased);
+}
 
 const FORMAT_HINTS: Record<MockupExportFormat, string> = {
   png: "Keeps high quality and transparent backgrounds",
@@ -52,7 +67,7 @@ function FormatRadio({
       role="radio"
       aria-checked={selected}
       onClick={onSelect}
-      className="inline-flex items-center gap-2 text-[13px] font-semibold tracking-wide text-neutral-100 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+      className="inline-flex items-center gap-2 text-[13px] font-semibold tracking-wide text-neutral-100 outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
     >
       <span
         aria-hidden
@@ -104,7 +119,6 @@ function sleep(ms: number): Promise<void> {
 }
 
 export function WorkspaceExportButton({
-  projectTitle,
   className,
 }: WorkspaceExportButtonProps) {
   const frame = useMockupFrame();
@@ -148,28 +162,6 @@ export function WorkspaceExportButton({
     []
   );
 
-  const exportDefault = useCallback(async () => {
-    if (exporting) return;
-    setExporting(true);
-    try {
-      const dataUrl = await captureActive(
-        DEFAULT_MOCKUP_EXPORT_FORMAT,
-        DEFAULT_MOCKUP_EXPORT_SCALE
-      );
-      if (!dataUrl) return;
-      downloadDataUrl(
-        dataUrl,
-        mockupExportFilename(
-          projectTitle,
-          DEFAULT_MOCKUP_EXPORT_FORMAT,
-          DEFAULT_MOCKUP_EXPORT_SCALE
-        )
-      );
-    } finally {
-      setExporting(false);
-    }
-  }, [captureActive, exporting, projectTitle]);
-
   const downloadSelected = useCallback(async () => {
     if (exporting) return;
     setExporting(true);
@@ -178,13 +170,17 @@ export function WorkspaceExportButton({
       if (!dataUrl) return;
       downloadDataUrl(
         dataUrl,
-        mockupExportFilename(projectTitle, format, scale)
+        mockupExportFilename(
+          visualExportName(visualsRef.current, activeVisualIdRef.current),
+          format,
+          scale
+        )
       );
       setMenuOpen(false);
     } finally {
       setExporting(false);
     }
-  }, [captureActive, exporting, format, projectTitle, scale]);
+  }, [captureActive, exporting, format, scale]);
 
   const exportAll = useCallback(async () => {
     const slots = visualsRef.current;
@@ -238,7 +234,7 @@ export function WorkspaceExportButton({
 
         downloadDataUrl(
           dataUrl,
-          mockupExportFilename(`${projectTitle}-${label}`, format, scale)
+          mockupExportFilename(label, format, scale)
         );
         await sleep(180);
       }
@@ -250,7 +246,10 @@ export function WorkspaceExportButton({
     } finally {
       setExporting(false);
     }
-  }, [exporting, format, projectTitle, scale, setActiveVisualId]);
+  }, [exporting, format, scale, setActiveVisualId]);
+
+  const splitHalfClassName =
+    "h-full border-0 bg-transparent shadow-none transition-colors hover:bg-black/[0.1] active:bg-black/[0.18] active:translate-y-0 focus-visible:relative focus-visible:z-10";
 
   return (
     <div
@@ -264,10 +263,10 @@ export function WorkspaceExportButton({
         variant="default"
         size="lg"
         disabled={exporting}
-        onClick={() => void exportDefault()}
-        aria-label="Export as 1x PNG"
-        title="Export as 1x PNG"
-        className="h-full rounded-none rounded-l-lg border-0 shadow-none focus-visible:relative focus-visible:z-10"
+        onClick={() => void downloadSelected()}
+        aria-label={`Export as ${scale}x ${format === "jpeg" ? "JPG" : "PNG"}`}
+        title={`Export as ${scale}x ${format === "jpeg" ? "JPG" : "PNG"}`}
+        className={cn(splitHalfClassName, "rounded-none rounded-l-lg")}
       >
         <Download className="size-4" strokeWidth={1.75} aria-hidden />
         Export
@@ -293,7 +292,10 @@ export function WorkspaceExportButton({
             disabled={exporting}
             aria-label="Export options"
             title="Export options"
-            className="h-full rounded-none rounded-r-lg border-0 px-2 shadow-none focus-visible:relative focus-visible:z-10"
+            className={cn(
+              splitHalfClassName,
+              "rounded-none rounded-r-lg px-2 aria-expanded:bg-black/[0.14] data-[state=open]:bg-black/[0.14]"
+            )}
           >
             <ChevronDown className="size-4" strokeWidth={2} aria-hidden />
           </Button>

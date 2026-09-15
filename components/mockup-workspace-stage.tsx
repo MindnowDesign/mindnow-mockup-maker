@@ -588,6 +588,7 @@ function MockupVisualTitle({
         <input
           ref={inputRef}
           type="text"
+          data-mockup-visual-title
           value={value}
           onChange={(e) => setDraft(e.target.value)}
           onFocus={() => {
@@ -1085,6 +1086,7 @@ export function MockupWorkspaceStage() {
         ref={canvasRegionRef}
         key={aspectPreset}
         data-mockup-capture-target
+        data-mockup-canvas-clip
         data-active-visual-id={activeVisual?.id ?? ""}
         style={{ width: "100%", height }}
         role="region"
@@ -1113,6 +1115,7 @@ export function MockupWorkspaceStage() {
       >
         <div
           aria-hidden
+          data-mockup-canvas-clip
           className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[16px] [&_*]:pointer-events-none"
         >
           <CanvasGradientInlineBackground

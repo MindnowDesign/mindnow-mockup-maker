@@ -962,7 +962,7 @@ export function WorkspaceTopBar({
         >
           <Search className="size-5" strokeWidth={1.75} aria-hidden />
         </button>
-        <WorkspaceExportButton projectTitle={title} />
+        <WorkspaceExportButton />
       </div>
     </header>
   );

@@ -26,10 +26,29 @@ export const DEFAULT_MOCKUP_EXPORT_SCALE: MockupExportScale = 1;
 
 const JPEG_QUALITY = 0.92;
 
+/**
+ * Preview-only canvas rounding (stage chrome). Mark full-bleed background
+ * layers with this so download capture can flatten them to a rectangle.
+ */
+export const MOCKUP_CANVAS_CLIP_ATTR = "data-mockup-canvas-clip";
+
+const EXPORT_SQUARE_STYLE = `[data-mockup-capture-target],[data-mockup-capture-target] [${MOCKUP_CANVAS_CLIP_ATTR}]{border-radius:0!important;box-shadow:none!important;outline:none!important}`;
+
 function flushPaint(): Promise<void> {
   return new Promise((resolve) => {
     requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
   });
+}
+
+/** Temporarily square the canvas clip so html-to-image does not bake in UI rounding. */
+function beginSquareCanvasExport(): () => void {
+  const style = document.createElement("style");
+  style.setAttribute("data-mockup-export-square", "");
+  style.textContent = EXPORT_SQUARE_STYLE;
+  document.head.appendChild(style);
+  return () => {
+    style.remove();
+  };
 }
 
 function slugifyExportBasename(title: string): string {
@@ -42,7 +61,7 @@ function slugifyExportBasename(title: string): string {
   return slug || "mockup";
 }
 
-/** Filename like `project-name-2x.png`. */
+/** Filename like `visual-01-2x.png`. */
 export function mockupExportFilename(
   title: string,
   format: MockupExportFormat,
@@ -64,7 +83,8 @@ export function downloadDataUrl(dataUrl: string, filename: string): void {
 
 /**
  * Full-resolution export of `[data-mockup-capture-target]` at the given
- * pixel density (`scale`) and file format.
+ * pixel density (`scale`) and file format. Canvas UI rounding is flattened
+ * so the file is a full rectangle (screenshot/device radii are kept).
  */
 export async function captureMockupExport(
   el: HTMLElement,
@@ -81,33 +101,44 @@ export async function captureMockupExport(
   }
   await flushPaint();
   await waitForCaptureReady(el);
-  await flushPaint();
-  void el.offsetWidth;
 
-  const { toPng, toJpeg, toCanvas } = await import("html-to-image");
-
-  const baseOptions = {
-    cacheBust: true as const,
-    pixelRatio: scale,
-    skipFonts: true as const,
-  };
-
+  const restoreClip = beginSquareCanvasExport();
   try {
-    if (format === "jpeg") {
-      return await toJpeg(el, { ...baseOptions, quality: JPEG_QUALITY });
-    }
-    return await toPng(el, baseOptions);
-  } catch (first) {
-    console.warn("Export capture failed, retrying via canvas:", first);
+    await flushPaint();
+    void el.offsetWidth;
+
+    const { toPng, toJpeg, toCanvas } = await import("html-to-image");
+
+    const baseOptions = {
+      cacheBust: true as const,
+      pixelRatio: scale,
+      skipFonts: true as const,
+      style: {
+        borderRadius: "0px",
+        boxShadow: "none",
+        outline: "none",
+      } satisfies Partial<CSSStyleDeclaration>,
+    };
+
     try {
-      const canvas = await toCanvas(el, baseOptions);
       if (format === "jpeg") {
-        return canvas.toDataURL("image/jpeg", JPEG_QUALITY);
+        return await toJpeg(el, { ...baseOptions, quality: JPEG_QUALITY });
       }
-      return canvas.toDataURL("image/png");
-    } catch (second) {
-      console.error("Export capture failed:", second);
-      return "";
+      return await toPng(el, baseOptions);
+    } catch (first) {
+      console.warn("Export capture failed, retrying via canvas:", first);
+      try {
+        const canvas = await toCanvas(el, baseOptions);
+        if (format === "jpeg") {
+          return canvas.toDataURL("image/jpeg", JPEG_QUALITY);
+        }
+        return canvas.toDataURL("image/png");
+      } catch (second) {
+        console.error("Export capture failed:", second);
+        return "";
+      }
     }
+  } finally {
+    restoreClip();
   }
 }

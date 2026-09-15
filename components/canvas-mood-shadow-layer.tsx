@@ -29,6 +29,7 @@ export function CanvasMoodShadowLayer({
   return (
     <div
       aria-hidden
+      data-mockup-canvas-clip
       className={cn(
         "pointer-events-none absolute inset-0 overflow-hidden",
         placement === "overlay" ? "z-[20]" : "z-[2]",

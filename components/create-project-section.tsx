@@ -7,13 +7,8 @@ import { cn } from "@/lib/utils";
 /** Home CTA tile to start a new project — same slot size as project cards. */
 export function CreateProjectSection() {
   return (
-    <Link
-      href="/projects/new"
-      className={cn(
-        "flex h-full min-h-0 w-full flex-col items-center justify-center gap-3 rounded-xl border border-neutral-800/80 bg-neutral-900/30 p-4 text-center",
-        "outline-none transition-colors hover:border-neutral-600/90 hover:bg-neutral-900/50",
-        "focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
-      )}
+    <div
+      className="flex h-full min-h-0 w-full flex-col items-center justify-center gap-3 rounded-xl border border-neutral-800/80 bg-neutral-900/30 p-4 text-center"
     >
       <span
         className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#F6AF7B]/20"
@@ -32,12 +27,13 @@ export function CreateProjectSection() {
         </p>
       </div>
 
-      <span
-        className={cn(buttonVariants({ size: "sm" }), "mt-1 pointer-events-none")}
+      <Link
+        href="/projects/new"
+        className={cn(buttonVariants({ size: "sm" }), "mt-1")}
       >
         <Plus data-icon="inline-start" strokeWidth={1.75} aria-hidden />
         Create project
-      </span>
-    </Link>
+      </Link>
+    </div>
   );
 }

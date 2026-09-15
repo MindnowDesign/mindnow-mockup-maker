@@ -50,6 +50,7 @@ export function CanvasBackgroundNoiseOverlay({
   return (
     <div
       aria-hidden
+      data-mockup-canvas-clip
       className={cn(
         "pointer-events-none absolute inset-0 z-[1] overflow-hidden",
         className
