@@ -18,16 +18,8 @@ import {
   WORKSPACE_HYDRATED_EVENT,
   type WorkspaceHydratedDetail,
 } from "@/lib/project-workspace";
-import { backfillVisualThumbnails } from "@/lib/backfill-visual-thumbnails";
 import { captureMockupPreview } from "@/lib/capture-mockup-preview";
-import { frameMatchesVisualPrefs } from "@/lib/frame-matches-visual-prefs";
-import {
-  preloadAllCanvasGradientSvgs,
-  preloadAllCanvasWaveSvgs,
-} from "@/lib/gradient-svg-cache";
-import { isCanvasOrganicTemplateId } from "@/lib/canvas-background-organic-templates";
 import { normalizeDeviceTemplateId } from "@/lib/mockup-browser-templates";
-import { preloadOrganicTemplateId } from "@/lib/organic-image-cache";
 import type { PersistedCanvasBackground } from "@/lib/mockup-canvas-background";
 import {
   DEFAULT_CANVAS_NOISE_COLOR,
@@ -137,7 +129,6 @@ export function WorkspaceTopBar({
     visuals,
     activeVisualId,
     visualWorkspacePrefs,
-    setActiveVisualId,
   } = useMockupMedia();
   const { title, setTitle } = useProjectWorkspaceTitle();
   const fallbackTitle = getWorkspaceTitle(pathname);
@@ -148,8 +139,6 @@ export function WorkspaceTopBar({
   const persistInFlightRef = useRef(false);
   const persistQueuedRef = useRef(false);
   const persistPendingCaptureRef = useRef(false);
-  const backfillingThumbsRef = useRef(false);
-  const backfillAbortRef = useRef(false);
   const pathnameRef = useRef(pathname);
   pathnameRef.current = pathname;
   /** Last workspace segment — used when flushing save after navigating away. */
@@ -157,20 +146,6 @@ export function WorkspaceTopBar({
   /** One id for all autosaves on `/projects/new` (avoids duplicate projects per save). */
   const pendingNewProjectIdRef = useRef<string | null>(null);
 
-  const frameCaptureRef = useRef({
-    aspectPreset,
-    canvasBackgroundMode,
-    canvasSolidColor,
-    canvasGradientTemplateId,
-    deviceTemplateId,
-  });
-  frameCaptureRef.current = {
-    aspectPreset,
-    canvasBackgroundMode,
-    canvasSolidColor,
-    canvasGradientTemplateId,
-    deviceTemplateId,
-  };
   const activeVisualIdRef = useRef(activeVisualId);
   activeVisualIdRef.current = activeVisualId;
   const libraryPersistRef = useRef(library);
@@ -188,10 +163,7 @@ export function WorkspaceTopBar({
   }, [pathname]);
 
   useEffect(() => {
-    backfillAbortRef.current = false;
     return () => {
-      backfillAbortRef.current = true;
-      backfillingThumbsRef.current = false;
       persistPendingCaptureRef.current = false;
     };
   }, [pathname]);
@@ -351,66 +323,6 @@ export function WorkspaceTopBar({
       }
       if (serialized.activeVisualId && captured) {
         mergedThumbs[serialized.activeVisualId] = captured;
-      }
-
-      const focusVisualIdAtPersistStart = persistActiveVisualId;
-
-      const canBackfillThumbs =
-        shouldCapture &&
-        serialized.visualSlots.length > 0 &&
-        !backfillAbortRef.current &&
-        getProjectsWorkspaceSegment(pathnameRef.current) != null;
-
-      if (canBackfillThumbs) {
-        preloadAllCanvasGradientSvgs();
-        preloadAllCanvasWaveSvgs();
-        for (const slot of serialized.visualSlots) {
-          const prefs = resolveVisualPrefsForSave(
-            slot.id,
-            persistActiveVisualId,
-            persistPrefs,
-            persistFrame,
-            { preferStoredLayersWhenFrameEmpty }
-          );
-          const templateId = prefs.canvasBackground?.gradientTemplateId;
-          if (templateId && isCanvasOrganicTemplateId(templateId)) {
-            preloadOrganicTemplateId(templateId);
-          }
-        }
-
-        backfillingThumbsRef.current = true;
-        try {
-          mergedThumbs = await backfillVisualThumbnails({
-            visualSlotIds: serialized.visualSlots.map((s) => s.id),
-            thumbs: mergedThumbs,
-            justCapturedVisualId: serialized.activeVisualId,
-            justCapturedDataUrl: captured,
-            activeVisualId: focusVisualIdAtPersistStart,
-            switchToVisual: setActiveVisualId,
-            getCaptureElement: () =>
-              document.querySelector<HTMLElement>(
-                "[data-mockup-capture-target]"
-              ),
-            isFrameSyncedForVisual: (visualId) => {
-              if (activeVisualIdRef.current !== visualId) return false;
-              return frameMatchesVisualPrefs(
-                frameCaptureRef.current,
-                visualWorkspacePrefsRef.current[visualId]
-              );
-            },
-            gradientTemplateIdForVisual: (visualId) => {
-              const bg =
-                visualWorkspacePrefsRef.current[visualId]?.canvasBackground;
-              if (bg?.mode !== "template") return null;
-              return bg.gradientTemplateId ?? null;
-            },
-            shouldAbort: () =>
-              backfillAbortRef.current ||
-              getProjectsWorkspaceSegment(pathnameRef.current) == null,
-          });
-        } finally {
-          backfillingThumbsRef.current = false;
-        }
       }
 
       for (const id of Object.keys(mergedThumbs)) {
@@ -737,7 +649,6 @@ export function WorkspaceTopBar({
     visuals,
     activeVisualId,
     visualWorkspacePrefs,
-    setActiveVisualId,
     title,
     fallbackTitle,
     frame,
@@ -835,8 +746,6 @@ export function WorkspaceTopBar({
     if (!hydrationReady) return;
     const segment = getProjectsWorkspaceSegment(pathname);
     if (!segment) return;
-
-    if (backfillingThumbsRef.current) return;
 
     const visualSwitched = prevActiveVisualIdRef.current !== activeVisualId;
     prevActiveVisualIdRef.current = activeVisualId;
