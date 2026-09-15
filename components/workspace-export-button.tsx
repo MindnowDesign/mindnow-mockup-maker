@@ -118,6 +118,24 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+const CANVAS_NOT_READY_MESSAGE =
+  "The canvas is not ready yet. Wait a moment and export again.";
+
+/** A stale tab after a deploy can no longer load app code; a reload fixes it. */
+function isStaleBundleError(cause: unknown): boolean {
+  const message = cause instanceof Error ? cause.message : String(cause);
+  return /dynamically imported module|importing a module script|Loading chunk/i.test(
+    message
+  );
+}
+
+function exportErrorMessage(cause: unknown): string {
+  if (isStaleBundleError(cause)) {
+    return "This page is out of date after an update. Reload and export again.";
+  }
+  return "Export failed. Try again, or reload the page if it keeps failing.";
+}
+
 export function WorkspaceExportButton({
   className,
 }: WorkspaceExportButtonProps) {
@@ -137,6 +155,7 @@ export function WorkspaceExportButton({
   );
   const [exporting, setExporting] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const abortRef = useRef(false);
 
   const activeVisualIdRef = useRef(activeVisualId);
@@ -165,9 +184,14 @@ export function WorkspaceExportButton({
   const downloadSelected = useCallback(async () => {
     if (exporting) return;
     setExporting(true);
+    setError(null);
     try {
       const dataUrl = await captureActive(format, scale);
-      if (!dataUrl) return;
+      if (!dataUrl) {
+        setError(CANVAS_NOT_READY_MESSAGE);
+        setMenuOpen(true);
+        return;
+      }
       downloadDataUrl(
         dataUrl,
         mockupExportFilename(
@@ -177,6 +201,10 @@ export function WorkspaceExportButton({
         )
       );
       setMenuOpen(false);
+    } catch (cause) {
+      console.error("Export failed:", cause);
+      setError(exportErrorMessage(cause));
+      setMenuOpen(true);
     } finally {
       setExporting(false);
     }
@@ -187,6 +215,8 @@ export function WorkspaceExportButton({
     if (exporting || slots.length === 0) return;
     abortRef.current = false;
     setExporting(true);
+    setError(null);
+    let failure: unknown = null;
     const restoreId = activeVisualIdRef.current;
     const getCaptureElement = () =>
       document.querySelector<HTMLElement>("[data-mockup-capture-target]");
@@ -226,23 +256,30 @@ export function WorkspaceExportButton({
 
         if (abortRef.current || !captureEl?.isConnected) break;
 
-        const dataUrl = await captureMockupExport(captureEl, {
-          format,
-          scale,
-        });
-        if (!dataUrl) continue;
-
-        downloadDataUrl(
-          dataUrl,
-          mockupExportFilename(label, format, scale)
-        );
+        try {
+          const dataUrl = await captureMockupExport(captureEl, {
+            format,
+            scale,
+          });
+          downloadDataUrl(
+            dataUrl,
+            mockupExportFilename(label, format, scale)
+          );
+        } catch (cause) {
+          console.error(`Export failed for "${label}":`, cause);
+          failure = cause;
+        }
         await sleep(180);
       }
 
       if (restoreId && !abortRef.current) {
         setActiveVisualId(restoreId);
       }
-      setMenuOpen(false);
+      if (failure) {
+        setError(exportErrorMessage(failure));
+      } else {
+        setMenuOpen(false);
+      }
     } finally {
       setExporting(false);
     }
@@ -281,6 +318,7 @@ export function WorkspaceExportButton({
         open={menuOpen}
         onOpenChange={(open) => {
           if (!open) abortRef.current = true;
+          else setError(null);
           setMenuOpen(open);
         }}
       >
@@ -356,6 +394,14 @@ export function WorkspaceExportButton({
               <Download className="size-4" strokeWidth={2} aria-hidden />
               Export
             </Button>
+            {error ? (
+              <p
+                role="alert"
+                className="text-[12px] leading-snug text-red-400"
+              >
+                {error}
+              </p>
+            ) : null}
             {visuals.length > 1 ? (
               <Button
                 type="button"

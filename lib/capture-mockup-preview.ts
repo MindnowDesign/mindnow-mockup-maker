@@ -1,3 +1,5 @@
+import { toCanvas, toPng } from "html-to-image";
+
 import { waitForCaptureReady } from "@/lib/wait-for-capture-ready";
 import { beginSquareCanvasClip } from "@/lib/square-canvas-capture";
 
@@ -36,8 +38,6 @@ export async function captureMockupPreview(
     const maxSide = Math.max(el.offsetWidth, el.offsetHeight, 1);
     /** Readable card thumbnail without huge files — keeps localStorage happy. */
     const pixelRatio = Math.min(2, Math.max(1, targetMaxSide / maxSide));
-
-    const { toPng, toCanvas } = await import("html-to-image");
 
     const baseOptions = {
       cacheBust: true as const,

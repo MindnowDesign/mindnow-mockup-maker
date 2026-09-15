@@ -1,3 +1,5 @@
+import { toCanvas, toJpeg, toPng } from "html-to-image";
+
 import { waitForCaptureReady } from "@/lib/wait-for-capture-ready";
 import { beginSquareCanvasClip } from "@/lib/square-canvas-capture";
 
@@ -53,20 +55,52 @@ export function mockupExportFilename(
   return `${slugifyExportBasename(title)}-${scale}x.${ext}`;
 }
 
+function dataUrlToBlob(dataUrl: string): Blob | null {
+  const header = /^data:([^;,]*)(;base64)?,/.exec(dataUrl);
+  if (!header) return null;
+  const type = header[1] || "application/octet-stream";
+  const body = dataUrl.slice(header[0].length);
+  try {
+    if (!header[2]) {
+      return new Blob([decodeURIComponent(body)], { type });
+    }
+    const binary = atob(body);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return new Blob([bytes], { type });
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Saves the capture as a file. Browsers refuse or silently drop `data:` URL
+ * downloads once they get long (high scales), so the bytes go out as a blob.
+ */
 export function downloadDataUrl(dataUrl: string, filename: string): void {
+  const blob = dataUrlToBlob(dataUrl);
+  const href = blob ? URL.createObjectURL(blob) : dataUrl;
   const anchor = document.createElement("a");
-  anchor.href = dataUrl;
+  anchor.href = href;
   anchor.download = filename;
   anchor.rel = "noopener";
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
+  if (blob) {
+    setTimeout(() => URL.revokeObjectURL(href), 10_000);
+  }
 }
 
 /**
  * Full-resolution export of `[data-mockup-capture-target]` at the given
  * pixel density (`scale`) and file format. Canvas UI rounding is flattened
  * so the file is a full rectangle (screenshot/device radii are kept).
+ *
+ * Rejects when the canvas cannot be rendered, so callers can report it
+ * instead of ending up with no file and no feedback.
  */
 export async function captureMockupExport(
   el: HTMLElement,
@@ -89,8 +123,6 @@ export async function captureMockupExport(
     await flushPaint();
     void el.offsetWidth;
 
-    const { toPng, toJpeg, toCanvas } = await import("html-to-image");
-
     const baseOptions = {
       cacheBust: true as const,
       pixelRatio: scale,
@@ -109,16 +141,11 @@ export async function captureMockupExport(
       return await toPng(el, baseOptions);
     } catch (first) {
       console.warn("Export capture failed, retrying via canvas:", first);
-      try {
-        const canvas = await toCanvas(el, baseOptions);
-        if (format === "jpeg") {
-          return canvas.toDataURL("image/jpeg", JPEG_QUALITY);
-        }
-        return canvas.toDataURL("image/png");
-      } catch (second) {
-        console.error("Export capture failed:", second);
-        return "";
+      const canvas = await toCanvas(el, baseOptions);
+      if (format === "jpeg") {
+        return canvas.toDataURL("image/jpeg", JPEG_QUALITY);
       }
+      return canvas.toDataURL("image/png");
     }
   } finally {
     restoreClip();
